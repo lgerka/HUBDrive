@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e6a019",
+                        "background-light": "#ffffff",
+                        "background-dark": "#211c11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-background-dark overflow-x-hidden">
+<!-- Header -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-10">
+<div class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+<img alt="Hub Drive Logo" class="h-8 w-auto object-contain" data-alt="Логотип Hub Drive на белом фоне" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTQHNpBRP7ohr8GbMIg2mH7LRmgq-SeY2KP6ZFIG0feoN0nQ6opMumK-oMu1EFSv_f87D24uiJN2UfK1UQxhEDPvaZHpf6OuBnFVlwXPRuAORwXlLUCYtFQ7a1-JVl04sVWc6c7qr8yEtvQfGOCwLtNeAAmwIdLW6ZVh6ZKpV-v4q3zt-FlU9cRO7fUjYb5etL1UPKUeckWn7YbHHagg2yor-PKIkIPI84ExHLu5RcbqthRzuSF7OVQR9xlrMADf5Yed6SYdhAQgmP"/>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Новости</h2>
+</div>
+<!-- Categories -->
+<div class="flex gap-3 p-4 overflow-x-auto no-scrollbar bg-white dark:bg-background-dark">
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary px-5">
+<p class="text-white text-sm font-semibold leading-normal">Все</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 px-5">
+<p class="text-primary text-sm font-medium leading-normal">Новинки</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 px-5">
+<p class="text-primary text-sm font-medium leading-normal">Обзоры рынка</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 px-5">
+<p class="text-primary text-sm font-medium leading-normal">Сравнения</p>
+</div>
+</div>
+<!-- News Feed -->
+<div class="flex flex-col gap-6 p-4">
+<!-- News Card 1 -->
+<div class="flex flex-col @container border-b border-slate-50 dark:border-slate-800 pb-6 last:border-0">
+<div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-xl shadow-sm mb-4" data-alt="Новый роскошный оранжевый кроссовер в автосалоне" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDxVPiaf8C5Yngz-ZgcWcWc7GI7ndoIGg-6Lv3l1t2g8NsRKZFBC8iUzT2Zzm3GwraYQd6SeBQYM4IR7_N7vvgdaIeHzczF7IKUruaCHYxs_jLTF1DIx4dGxL1f_ljC3wJrqcqvJc43-t-Vzw3VF_NDj9J0eQilLsdXS9YOLtH5fPNzE5GRWzdT3rSZZbOx6Fpr3YAqD5J4a1KZGt1aki6okECSerYj39TuVK8kE6elvIEl7tby7UmAX0_CSTUEPOgZD2TGCCxvuWLI");'>
+</div>
+<div class="flex flex-col gap-2">
+<p class="text-primary text-xs font-bold uppercase tracking-wider">Новинки</p>
+<p class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight">Новый кроссовер Hub Drive уже в продаже</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">12 октября 2023</p>
+<p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed line-clamp-2">
+                        Узнайте все подробности о технических характеристиках и комплектациях новой модели, которая только что поступила в наши салоны.
+                    </p>
+<div class="flex justify-start mt-2">
+<a class="text-primary font-semibold text-sm flex items-center gap-1" href="#">
+                            Читать далее
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<!-- News Card 2 -->
+<div class="flex flex-col @container border-b border-slate-50 dark:border-slate-800 pb-6 last:border-0">
+<div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-xl shadow-sm mb-4" data-alt="Зарядка современного электромобиля на станции" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCp2bn-b1gDzM-4Fzwyy5hKwVjs_yTOErkybQhPBeWPB6jqHX2xELHDkin-m4q49wgOsg2Pibfqdeeg2Ap7WOj1E5zdDNwvFKRlBQjCPCLnLgyzHs0ihRnYmY8ptnaqIUaVdgqLrFWLL0E9qPbAF4DFRhEnR0JmVa6ZP48LjaRaB2nraoNsqp77DHSNhLAS7nuuH2wiLG_WKhzT25eAkNbMTmhzmeKz210ZQvrM_CvUZL5-J5Cum6bjAUXBqCkaziMmrTOpjWyqmTWZ");'>
+</div>
+<div class="flex flex-col gap-2">
+<p class="text-primary text-xs font-bold uppercase tracking-wider">Обзоры рынка</p>
+<p class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight">Обзор рынка электромобилей 2023</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">10 октября 2023</p>
+<p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed line-clamp-2">
+                        Как изменился спрос на электрокары за последний квартал и какие бренды лидируют в сегменте экологичного транспорта Hub Drive.
+                    </p>
+<div class="flex justify-start mt-2">
+<a class="text-primary font-semibold text-sm flex items-center gap-1" href="#">
+                            Читать далее
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<!-- News Card 3 -->
+<div class="flex flex-col @container border-b border-slate-50 dark:border-slate-800 pb-6 last:border-0">
+<div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-xl shadow-sm mb-4" data-alt="Два внедорожника едут по горной дороге" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDx4uQVQ3t3crzED3mQB-ek7NDikItv81kuVJ8K8-3AXKu5VvsA8RKPhCfRCyw-P6tQGLJ65mbL2qclDSQP2q3XWC8kkdkGeXd9pIqQ8taUBPwI8yYddOOI3gXhN0OlVX-1xErxNMTmsK4yx3Ak464pDvvgwnIEIRFofRJMBf6w4PCNA_sQc5W3S9EWZYbHdRjYIZjGtTnc3LrRDtAVVE03UFbBu4gKs5zDyggzSQ1jaydOCWt82l2_J-jOrVn0bDqkLrknHLnwlLrU");'>
+</div>
+<div class="flex flex-col gap-2">
+<p class="text-primary text-xs font-bold uppercase tracking-wider">Сравнения</p>
+<p class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight">Битва титанов: Сравнение топовых SUV</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">08 октября 2023</p>
+<p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed line-clamp-2">
+                        Мы сравнили два самых популярных внедорожника года по 50 различным параметрам, включая комфорт и проходимость.
+                    </p>
+<div class="flex justify-start mt-2">
+<a class="text-primary font-semibold text-sm flex items-center gap-1" href="#">
+                            Читать далее
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Spacer for bottom nav -->
+<div class="h-20 bg-white dark:bg-background-dark"></div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 flex border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md px-4 pb-6 pt-2 z-20">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-[10px] font-medium leading-normal">Главная</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<p class="text-[10px] font-medium leading-normal">Каталог</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined active-icon">newspaper</span>
+<p class="text-[10px] font-bold leading-normal">Новости</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">build</span>
+<p class="text-[10px] font-medium leading-normal">Сервис</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<p class="text-[10px] font-medium leading-normal">Профиль</p>
+</a>
+</div>
+</div>
+</body></html>

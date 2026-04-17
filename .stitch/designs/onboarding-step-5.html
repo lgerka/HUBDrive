@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBDrive Onboarding - Step 5</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#783200",
+                        "background": "#f8f9fb",
+                        "primary-fixed-dim": "#ffb690",
+                        "surface": "#f8f9fb",
+                        "on-tertiary-container": "#003554",
+                        "surface-container-low": "#f3f4f6",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#584237",
+                        "tertiary-container": "#00a2f4",
+                        "surface-container": "#edeef0",
+                        "surface-bright": "#f8f9fb",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-container-highest": "#e1e2e4",
+                        "outline": "#8c7164",
+                        "surface-variant": "#e1e2e4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#001d32",
+                        "on-secondary-fixed": "#341100",
+                        "on-secondary": "#ffffff",
+                        "primary": "#9d4300",
+                        "on-secondary-container": "#773a16",
+                        "on-primary-fixed": "#341100",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "secondary-container": "#fda77a",
+                        "on-secondary-fixed-variant": "#713612",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#e0c0b1",
+                        "inverse-surface": "#2e3132",
+                        "tertiary": "#006398",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#582200",
+                        "inverse-primary": "#ffb690",
+                        "inverse-on-surface": "#f0f1f3",
+                        "primary-fixed": "#ffdbca",
+                        "secondary": "#8f4d27",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-background": "#191c1e",
+                        "primary-container": "#f97316",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-tint": "#9d4300",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#ffdbca",
+                        "surface-dim": "#d9dadc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-noble-gradient {
+            background: linear-gradient(135deg, #9d4300 0%, #f97316 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-white overflow-hidden">
+<!-- Top Navigation Anchor -->
+<nav class="fixed top-0 z-50 w-full bg-[#f8f9fb]/80 backdrop-blur-xl flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9d4300]" data-icon="arrow_back">arrow_back</span>
+</div>
+<div class="text-[#191c1e] font-headline font-extrabold text-lg tracking-tight">HUBDrive</div>
+<div class="text-slate-500 font-body text-sm uppercase tracking-widest hover:opacity-70 transition-opacity duration-300 cursor-pointer">Skip</div>
+</nav>
+<!-- Main Canvas -->
+<main class="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-32">
+<!-- Asymmetric Hero Section -->
+<div class="w-full max-w-lg space-y-12">
+<!-- Visual Representation -->
+<div class="relative flex justify-center items-center">
+<!-- Decorative Backdrop -->
+<div class="absolute w-64 h-64 bg-primary-container/10 rounded-full blur-3xl -z-10"></div>
+<!-- Curator Card (Glassmorphism) -->
+<div class="relative w-full aspect-square max-w-[320px] rounded-[2.5rem] bg-surface-container-lowest shadow-2xl p-6 overflow-hidden">
+<img alt="" class="absolute inset-0 w-full h-full object-cover grayscale opacity-20" data-alt="abstract architectural minimalist pattern with clean lines and soft lighting on white concrete" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz4rB_D33gCTsU8FfkGg3L44rFIHqMDFECz1jUXzfe-5DcO8avhwk0WxVnzmRrF9IOhDQwEmEWHRvm9Ln3dwk9xBLPVkNP_eaGL_S_nS8sRAMWOsaBavcFDOEufTVX38iKGC2uxg8GbQbF205MaUQQlakUmKpjTDRuz6TftZHm2zLZzPB11lVgZSfEE_b8backSxdMj6ZTsl1XOjwww1B1vdxFIYKhRTIyotp_AIxZQsAwEQ2Z2PFxHG8Aff1NADyc_l3IdVafYZ7a"/>
+<div class="relative h-full flex flex-col justify-between">
+<!-- Top Header -->
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 rounded-full bg-noble-gradient flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</div>
+<div class="bg-surface-container-high px-3 py-1 rounded-full">
+<span class="text-[10px] font-headline font-bold text-primary-container uppercase tracking-wider">Online 24/7</span>
+</div>
+</div>
+<!-- Central Persona -->
+<div class="flex flex-col items-center gap-4">
+<div class="relative">
+<div class="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden">
+<img alt="" class="w-full h-full object-cover" data-alt="portrait of a professional friendly car expert in a minimalist studio setting with soft warm key light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_2udxJKJwcW4Sz9pXSqrBxw2LiLb7k4uId9ir2EORpzKk0cZ9YmoPELdJogY2ixChmK7HnICABJaXrijgWgUU0ntxn06Sc_UZ8VYInzSTJ40hd6kUCwvA6MmOhe0ZG574ur2n1XjegGFymUdITvqV2sTUfj3thSyo1pfo3jQJ3CZpq7nqeFcL6Wwn5QZoJMtJwIp3djptv4Fu27OzHHeTi5agvEh4Ar6xb-5flrJ6hJSNVZ3wjEy6QQu0l2xILbZ4WtcSlRbSWHTV"/>
+</div>
+<div class="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
+</div>
+<div class="text-center">
+<p class="font-headline font-bold text-lg text-on-surface">Alexey</p>
+<p class="font-body text-xs text-slate-500">HUBDrive Concierge</p>
+</div>
+</div>
+<!-- Quick Message Snippet -->
+<div class="bg-surface/80 backdrop-blur-md p-3 rounded-2xl border border-white/40 shadow-sm">
+<p class="text-[11px] italic text-slate-600 leading-relaxed">
+                                "Ready to help with your EV selection via Telegram..."
+                            </p>
+</div>
+</div>
+</div>
+<!-- Floating Telegram Accent -->
+<div class="absolute -bottom-4 -right-2 bg-surface-container-lowest p-4 rounded-3xl shadow-xl flex items-center gap-3 border border-surface-container">
+<div class="w-10 h-10 rounded-xl bg-[#0088cc] flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+</div>
+<div class="pr-2">
+<div class="h-1 w-12 bg-slate-200 rounded-full mb-1"></div>
+<div class="h-1 w-8 bg-slate-100 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Copy Section -->
+<div class="text-center space-y-4">
+<h1 class="font-headline font-extrabold text-3xl md:text-4xl text-on-surface tracking-tight leading-tight">
+                    Ваш персональный <span class="text-primary-container">эксперт</span>
+</h1>
+<p class="font-body text-slate-500 text-lg leading-relaxed max-w-[340px] mx-auto">
+                    Получайте консультации прямо в Telegram. Ваш менеджер всегда на связи.
+                </p>
+</div>
+</div>
+</main>
+<!-- Footer Controls -->
+<div class="fixed bottom-0 left-0 w-full px-6 pb-12 pt-8 bg-gradient-to-t from-surface via-surface to-transparent">
+<div class="max-w-lg mx-auto space-y-8">
+<!-- Progress Indicator -->
+<div class="flex gap-4 justify-center items-center">
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+<div class="h-2.5 w-8 rounded-full bg-primary transition-all duration-500 shadow-sm shadow-primary/30"></div>
+</div>
+<!-- CTA Button -->
+<button class="w-full py-5 bg-noble-gradient text-white rounded-full font-headline font-bold text-lg shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 group">
+<span>Далее</span>
+<span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform" data-icon="east">east</span>
+</button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#e6a019",
+              "background-light": "#f8f7f6",
+              "background-dark": "#211c11",
+            },
+            fontFamily: {
+              "display": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-background-dark group/design-root overflow-x-hidden max-w-2xl mx-auto shadow-sm">
+<!-- Top Bar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-primary/10">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1">Новости</h2>
+<div class="size-12 flex items-center justify-end">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">share</span>
+</div>
+</div>
+<!-- Hero Image -->
+<div class="@container">
+<div class="@[480px]:px-4 @[480px]:py-3">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-slate-200 @[480px]:rounded-lg min-h-80" data-alt="Modern orange luxury crossover SUV driving on road" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDV3viZmEG3L0A3KntzOwFul5xkANd1Jx2O75Qu1s0RVNtdeadH5cZv7ASKUgEowRzNowT1NNBeagtXaxpJXT9uRnHE2nHOp_UowbIVdYVk1dA8cgrm_ayLY8xrvKN8EygDEtKDkZWoO_j4Pb82YoEU_w91U6Nug4ScwynLsb2lF-cB1dHyJIwPGllvHrIag5bCkC7V_D9UQFX83ROBNi0-XWBzvPrjfrPGuP19tQ--VIcFQYCe4ERPGIEY1_pP8tdX1IgQwU4Umzdw");'>
+</div>
+</div>
+</div>
+<!-- Content -->
+<div class="px-4 py-6">
+<p class="text-primary text-sm font-semibold uppercase tracking-wider mb-2">Новинки</p>
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight pb-3">Новый кроссовер Hub Drive уже в продаже</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal pb-6">12 октября 2023</p>
+<div class="prose prose-slate dark:prose-invert max-w-none">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-medium leading-relaxed pb-4">
+                Встречайте долгожданную новинку этого сезона. Новый кроссовер объединяет в себе передовые технологии и непревзойденный комфорт. Плавные линии кузова и агрессивная решетка радиатора подчеркивают статус владельца.
+            </p>
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold pt-4 pb-2">Технические характеристики</h3>
+<p class="text-slate-700 dark:text-slate-300 text-base leading-relaxed pb-4">
+                Сердцем автомобиля стал инновационный гибридный двигатель мощностью 250 л.с., который обеспечивает разгон до 100 км/ч всего за 6.5 секунд. Система интеллектуального полного привода адаптируется к любым дорожным условиям в реальном времени.
+            </p>
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold pt-4 pb-2">Интерьер и комфорт</h3>
+<p class="text-slate-700 dark:text-slate-300 text-base leading-relaxed pb-4">
+                Салон выполнен из премиальных материалов с использованием натуральной кожи и вставок из матового алюминия. Панорамная крыша создает ощущение безграничного пространства.
+            </p>
+<ul class="space-y-3 pb-6">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-1">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Цифровая приборная панель 12.3 дюйма</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-1">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Адаптивный круиз-контроль с функцией Stop&amp;Go</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-1">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Премиальная аудиосистема с 12 динамиками</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-1">check_circle</span>
+<span class="text-slate-700 dark:text-slate-300">Беспроводная зарядка для смартфонов</span>
+</li>
+</ul>
+</div>
+<!-- Action Buttons -->
+<div class="mt-8 flex flex-col gap-4">
+<button class="bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined">call</span>
+                Позвонить менеджеру
+            </button>
+</div>
+<!-- Footer Link -->
+<div class="py-10 text-center">
+<a class="text-primary font-medium hover:underline inline-flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                Назад к списку новостей
+            </a>
+</div>
+</div>
+</div>
+</body></html>

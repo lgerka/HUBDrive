@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f6",
+                    "on-background": "#191c1e",
+                    "inverse-primary": "#ffb690",
+                    "surface-variant": "#e1e2e4",
+                    "on-secondary-fixed": "#341100",
+                    "secondary-fixed-dim": "#ffb690",
+                    "primary": "#9d4300",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#003554",
+                    "on-secondary-fixed-variant": "#713612",
+                    "on-surface-variant": "#584237",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#e1e2e4",
+                    "outline-variant": "#e0c0b1",
+                    "on-surface": "#191c1e",
+                    "tertiary": "#006398",
+                    "surface-tint": "#9d4300",
+                    "on-tertiary-fixed": "#001d32",
+                    "tertiary-fixed": "#cde5ff",
+                    "surface": "#f8f9fb",
+                    "secondary-fixed": "#ffdbca",
+                    "inverse-on-surface": "#f0f1f3",
+                    "on-primary-fixed": "#341100",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#edeef0",
+                    "secondary": "#8f4d27",
+                    "on-secondary-container": "#773a16",
+                    "error": "#ba1a1a",
+                    "outline": "#8c7164",
+                    "on-primary-container": "#582200",
+                    "surface-bright": "#f8f9fb",
+                    "background": "#f8f9fb",
+                    "surface-container-high": "#e7e8ea",
+                    "primary-fixed": "#ffdbca",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#00a2f4",
+                    "surface-dim": "#d9dadc",
+                    "primary-fixed-dim": "#ffb690",
+                    "primary-container": "#f97316",
+                    "on-primary-fixed-variant": "#783200",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "on-primary": "#ffffff",
+                    "secondary-container": "#fda77a",
+                    "inverse-surface": "#2e3132"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+        .glass-panel {
+            background: rgba(248, 249, 251, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="flex items-center justify-between px-6 py-4 w-full bg-[#f8f9fb] dark:bg-slate-950">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#9d4300] dark:text-[#f97316] cursor-pointer hover:opacity-80 transition-opacity active:scale-95 duration-300">arrow_back</span>
+<h1 class="font-['Manrope'] font-extrabold tracking-tighter text-[#191c1e] dark:text-slate-100 text-lg">HUBDrive</h1>
+</div>
+<button class="font-['Manrope'] tracking-[-0.02em] font-bold text-lg text-[#9d4300] dark:text-[#f97316] hover:opacity-80 transition-opacity">Skip</button>
+</header>
+<!-- Content Canvas -->
+<main class="flex-1 container mx-auto px-6 pt-8 pb-32 flex flex-col items-center justify-center">
+<!-- Asymmetric Hero Illustration Section -->
+<div class="relative w-full max-w-4xl mb-12 flex flex-col md:flex-row items-center gap-12">
+<!-- Central "Digital Curator" Interactive Grid Mockup -->
+<div class="relative w-full md:w-1/2 aspect-square group">
+<!-- Decorative Radial Blur Background -->
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl transform -scale-110"></div>
+<!-- Floating Filter UI Elements (Bento Layout) -->
+<div class="relative grid grid-cols-6 grid-rows-6 gap-4 h-full">
+<!-- Main Search Card -->
+<div class="col-span-4 row-span-3 bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] p-6 flex flex-col justify-between border border-outline-variant/10">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-primary text-3xl">pageview</span>
+<span class="text-[10px] font-label font-bold uppercase tracking-widest text-primary px-2 py-1 bg-primary/10 rounded-full">Active Scan</span>
+</div>
+<div class="space-y-2">
+<div class="h-1.5 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-3/4"></div>
+</div>
+<p class="text-[11px] font-label font-medium text-on-surface-variant">Scanning Shanghai Market...</p>
+</div>
+</div>
+<!-- Personal Match Card -->
+<div class="col-span-2 row-span-4 col-start-5 bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] p-4 flex flex-col items-center justify-center text-center gap-3 border border-outline-variant/10">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<p class="text-xs font-bold leading-tight">98%<br/><span class="text-[10px] font-normal text-on-surface-variant">Match</span></p>
+</div>
+<!-- Spec Filter Card -->
+<div class="col-span-3 row-span-3 row-start-4 bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] p-5 border border-outline-variant/10">
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Range</span>
+<span class="text-[10px] font-bold text-primary">600+ km</span>
+</div>
+<div class="h-1 bg-surface-container-low rounded-full relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-white"></div>
+</div>
+<div class="pt-2 flex gap-1">
+<div class="h-4 w-1/3 bg-primary/5 rounded"></div>
+<div class="h-4 w-1/2 bg-primary/20 rounded"></div>
+</div>
+</div>
+</div>
+<!-- Price Pulse Card -->
+<div class="col-span-3 row-span-2 col-start-4 row-start-5 bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] p-4 border border-outline-variant/10 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">trending_down</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-label font-medium text-on-surface-variant uppercase">Best Price</span>
+<span class="text-xs font-bold">$34,200</span>
+</div>
+</div>
+</div>
+<!-- Abstract Vehicle Silhouette Background -->
+<div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+<img alt="" class="w-96 h-96 object-contain" data-alt="minimalist architectural silhouette of a high-end electric luxury sedan with soft elegant curves and premium highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvnyGwZDAhhJKQ0zyEtjabpQcGhLB-rcQsSQCUHqwJxVhe9J271HlaCgVsVe84KDM3pvjq25DMPg2a6DDb4DTb8lAqRQ-iuLOoq3T7QUfGhOQkj70Exxgyq-UgQZwK-CSsw2kJfnESNaAuv8bqeKHxR7CkXz7dYlTw1e6jD1ZMBp8uVrv8eDQBfklLmRHKwZupt1tk0v--8aW6WC59eD20Aidur2C6RAQSV9ZbOISL24Y-QErcoMSDaacj15hDXYqK3l8ZuCXHmD6T"/>
+</div>
+</div>
+<!-- Text Content -->
+<div class="w-full md:w-1/2 space-y-6">
+<div class="space-y-2">
+<span class="text-[11px] font-label font-bold text-primary uppercase tracking-[0.2em]">Step 02 / 03</span>
+<h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface tracking-tight leading-[1.1]">
+                        Умные фильтры и персональный подбор
+                    </h2>
+</div>
+<p class="text-lg text-on-surface-variant leading-relaxed font-body">
+                    Настройте поиск под свои задачи. Мы анализируем рынок Китая в реальном времени, чтобы найти именно ваш электромобиль по лучшей цене.
+                </p>
+<!-- Spec-Strip Signature Component -->
+<div class="flex items-center gap-4 py-4 border-y border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-[11px] font-label font-bold uppercase tracking-wider text-on-surface-variant">Real-time Data</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-primary-container"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-[11px] font-label font-bold uppercase tracking-wider text-on-surface-variant">AI Matching</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Progress Indicator -->
+<div class="flex gap-3 mb-12">
+<div class="h-1.5 w-12 bg-primary/10 rounded-full overflow-hidden"></div>
+<div class="h-1.5 w-12 bg-primary-container rounded-full"></div>
+<div class="h-1.5 w-12 bg-primary/10 rounded-full"></div>
+</div>
+</main>
+<!-- Bottom Navigation Area (Fixed for Mobile) -->
+<div class="fixed bottom-0 left-0 w-full px-6 pb-12 pt-6 glass-panel z-40">
+<div class="container mx-auto max-w-md">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-5 rounded-full font-headline font-bold text-lg shadow-[0px_12px_32px_rgba(157,67,0,0.2)] hover:translate-y-[-2px] active:scale-95 transition-all duration-300">
+                Далее
+            </button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBDrive Onboarding - Step 4</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#783200",
+                        "background": "#f8f9fb",
+                        "primary-fixed-dim": "#ffb690",
+                        "surface": "#f8f9fb",
+                        "on-tertiary-container": "#003554",
+                        "surface-container-low": "#f3f4f6",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#584237",
+                        "tertiary-container": "#00a2f4",
+                        "surface-container": "#edeef0",
+                        "surface-bright": "#f8f9fb",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-container-highest": "#e1e2e4",
+                        "outline": "#8c7164",
+                        "surface-variant": "#e1e2e4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#001d32",
+                        "on-secondary-fixed": "#341100",
+                        "on-secondary": "#ffffff",
+                        "primary": "#9d4300",
+                        "on-secondary-container": "#773a16",
+                        "on-primary-fixed": "#341100",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "secondary-container": "#fda77a",
+                        "on-secondary-fixed-variant": "#713612",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#e0c0b1",
+                        "inverse-surface": "#2e3132",
+                        "tertiary": "#006398",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#582200",
+                        "inverse-primary": "#ffb690",
+                        "inverse-on-surface": "#f0f1f3",
+                        "primary-fixed": "#ffdbca",
+                        "secondary": "#8f4d27",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-background": "#191c1e",
+                        "primary-container": "#f97316",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-tint": "#9d4300",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#ffdbca",
+                        "surface-dim": "#d9dadc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- Top Navigation Shell -->
+<nav class="bg-[#f8f9fb]/80 backdrop-blur-xl fixed w-full top-0 z-50 flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="text-[#191c1e] font-headline font-extrabold text-lg tracking-tight uppercase">HUBDrive</span>
+</div>
+<button class="text-slate-500 font-body text-sm uppercase tracking-widest hover:opacity-70 transition-opacity duration-300">
+            Skip
+        </button>
+</nav>
+<main class="min-h-screen flex flex-col pt-20 pb-24 px-6 md:px-12 max-w-4xl mx-auto">
+<!-- Hero Visualization: The Tracking Map Card -->
+<section class="flex-grow flex flex-col justify-center gap-12 mt-4">
+<div class="relative w-full aspect-[4/3] rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+<!-- Decorative Map Background -->
+<div class="absolute inset-0 opacity-20" data-alt="abstract stylized global map with geometric lines and soft light reflecting luxury technology aesthetic" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDCqT5qlo37WSgb-LX7mj1KL3I5o5fPh94oVNueVfm_hjU7zLYOWyowU16A4q4y-55aM9V013kEizn5po-gEnW7OdviO7dhFELUPRoPSBcDOYKfKgPnCoXhcguUA0pGV8LEJPc1_HKSQfN4YHFfBueth_ttLZ2Fk89-CA8MNIopOnKWrG--g8V_u6TQsZPYdVyVWKnNOrkzudQkTCvyNhakPBGA-VIS9_n6VC8px1nCVheUvOg7W_tLp9gHhV5A6zw3fBLFmz6AZ1XL'); background-size: cover; background-position: center;">
+</div>
+<!-- Floating Tracking Interface -->
+<div class="absolute inset-0 p-8 flex flex-col justify-between">
+<!-- Progress Stats Strip -->
+<div class="flex justify-between items-start">
+<div class="bg-surface-container-lowest/90 backdrop-blur p-4 rounded-xl shadow-sm">
+<span class="block font-label text-[0.6875rem] text-primary uppercase tracking-widest mb-1">Status</span>
+<span class="block font-headline font-bold text-on-surface">In Transit</span>
+</div>
+<div class="bg-surface-container-lowest/90 backdrop-blur p-4 rounded-xl shadow-sm text-right">
+<span class="block font-label text-[0.6875rem] text-primary uppercase tracking-widest mb-1">ETA</span>
+<span class="block font-headline font-bold text-on-surface">Nov 24</span>
+</div>
+</div>
+<!-- Visual Logistics Line -->
+<div class="relative py-12">
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-outline-variant/30 -translate-y-1/2"></div>
+<div class="absolute top-1/2 left-0 w-[75%] h-[2px] bg-gradient-to-r from-primary to-primary-container -translate-y-1/2"></div>
+<div class="relative flex justify-between">
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest border-2 border-primary-container flex items-center justify-center z-10 shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">gavel</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold">Auction</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest border-2 border-primary-container flex items-center justify-center z-10 shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">directions_boat</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold">Shipping</span>
+</div>
+<!-- Step 3 (Active) -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-12 h-12 -mt-1 rounded-full bg-primary-container flex items-center justify-center z-10 shadow-lg ring-4 ring-primary-container/20">
+<span class="material-symbols-outlined text-on-primary text-2xl" style="font-variation-settings: 'FILL' 1;">shield_with_house</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-tighter text-primary font-extrabold">Customs</span>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest border border-outline-variant/50 flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-slate-400 text-xl">home_pin</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-tighter text-slate-400 font-bold">Delivery</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Hierarchy -->
+<div class="space-y-6 text-center md:text-left">
+<h1 class="font-headline text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface leading-tight">
+                    Отслеживайте <br/>
+<span class="text-primary-container">каждый этап</span>
+</h1>
+<p class="font-body text-lg text-on-surface-variant leading-relaxed max-w-xl mx-auto md:mx-0">
+                    Мы показываем весь путь вашего авто: от выкупа на аукционе до прохождения таможни. Полная прозрачность в реальном времени.
+                </p>
+</div>
+</section>
+<!-- Footer Actions -->
+<footer class="mt-auto pt-8 flex flex-col gap-10">
+<!-- Progress Indicator -->
+<div class="flex justify-center md:justify-start gap-3">
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+<div class="h-1.5 w-8 rounded-full bg-primary-container transition-all duration-500"></div>
+</div>
+<div class="flex flex-col sm:flex-row gap-4 items-center">
+<button class="w-full sm:w-auto px-12 py-5 bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold rounded-full shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all duration-300 uppercase tracking-wider text-sm">
+                    Далее
+                </button>
+<button class="w-full sm:w-auto px-8 py-5 text-on-surface-variant font-body font-bold hover:text-primary transition-colors duration-300 uppercase tracking-widest text-xs">
+                    Пропустить всё
+                </button>
+</div>
+</footer>
+</main>
+<!-- Bottom Decorative Nav Bar -->
+<div class="fixed bottom-12 w-full flex justify-center z-50 pointer-events-none">
+<div class="flex gap-8 justify-center items-center bg-surface-container-lowest/80 backdrop-blur-md px-10 py-4 rounded-full shadow-sm pointer-events-auto">
+<span class="material-symbols-outlined text-slate-300 hover:text-[#f97316] transition-all duration-500 cursor-pointer">horizontal_rule</span>
+<span class="material-symbols-outlined text-slate-300 hover:text-[#f97316] transition-all duration-500 cursor-pointer">horizontal_rule</span>
+<span class="material-symbols-outlined text-[#9d4300] scale-150 transition-all duration-500 cursor-pointer">horizontal_rule</span>
+</div>
+</div>
+</body></html>

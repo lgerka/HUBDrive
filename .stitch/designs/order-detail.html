@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Детали сделки - HUBDrive</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#d9dadc",
+                    "surface-container": "#edeef0",
+                    "on-tertiary-fixed": "#001d32",
+                    "surface-container-low": "#f3f4f6",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e7e8ea",
+                    "secondary-fixed-dim": "#ffb690",
+                    "tertiary-container": "#00a2f4",
+                    "surface-container-highest": "#e1e2e4",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e1e2e4",
+                    "secondary-container": "#fda77a",
+                    "tertiary": "#006398",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2e3132",
+                    "background": "#f8f9fb",
+                    "inverse-on-surface": "#f0f1f3",
+                    "secondary": "#8f4d27",
+                    "on-secondary-fixed": "#341100",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "on-background": "#191c1e",
+                    "on-tertiary-container": "#003554",
+                    "tertiary-fixed": "#cde5ff",
+                    "on-surface": "#191c1e",
+                    "on-primary-fixed": "#341100",
+                    "on-primary-container": "#582200",
+                    "primary": "#9d4300",
+                    "surface-tint": "#9d4300",
+                    "inverse-primary": "#ffb690",
+                    "on-secondary-container": "#773a16",
+                    "primary-container": "#f97316",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "outline": "#8c7164",
+                    "on-surface-variant": "#584237",
+                    "secondary-fixed": "#ffdbca",
+                    "primary-fixed-dim": "#ffb690",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#ffdbca",
+                    "on-primary-fixed-variant": "#783200",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#713612",
+                    "surface-bright": "#f8f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#e0c0b1",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f8f9fb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1rem",
+                    "3xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen pb-32">
+<!-- TopAppBar Section -->
+<header class="bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl docked full-width top-0 sticky z-40 shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500 cursor-pointer active:scale-95 transition-transform duration-200">arrow_back</span>
+<h1 class="text-lg font-bold font-manrope text-slate-900 dark:text-white">Детали сделки</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Close up portrait of a professional man in a clean studio setting with soft natural lighting and minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEoJ0J_MgOSjsRsZA1oYNX8_kwvTovhMs3QX1XuniX1VfEk3wiSUUKdkIb4do_eOaK23vaKgWLvaq4J36t5q9bIz42jbn5KsoFAanucWMLsReR_ZVamrxmbOnmNYr1JQquNcxmxgq4_PWq97VUdCuUrdBctc60odATzRaMH4ZyrpBwURi3v_n21JqvfkRrAttCu5NOaIWw4vJE_STKbElfQw9S8sgUMHanohXaybWCQ9e3ytJRIiM2YDNI1MSUU82lUwASbpp4GyMc"/>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 h-[1px] w-full"></div>
+</header>
+<main class="max-w-md mx-auto px-6 pt-6 space-y-8">
+<!-- Vehicle Hero Card -->
+<section class="relative overflow-hidden bg-surface-container-lowest rounded-3xl p-6 transition-all hover:translate-y-[-2px]">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="font-manrope text-2xl font-extrabold tracking-tight text-slate-900">Zeekr 001 FR</h2>
+<p class="text-sm font-medium text-slate-500 font-body uppercase tracking-wider">VIN: ZEKR88203341LX</p>
+</div>
+<div class="bg-primary/10 px-3 py-1 rounded-full">
+<span class="text-xs font-bold text-primary uppercase tracking-tighter">В пути</span>
+</div>
+</div>
+<div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-6 bg-surface-container-low group">
+<img alt="Premium Electric Vehicle" class="w-full h-full object-cover" data-alt="Sleek modern high-end electric performance sedan in a minimalist white studio with dramatic noble orange accent lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpmo-0Kzwp029OXvY6Sx-CEmfjlMsGQrtopURfB8TfLdDbNHCX8RDASY-a7guB9jtBILVycyWDiZJ2jmWMVJ3QuZbueDKwnECngA9rbEgnoAPYSpycPtOpZx6tudyJiQFlf1MSLhsKtqtKAMwUDASmvTqX15j8Nhs2-IyoPBLsxSB39_1Dvo8goxLO7VT076XNWx7EVcRSfKKi1rGsudc-YkqGWO8PgSsRzwerBceTPOexwLnmmg-IB-vu6OEAhiHcKPAyIv4fTGWe"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Сумма сделки</span>
+<p class="font-manrope text-xl font-extrabold text-slate-900">$102,400</p>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-container text-white px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">support_agent</span>
+<span class="text-sm font-semibold">Связаться</span>
+</button>
+</div>
+</section>
+<!-- Interactive Timeline (Visual Log) -->
+<section class="space-y-6">
+<h3 class="font-manrope text-lg font-bold text-slate-900 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">route</span>
+                Трекинг заказа
+            </h3>
+<div class="relative space-y-0 pl-2">
+<!-- Vertical Line -->
+<div class="absolute left-[17px] top-4 bottom-4 w-[2px] bg-slate-200"></div>
+<!-- Stage 1: Done -->
+<div class="relative flex items-start gap-5 pb-8 group">
+<div class="relative z-10 w-8 h-8 rounded-full bg-primary flex items-center justify-center border-4 border-background">
+<span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="pt-1">
+<p class="font-semibold text-slate-900">Договор подписан</p>
+<p class="text-xs text-slate-500 font-medium mt-0.5">12 Мая 2024, 14:20</p>
+</div>
+</div>
+<!-- Stage 2: Done -->
+<div class="relative flex items-start gap-5 pb-8 group">
+<div class="relative z-10 w-8 h-8 rounded-full bg-primary flex items-center justify-center border-4 border-background">
+<span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="pt-1">
+<p class="font-semibold text-slate-900">Авто выкуплено в Китае</p>
+<p class="text-xs text-slate-500 font-medium mt-0.5">18 Мая 2024, 10:15</p>
+</div>
+</div>
+<!-- Stage 3: Current -->
+<div class="relative flex items-start gap-5 pb-8 group">
+<div class="relative z-10 w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-primary ring-4 ring-primary/10">
+<div class="w-2.5 h-2.5 bg-primary rounded-full animate-pulse"></div>
+</div>
+<div class="pt-1">
+<p class="font-bold text-primary">На таможне</p>
+<p class="text-xs text-primary/70 font-medium mt-0.5">В процессе обработки</p>
+</div>
+<div class="ml-auto">
+<span class="bg-surface-container-high px-2 py-1 rounded text-[10px] font-bold text-slate-600">LIVE</span>
+</div>
+</div>
+<!-- Stage 4: Upcoming -->
+<div class="relative flex items-start gap-5 pb-8 group">
+<div class="relative z-10 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border-4 border-background">
+<span class="material-symbols-outlined text-slate-400 text-[16px]">local_shipping</span>
+</div>
+<div class="pt-1 opacity-50">
+<p class="font-semibold text-slate-900">В пути в Казахстан</p>
+<p class="text-xs text-slate-500 font-medium mt-0.5">Ожидаемая дата: 15 Июня</p>
+</div>
+</div>
+<!-- Stage 5: Upcoming -->
+<div class="relative flex items-start gap-5 group">
+<div class="relative z-10 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border-4 border-background">
+<span class="material-symbols-outlined text-slate-400 text-[16px]">inventory_2</span>
+</div>
+<div class="pt-1 opacity-50">
+<p class="font-semibold text-slate-900">Готово к выдаче</p>
+<p class="text-xs text-slate-500 font-medium mt-0.5">Алматы, HUB Center</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Documents Section -->
+<section class="space-y-4">
+<h3 class="font-manrope text-lg font-bold text-slate-900">Документы</h3>
+<div class="grid grid-cols-1 gap-3">
+<!-- Doc 1 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900">Договор купли-продажи</p>
+<p class="text-[10px] text-slate-400 uppercase font-medium">PDF • 2.4 MB</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">download</span>
+</div>
+<!-- Doc 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900">Инвойс на оплату</p>
+<p class="text-[10px] text-slate-400 uppercase font-medium">PDF • 1.1 MB</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">download</span>
+</div>
+</div>
+</section>
+<!-- Curator Card -->
+<section class="bg-primary/5 rounded-3xl p-6 border border-primary/10">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full overflow-hidden">
+<img alt="Curator profile" class="w-full h-full object-cover" data-alt="Professional consultant man with warm smile in business casual attire with bright office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoSnR3EWd8BzXkkx8QvXoMr0KKcVHIBLzrOSpjBAIkcdTeVb8yHetds177mKm8R9OgRCVQlkY2M7i0M6_RJTgqkFCiBJnm6-w4k6X58qjmWBxRmy5U5hz6z7XW3muPNuuUAlt9nw1pbEq2fRG1OjhI2foVwlNgscXumEyw8H_Il8jwtncIyG4TAAnTEdCwj7fOaMqAdpxK-phV2c-74if2jNO4ZS93NZoRbnevzO_x2Kp1nVCyfPlqTYdu5pl_bQg-M3RqeQ-A2t4H"/>
+</div>
+<div>
+<p class="text-[10px] font-bold text-primary uppercase tracking-widest">Ваш куратор</p>
+<p class="font-manrope font-bold text-slate-900">Александр Волков</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 leading-relaxed mb-6">
+                Привет! Я сопровождаю вашу сделку. Если у вас есть вопросы по доставке или таможенному оформлению — пишите, я на связи.
+            </p>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 bg-white text-slate-900 py-3 rounded-2xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+                    Написать
+                </button>
+<button class="flex items-center justify-center gap-2 bg-primary text-white py-3 rounded-2xl text-sm font-bold shadow-md shadow-primary/20 transition-colors">
+<span class="material-symbols-outlined text-lg">call</span>
+                    Позвонить
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Section -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-t-3xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Главная</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Каталог</span>
+</a>
+<a class="flex flex-col items-center justify-center text-orange-600 dark:text-orange-500 scale-110 transition-all tap-highlight-transparent active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Сделки</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Профиль</span>
+</a>
+</nav>
+</body></html>

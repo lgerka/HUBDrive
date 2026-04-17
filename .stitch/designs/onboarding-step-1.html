@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBTrade Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#ffdbca",
+                        "on-surface-variant": "#584237",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e2e4",
+                        "background": "#f8f9fb",
+                        "surface-container-high": "#e7e8ea",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d9dadc",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#9d4300",
+                        "surface-bright": "#f8f9fb",
+                        "on-secondary-fixed": "#341100",
+                        "surface-variant": "#e1e2e4",
+                        "primary-container": "#f97316",
+                        "on-primary-fixed": "#341100",
+                        "secondary": "#8f4d27",
+                        "on-primary-fixed-variant": "#783200",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#582200",
+                        "on-secondary-container": "#773a16",
+                        "outline": "#8c7164",
+                        "surface-container": "#edeef0",
+                        "tertiary-container": "#00a2f4",
+                        "primary-fixed-dim": "#ffb690",
+                        "outline-variant": "#e0c0b1",
+                        "inverse-on-surface": "#f0f1f3",
+                        "on-tertiary-container": "#003554",
+                        "surface": "#f8f9fb",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#9d4300",
+                        "secondary-fixed": "#ffdbca",
+                        "on-secondary-fixed-variant": "#713612",
+                        "surface-container-low": "#f3f4f6",
+                        "on-tertiary-fixed": "#001d32",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "tertiary": "#006398",
+                        "inverse-primary": "#ffb690",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#cde5ff",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "secondary-container": "#fda77a",
+                        "on-background": "#191c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-gradient {
+            background: linear-gradient(180deg, rgba(248, 249, 251, 0) 0%, rgba(248, 249, 251, 0.9) 70%, rgba(248, 249, 251, 1) 100%);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #9d4300 0%, #f97316 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar Shell (Suppressed for Onboarding as per "Semantic Shell" mandate, but included as visual anchor as it's the 1st screen) -->
+<header class="bg-[#f8f9fb] dark:bg-slate-950/80 backdrop-blur-md fixed top-0 z-50 flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9d4300] dark:text-[#f97316]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="text-xl font-extrabold tracking-tighter text-[#9d4300] dark:text-[#f97316] font-['Manrope']">HUBTrade</span>
+</div>
+<button class="font-['Manrope'] font-bold tracking-tight text-slate-400 hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200">Skip</button>
+</header>
+<!-- Main Content: Onboarding Canvas -->
+<main class="flex-grow flex flex-col relative pt-16">
+<!-- Hero Image Section (Asymmetric Editorial Style) -->
+<div class="absolute inset-0 z-0 h-[618px]">
+<div class="relative w-full h-full overflow-hidden">
+<img class="w-full h-full object-cover scale-110" data-alt="Sleek white futuristic electric car with minimalist design parked in a high-end bright showroom with soft natural sunlight and glass walls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7KjFzPbRm68Q-pUXfOg5QrVlcESBEnEYYx5ewMvA3f88ysCED3JMVQ2-onOaOWBdTTxM6iVCnjURk3_0S64v5_ZoLgPmVDDnmliYLdnSyQB9PHzCxEbFwjXixpsmLq-08J497MIkhtQdhUFQAqOWlzAkkKiH5hx2tO-glUrNGn8bjVRI--3GRQTduS6M7s72LklnVCgP3vCt6Hn7fj7G4VHCcsN7SzLxLuzjpT8dAhgJguaKCbGs3W3j-6SwYXDT6E2I7NMQeEoLH"/>
+<div class="absolute inset-0 hero-gradient"></div>
+</div>
+</div>
+<!-- Content Overlay -->
+<div class="relative z-10 flex flex-col justify-end flex-grow px-8 pb-32">
+<div class="max-w-2xl">
+<!-- Progress Indicator -->
+<div class="flex gap-2 mb-8 items-center">
+<div class="h-1.5 w-12 rounded-full bg-primary"></div>
+<div class="h-1.5 w-4 rounded-full bg-surface-container-highest"></div>
+<div class="h-1.5 w-4 rounded-full bg-surface-container-highest"></div>
+</div>
+<!-- Editorial Headlines -->
+<h1 class="font-headline text-[3.5rem] leading-[1.1] font-extrabold tracking-tight text-on-surface mb-6">
+                    Мир премиальных <br/>
+<span class="text-primary italic">электромобилей</span>
+</h1>
+<p class="text-lg text-on-surface-variant font-body max-w-md leading-relaxed mb-12">
+                    Откройте для себя лучшие модели из Китая с полной поддержкой на каждом этапе — от выбора до доставки.
+                </p>
+<!-- Action Section -->
+<div class="flex items-center justify-between gap-6">
+<button class="btn-gradient text-on-primary font-headline font-bold text-lg px-12 py-5 rounded-full shadow-lg flex items-center gap-3 active:scale-95 transition-all duration-300">
+                        Далее
+                        <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+<!-- Asymmetric Detail: The "Spec-Strip" style footer element -->
+<div class="hidden md:flex items-center gap-4 text-xs font-label tracking-widest text-primary uppercase">
+<span>Luxury</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>Innovation</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>Direct Import</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Footer Detail: Tonal Shift Section -->
+<div class="h-20 bg-surface-container-low flex items-center justify-center px-8">
+<div class="flex items-center gap-2 opacity-40">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-[10px] uppercase tracking-widest font-label font-medium">Official HUBTrade Partner Ecosystem</span>
+</div>
+</div>
+</body></html>

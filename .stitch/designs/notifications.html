@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Уведомления — HUBTrade</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "inverse-primary": "#ffb690",
+              "surface-container": "#edeef0",
+              "on-surface": "#191c1e",
+              "primary-fixed-dim": "#ffb690",
+              "tertiary-container": "#00a2f4",
+              "secondary-container": "#fda77a",
+              "primary": "#9d4300",
+              "on-secondary-fixed-variant": "#713612",
+              "on-primary-fixed-variant": "#783200",
+              "outline-variant": "#e0c0b1",
+              "on-surface-variant": "#584237",
+              "on-tertiary-fixed-variant": "#004b74",
+              "on-tertiary-container": "#003554",
+              "on-primary-fixed": "#341100",
+              "surface-bright": "#f8f9fb",
+              "tertiary-fixed-dim": "#93ccff",
+              "surface": "#f8f9fb",
+              "primary-fixed": "#ffdbca",
+              "tertiary-fixed": "#cde5ff",
+              "surface-container-highest": "#e1e2e4",
+              "inverse-surface": "#2e3132",
+              "on-secondary-fixed": "#341100",
+              "secondary": "#8f4d27",
+              "primary-container": "#f97316",
+              "error-container": "#ffdad6",
+              "on-primary": "#ffffff",
+              "surface-dim": "#d9dadc",
+              "on-tertiary-fixed": "#001d32",
+              "on-background": "#191c1e",
+              "surface-container-low": "#f3f4f6",
+              "error": "#ba1a1a",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffdbca",
+              "on-tertiary": "#ffffff",
+              "inverse-on-surface": "#f0f1f3",
+              "on-primary-container": "#582200",
+              "secondary-fixed-dim": "#ffb690",
+              "surface-variant": "#e1e2e4",
+              "surface-tint": "#9d4300",
+              "outline": "#8c7164",
+              "background": "#f8f9fb",
+              "on-secondary-container": "#773a16",
+              "tertiary": "#006398",
+              "surface-container-high": "#e7e8ea"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#f8f9fb] dark:bg-gray-950">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[#9d4300] dark:text-orange-500" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-manrope font-bold text-lg tracking-tight text-on-surface">Уведомления</h1>
+</div>
+<button class="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[#9d4300] dark:text-orange-500" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<div class="bg-[#f3f4f6] dark:bg-gray-900 h-[1px] w-full"></div>
+</header>
+<main class="max-w-xl mx-auto px-6 pt-6 pb-32 space-y-8">
+<!-- Today Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-sm uppercase tracking-widest text-on-surface-variant/70">Сегодня</h2>
+<span class="h-px flex-1 bg-surface-container-high ml-4"></span>
+</div>
+<div class="space-y-3">
+<!-- Price Drop Notification -->
+<div class="group relative bg-surface-container-lowest p-5 rounded-xl transition-all duration-300 hover:shadow-[0px_12px_32px_rgba(25,28,30,0.04)] ring-1 ring-primary/5">
+<div class="flex gap-4">
+<div class="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-surface-container">
+<img alt="Zeekr 001" class="h-full w-full object-cover" data-alt="sleek modern white electric sports sedan Zeekr 001 parked in a minimalist showroom with soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADbhAgPpXaY_d8pTecfRWd8XvXpCR1ktK_BbaTBV16ZFyJ02DjYoV2dxu7zwbGRqpFtAeH6n2eQWxlP0vNptFFh7WWS64mzEtHLkmB_FuYPeprlLlooykuBoK8TYabAQ-FNbMSMd64SoAZr0ZWRQxoBPkCWoPezY2Em4BWBZyjNvnz5nM8pszfZl4YQm77dnDQbRWZjiCw41MIGdiH1kZJcX6EqR8Kl4K-obXQ-LOfIZCizU1ouhrpreVec6PkpqzqLjleBLUp5seO"/>
+<div class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary-container"></div>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="trending_down">trending_down</span>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">10:42</span>
+</div>
+<p class="font-body text-sm leading-relaxed">
+<span class="font-bold">Цена снижена на Zeekr 001!</span><br/>
+                                Теперь <span class="text-primary font-bold">14 900 000 ₸</span>
+</p>
+</div>
+</div>
+</div>
+<!-- New Arrival -->
+<div class="group relative bg-surface-container p-5 rounded-xl transition-all duration-300 ring-1 ring-black/5">
+<div class="flex gap-4">
+<div class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-container-lowest text-primary">
+<span class="material-symbols-outlined" data-icon="add_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-headline font-bold text-[11px] text-primary uppercase tracking-widest">Новое поступление</span>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">08:15</span>
+</div>
+<p class="font-body text-sm leading-relaxed">
+                                По вашему фильтру: <span class="font-semibold text-on-surface">Li Auto L9 Max</span>
+</p>
+<div class="pt-2 flex gap-2">
+<button class="px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary text-on-primary transition-transform active:scale-95">Смотреть</button>
+<button class="px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-transparent ring-1 ring-outline-variant/20 text-on-surface-variant transition-transform active:scale-95">Скрыть</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Earlier Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-sm uppercase tracking-widest text-on-surface-variant/70">Ранее</h2>
+<span class="h-px flex-1 bg-surface-container-high ml-4"></span>
+</div>
+<div class="space-y-3">
+<!-- System Notification -->
+<div class="group relative bg-surface-container-lowest/50 p-5 rounded-xl border border-transparent hover:border-outline-variant/10 transition-all duration-300 opacity-80 hover:opacity-100">
+<div class="flex gap-4">
+<div class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full bg-green-50 text-green-600">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-headline font-bold text-[11px] text-on-surface-variant uppercase tracking-widest text-opacity-60">Системное</span>
+<span class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-wider">Вчера</span>
+</div>
+<p class="font-body text-sm leading-relaxed text-on-surface-variant">
+                                Ваш профиль успешно подтвержден. Теперь вам доступны все функции торгов.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Another Notification (Placeholder for depth) -->
+<div class="group relative bg-surface-container-lowest/50 p-5 rounded-xl border border-transparent opacity-80">
+<div class="flex gap-4">
+<div class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full bg-blue-50 text-blue-600">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<span class="font-headline font-bold text-[11px] text-on-surface-variant uppercase tracking-widest text-opacity-60">Информация</span>
+<span class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-wider">2 дня назад</span>
+</div>
+<p class="font-body text-sm leading-relaxed text-on-surface-variant">
+                                Обновите приложение, чтобы получить доступ к новым фильтрам подбора.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[1.5rem] border-t border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md shadow-[0px_-4px_20px_rgba(25,28,30,0.04)]">
+<div class="flex justify-around items-center px-4 pt-3 pb-6 w-full">
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 hover:text-[#f97316] transition-colors active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="directions_car">directions_car</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest">Showroom</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 hover:text-[#f97316] transition-colors active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="favorite">favorite</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest">Favorites</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#9d4300] dark:text-orange-500 scale-110 transition-transform active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="notifications" data-weight="fill" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest">Notifications</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 hover:text-[#f97316] transition-colors active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

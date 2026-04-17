@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#f0f1f3",
+              "primary-container": "#f97316",
+              "secondary": "#8f4d27",
+              "on-secondary-container": "#773a16",
+              "tertiary-container": "#00a2f4",
+              "on-tertiary-fixed": "#001d32",
+              "surface-tint": "#9d4300",
+              "surface-container-low": "#f3f4f6",
+              "primary": "#9d4300",
+              "secondary-fixed-dim": "#ffb690",
+              "secondary-container": "#fda77a",
+              "on-surface": "#191c1e",
+              "on-secondary-fixed-variant": "#713612",
+              "error": "#ba1a1a",
+              "surface-container": "#edeef0",
+              "on-tertiary-container": "#003554",
+              "tertiary": "#006398",
+              "secondary-fixed": "#ffdbca",
+              "tertiary-fixed-dim": "#93ccff",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#584237",
+              "surface-dim": "#d9dadc",
+              "primary-fixed-dim": "#ffb690",
+              "background": "#f8f9fb",
+              "surface-container-high": "#e7e8ea",
+              "surface-variant": "#e1e2e4",
+              "tertiary-fixed": "#cde5ff",
+              "on-primary-fixed": "#341100",
+              "on-tertiary-fixed-variant": "#004b74",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "outline-variant": "#e0c0b1",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed-variant": "#783200",
+              "surface-bright": "#f8f9fb",
+              "surface-container-highest": "#e1e2e4",
+              "surface": "#f8f9fb",
+              "primary-fixed": "#ffdbca",
+              "inverse-surface": "#2e3132",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "on-background": "#191c1e",
+              "on-secondary-fixed": "#341100",
+              "inverse-primary": "#ffb690",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-container": "#582200",
+              "outline": "#8c7164"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "3xl": "2.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-[#f8f9fb] dark:bg-slate-950 flex items-center justify-between px-6 py-4">
+<button class="active:scale-95 transition-transform duration-200 text-[#9d4300] dark:text-orange-500 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Manrope'] font-bold text-lg tracking-tight text-on-surface">О нас</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-12">
+<!-- Hero Section -->
+<section class="space-y-4">
+<h2 class="font-headline font-extrabold text-5xl tracking-tighter text-primary">HUBDrive</h2>
+<p class="text-on-surface-variant font-body text-lg leading-relaxed max-w-md">
+                Ваш надежный партнер в мире премиальных электромобилей из Китая
+            </p>
+</section>
+<!-- Facts Bento Grid -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] flex flex-col justify-between aspect-square">
+<span class="text-primary font-headline font-bold text-3xl">5+</span>
+<span class="text-on-surface-variant text-[11px] font-label font-medium uppercase tracking-widest">лет на рынке</span>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] flex flex-col justify-between aspect-square">
+<span class="text-primary font-headline font-bold text-3xl">1000+</span>
+<span class="text-on-surface-variant text-[11px] font-label font-medium uppercase tracking-widest">машин в наличии</span>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] flex flex-col justify-between aspect-square">
+<span class="text-primary font-headline font-bold text-3xl">2 года</span>
+<span class="text-on-surface-variant text-[11px] font-label font-medium uppercase tracking-widest">Гарантия</span>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] flex flex-col justify-between aspect-square">
+<span class="text-primary font-headline font-bold text-3xl">14 дн</span>
+<span class="text-on-surface-variant text-[11px] font-label font-medium uppercase tracking-widest">Доставка от</span>
+</div>
+</section>
+<!-- Showroom Image -->
+<section>
+<div class="relative w-full aspect-[16/9] rounded-3xl overflow-hidden shadow-xl">
+<img class="w-full h-full object-cover" data-alt="Modern minimalist electric vehicle showroom with sleek white floors, panoramic glass windows, and premium EVs under soft architectural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAz0PxztaJUAQX9Syf7LjYjEUqLmLw486n7Ij_lXd1xZ__JdTy3LJ9kaJFTZHSneBCA97jH-MTIOboCKBbt3MtN4sRdOmTwAVHw62CXqfuemPm709nh08WmrTlXUBJ1Kl5D0YWoL8_mbhin8kGWw2YLVmaR4Rob7KmRpP77gBwxUvhGKEUNz8WhMCnvRgKkXZCecxR9UXq2gwkNT-ZZqaT5Bn50BE9oblu03GGVuHMZo8NBC-wShjSLBN4ZezAe1m8qaDzogAZYgfkn"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/20 to-transparent"></div>
+</div>
+</section>
+<!-- Advantages Section -->
+<section class="space-y-8">
+<h3 class="font-headline font-bold text-2xl text-on-surface">Наши преимущества</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-6 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center bg-surface-container-low text-primary ring-1 ring-primary/10 transition-colors group-hover:bg-primary group-hover:text-on-primary">
+<span class="material-symbols-outlined text-2xl">payments</span>
+</div>
+<div>
+<p class="font-headline font-bold text-on-surface">Прозрачное ценообразование</p>
+<p class="text-on-surface-variant text-sm mt-1">Никаких скрытых комиссий и сборов</p>
+</div>
+</div>
+<div class="flex items-center gap-6 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center bg-surface-container-low text-primary ring-1 ring-primary/10 transition-colors group-hover:bg-primary group-hover:text-on-primary">
+<span class="material-symbols-outlined text-2xl">verified</span>
+</div>
+<div>
+<p class="font-headline font-bold text-on-surface">Полное таможенное оформление</p>
+<p class="text-on-surface-variant text-sm mt-1">Берем на себя всю бумажную работу</p>
+</div>
+</div>
+<div class="flex items-center gap-6 group">
+<div class="w-14 h-14 rounded-full flex items-center justify-center bg-surface-container-low text-primary ring-1 ring-primary/10 transition-colors group-hover:bg-primary group-hover:text-on-primary">
+<span class="material-symbols-outlined text-2xl">support_agent</span>
+</div>
+<div>
+<p class="font-headline font-bold text-on-surface">Личный менеджер 24/7</p>
+<p class="text-on-surface-variant text-sm mt-1">Сопровождение на каждом этапе сделки</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Contacts Section -->
+<section class="bg-surface-container-low rounded-3xl p-8 space-y-6">
+<div class="space-y-4">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-1">location_on</span>
+<div>
+<p class="font-headline font-bold">г. Москва, Пресненская наб., 12</p>
+<p class="text-on-surface-variant text-sm mt-1">Башня Федерация, 45 этаж</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-1">schedule</span>
+<div>
+<p class="font-headline font-bold">Ежедневно с 9:00 до 21:00</p>
+<p class="text-on-surface-variant text-sm mt-1">Работаем без перерывов и выходных</p>
+</div>
+</div>
+</div>
+<button class="w-full py-4 px-6 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-headline font-bold shadow-lg active:scale-[0.98] transition-all hover:-translate-y-0.5">
+                Связаться с нами
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#f8f9fb]/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 rounded-t-3xl shadow-[0px_-12px_32px_rgba(25,28,30,0.04)]">
+<!-- Главная (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-[#9d4300] dark:text-orange-400 bg-orange-100/50 dark:bg-orange-900/20 rounded-2xl px-3 py-1 active:scale-90 transition-all duration-300 ease-out hover:text-[#f97316]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-0.5">Главная</span>
+</a>
+<!-- Каталог -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-300 ease-out hover:text-[#f97316]" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-0.5">Каталог</span>
+</a>
+<!-- Уведомления -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-300 ease-out hover:text-[#f97316]" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-0.5">Уведомления</span>
+</a>
+<!-- Профиль -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-300 ease-out hover:text-[#f97316]" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-0.5">Профиль</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e69e19",
+                        "background-light": "#ffffff",
+                        "background-dark": "#211b11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #e69e19;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark max-w-md mx-auto">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md z-10 border-b border-slate-100 dark:border-slate-800">
+<button class="flex items-center justify-center p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<div class="flex-1 flex justify-center">
+<span class="text-xl font-bold tracking-tight text-primary">Hub Drive</span>
+</div>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+<h1 class="text-2xl font-bold">Новый фильтр</h1>
+<!-- Filter Name -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Название фильтра</label>
+<input class="w-full h-12 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Например: Машина для семьи" type="text"/>
+</div>
+<!-- Brand and Model -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Марка</label>
+<div class="relative">
+<select class="w-full h-12 pl-4 pr-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 appearance-none focus:ring-primary focus:border-primary">
+<option>Любая</option>
+<option>Toyota</option>
+<option>BMW</option>
+<option>Hyundai</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Модель</label>
+<div class="relative">
+<select class="w-full h-12 pl-4 pr-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 appearance-none focus:ring-primary focus:border-primary">
+<option>Любая</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Body Type Chips -->
+<div class="space-y-3">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Тип кузова</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full border border-primary bg-primary/10 text-primary text-sm font-medium">Седан</button>
+<button class="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">Внедорожник</button>
+<button class="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">Хэтчбек</button>
+<button class="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">Купе</button>
+<button class="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">Универсал</button>
+</div>
+</div>
+<!-- Year Range -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Год выпуска</label>
+<div class="flex items-center gap-3">
+<input class="w-full h-12 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-primary focus:border-primary" placeholder="От" type="number"/>
+<span class="text-slate-400">—</span>
+<input class="w-full h-12 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-primary focus:border-primary" placeholder="До" type="number"/>
+</div>
+</div>
+<!-- Budget -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Бюджет (₸)</label>
+<span class="text-primary font-bold">до 15 000 000 ₸</span>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="50000000" min="500000" step="100000" type="range"/>
+<div class="flex gap-4">
+<input class="w-1/2 h-11 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" placeholder="Мин. цена" type="text"/>
+<input class="w-1/2 h-11 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" placeholder="Макс. цена" type="text"/>
+</div>
+</div>
+<!-- Fuel Type -->
+<div class="space-y-3">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Тип топлива</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-5 h-5 border-slate-300" type="checkbox"/>
+<span class="text-sm">Бензин</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-5 h-5 border-slate-300" type="checkbox"/>
+<span class="text-sm">Дизель</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-5 h-5 border-slate-300" type="checkbox"/>
+<span class="text-sm">Гибрид</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-5 h-5 border-slate-300" type="checkbox"/>
+<span class="text-sm">Электро</span>
+</label>
+</div>
+</div>
+<!-- Drive & Transmission -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Привод</label>
+<select class="w-full h-12 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-primary focus:border-primary">
+<option>Любой</option>
+<option>Передний</option>
+<option>Задний</option>
+<option>Полный</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">КПП</label>
+<select class="w-full h-12 px-4 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-primary focus:border-primary">
+<option>Любая</option>
+<option>Автомат</option>
+<option>Механика</option>
+<option>Робот</option>
+</select>
+</div>
+</div>
+<!-- Purchase Plan CRITICAL SECTION -->
+<div class="space-y-3 bg-primary/5 p-4 rounded-2xl border border-primary/20">
+<label class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">shopping_cart</span>
+                    План покупки
+                </label>
+<div class="space-y-2">
+<label class="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
+<span class="text-sm font-medium">Просто присматриваюсь</span>
+<input class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="purchase_plan" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
+<span class="text-sm font-medium">Планирую в течение 3 месяцев</span>
+<input checked="" class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="purchase_plan" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
+<span class="text-sm font-medium">Готов купить сейчас</span>
+<input class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="purchase_plan" type="radio"/>
+</label>
+</div>
+</div>
+<!-- Location -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Город</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">location_on</span>
+<select class="w-full h-12 pl-10 pr-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 appearance-none focus:ring-primary focus:border-primary">
+<option>Все города Казахстана</option>
+<option>Алматы</option>
+<option>Астана</option>
+<option>Шымкент</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-slate-400">expand_more</span>
+</div>
+<div class="h-100 w-full rounded-xl overflow-hidden mt-2 relative border border-slate-200 dark:border-slate-700">
+<div class="h-32 w-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+<img class="w-full h-full object-cover opacity-60 grayscale" data-alt="Abstract map layout showing Kazakhstan cities" data-location="Kazakhstan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBp8AuEteQZPBr7Nw9rfIO_lArisPKpTNL9mfN9Jq-5Rwix5K421tgQHJxw-QqkDyjjO-9ZNgKZbAVS4JKs0NmQLcFrCzKn9PWmujREFwtm81ae_FVqk2SB2icYroXEpa4IBK958jLCA8J4KhHGK3WRhHOijFgRuhQqN6-RhPKP8RZrZy0iTW3gTvC3TkDwepdL9Rk6AvekThKTPG2WMKcFg6k5lW6WycApQYgR1B4BC8Ap9b_lnAmLySaLOvYXPWw1V1QCqb-sFr_a"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="bg-white/80 dark:bg-slate-800/80 px-3 py-1 rounded-full text-xs font-medium shadow-sm">Поиск по всей стране</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-24"></div> <!-- Bottom padding for sticky button -->
+</main>
+<!-- Save Button Footer -->
+<footer class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-lg max-w-md mx-auto">
+<button class="w-full h-14 bg-primary text-white font-bold text-lg rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-transform">
+                Сохранить фильтр
+            </button>
+</footer>
+</div>
+</body></html>

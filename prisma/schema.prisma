@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VehicleStatus {
+  in_stock
+  in_transit
+  reserved
+  sold
+  hidden
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum LeadStatus {
+  new
+  in_progress
+  converted
+  rejected
+}
+
+enum PurchasePlan {
+  viewing
+  three_months
+  ready_now
+}
+
+enum NotificationChannel {
+  user
+  manager
+}
+
+enum NotificationType {
+  match_found
+  hot_filter
+  hot_match
+  contact_clicked
+  reengagement
+}
+
+enum DeliveryStatus {
+  pending
+  sent
+  failed
+}
+
+enum ContentStatus {
+  draft
+  published
+}
+
+enum EventType {
+  user_registered
+  filter_created
+  filter_updated
+  vehicle_opened
+  contact_clicked
+  call_clicked
+  favorite_added
+  favorite_removed
+  catalog_opened
+  news_opened
+  notification_sent_user
+  notification_sent_manager
+  notification_failed_user
+  notification_failed_manager
+  notification_skipped_rate_limit
+  vehicle_created
+  vehicle_updated
+  vehicle_status_changed
+}
+
+model User {
+  id           String    @id @default(cuid())
+  telegramId   String    @unique
+  username     String?
+  firstName    String?
+  lastName     String?
+  name         String?
+  phone        String?
+  city         String?
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime?
+
+  role           Role       @default(user)
+  leadStatus     LeadStatus @default(new)
+  managerComment String?
+
+  filters       Filter[]
+  favorites     Favorite[]
+  notifications Notification[]
+  events        Event[]
+
+  @@index([createdAt])
+}
+
+model Filter {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String?
+  brand String
+  model String?
+
+  bodyTypes Json?
+  yearFrom  Int?
+  yearTo    Int?
+  budgetMax Int
+  budgetMin Int?
+
+  engineTypes      Json?
+  engineVolumeFrom Float?
+  engineVolumeTo   Float?
+  drivetrain       Json?
+  transmission     Json?
+  exteriorColors   Json?
+  interiorColors   Json?
+  mileageMax       Int?
+  onlyNew          Boolean?
+
+  purchasePlan         PurchasePlan @default(viewing)
+  notificationsEnabled Boolean      @default(true)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  notifications Notification[]
+  events        Event[]
+
+  @@index([userId])
+  @@index([brand, model])
+  @@index([budgetMax])
+  @@index([purchasePlan])
+}
+
+model Vehicle {
+  id            String  @id @default(cuid())
+  brand         String
+  model         String
+  generation    String?
+  year          Int
+  bodyType      String
+  engineType    String
+  engineVolume  Float?
+  powerHp       Int?
+  transmission  String
+  drivetrain    String
+  mileage       Int?
+  exteriorColor String?
+  interiorColor String?
+
+  trimOptions      Json?
+  priceKeyTurnKZT  Int
+  priceChina       Int?
+  deliveryEtaWeeks Int?
+  paymentOptions   Json?
+
+  status      VehicleStatus @default(in_stock)
+  media       Json?
+  description String        @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  favorites     Favorite[]
+  notifications Notification[]
+  events        Event[]
+
+  @@index([status, updatedAt])
+  @@index([brand, model, year])
+  @@index([priceKeyTurnKZT])
+  @@index([bodyType])
+  @@index([engineType])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id       String              @id @default(cuid())
+  dedupKey String              @unique
+  channel  NotificationChannel
+  type     NotificationType
+
+  userId    String?
+  filterId  String?
+  vehicleId String?
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  filter  Filter?  @relation(fields: [filterId], references: [id], onDelete: SetNull)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  text           String
+  deliveryStatus DeliveryStatus @default(pending)
+  error          String?
+
+  createdAt DateTime @default(now())
+
+  @@index([channel, type, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  type      EventType
+  userId    String?
+  filterId  String?
+  vehicleId String?
+  meta      Json?
+  createdAt DateTime  @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  filter  Filter?  @relation(fields: [filterId], references: [id], onDelete: SetNull)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([type, createdAt])
+  @@index([userId, createdAt])
+  @@index([vehicleId, createdAt])
+}
+
+model News {
+  id         String        @id @default(cuid())
+  title      String
+  date       DateTime
+  coverImage String?
+  excerpt    String
+  body       String
+  videoUrl   String?
+  media      Json?
+  status     ContentStatus @default(published)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([status, date])
+}
+
+model About {
+  id        String   @id
+  story     String   @default("")
+  numbers   Json?
+  geography Json?
+  partners  Json?
+  updatedAt DateTime @updatedAt
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  vehicleName String
+  year        Int
+  price       Int
+  clientName  String
+  city        String?
+  quote       String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SystemSettings {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

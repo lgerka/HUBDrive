@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hub Drive - Кейсы и отзывы</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e69e19",
+                        "background-light": "#ffffff",
+                        "background-dark": "#1a160f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined !text-2xl">directions_car</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">Кейсы и отзывы</h1>
+</div>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">tune</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<div class="p-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border-none bg-slate-100 dark:bg-slate-800 rounded-xl focus:ring-2 focus:ring-primary text-sm placeholder-slate-500" placeholder="Поиск марки или модели" type="text"/>
+</div>
+</div>
+<div class="flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar">
+<button class="shrink-0 px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium">Все</button>
+<button class="shrink-0 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200">Внедорожники</button>
+<button class="shrink-0 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200">Седаны</button>
+<button class="shrink-0 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200">Электрокары</button>
+</div>
+<div class="p-4 flex flex-col gap-6">
+<div class="bg-background-light dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-video w-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Белый седан Toyota Camry 2022 года выпуска" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDpZbGgxzV7txeTeGotfl5aIcbLpHo63KJ7l2xpihvDIdmroysRfuJ68n00jAoB4C7yCjKuoDR7BIIRk_-7ZN1Sfy-BcaWbVjo3hzLvOr5eay3zM73Jc8GPKA0eh_w48Z0No1R3IFsy8f7bA8nihVYwTk7vY5X2kuH4nliTMoE5UgivoI7LVIxWRfCKTBOuV1wIs4nPY4taj96kIwc-x7nS13PSaAq4nj6vyVaZPAIb8C-pSFtaxSqpbFTC3nuqaqQ4ppx2YEquWBrn')"></div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold">Toyota Camry - 2022</h3>
+<span class="text-primary font-bold">14 500 000 ₸</span>
+</div>
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined !text-sm">person</span>
+<span>Александр, Алматы</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">
+                        Машина в отличном состоянии, доставка из Кореи заняла всего 3 недели. Очень доволен сервисом Hub Drive, все прозрачно.
+                    </p>
+<button class="w-full py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+<span>Читать далее</span>
+<span class="material-symbols-outlined !text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="bg-background-light dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-video w-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Черный внедорожник Hyundai Palisade на фоне города" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCgU3p8ObEKdj8akrdNEB1lg6zYCbA0pIIHo9BtDMYfqRIxcl-sGuzN1OKNeklx6qdPYk8VR_YP7c8nqj_Wt2S3kizQGbhFi13WU-Bu_gPlZra3ZRT5g1H2akbdXPqvqW_6dSQ7oP6Vg1-W6DAjIMp_v7dHuAjpROKaqPgyBof2ctnnutICFOQpR6vyy-3J0565tBBhXLVB6RXg-eFnameDe_iHt2WIWNnMmdTJC2XEYn_TqyQ7JNZ9YrvFJlFSP0oyHrFy1BfGE2DT')"></div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold">Hyundai Palisade - 2023</h3>
+<span class="text-primary font-bold">22 300 000 ₸</span>
+</div>
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined !text-sm">person</span>
+<span>Марина, Астана</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">
+                        Искали семейный автомобиль. Ребята подобрали отличный вариант в максимальной комплектации. Помогли с растаможкой.
+                    </p>
+<button class="w-full py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+<span>Читать далее</span>
+<span class="material-symbols-outlined !text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="bg-background-light dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-video w-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Электромобиль Tesla Model 3 синего цвета" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBX1ECqqhwP5AESVnyTjdYYcJ4_yDSim8t2rwJJofCmeqSZwgMVkb3s-pxRqiLVsTlY5ZSAJL8U7xuvfy8flggmotq_nydNhQTjGsgFRrFR5gOA2Ud_loLhlybPkHL_8LY5aiuUincucDaGopZqkmxoYsreoYo99Ub-GVEm5JW8ajilY3-uJHsT1K0RlH0v-zkq6sROKqVAPKyL1Q3zH_aWVIxm-yVTO1SZjN1tkLfrbk1vA_WrAq71MJsaPIhPp4zJyuZDqNzkzgwU')"></div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold">Tesla Model 3 - 2021</h3>
+<span class="text-primary font-bold">16 800 000 ₸</span>
+</div>
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined !text-sm">person</span>
+<span>Дмитрий, Шымкент</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">
+                        Первый электромобиль в семье. Переживал за логистику, но менеджер был на связи 24/7. Рекомендую!
+                    </p>
+<button class="w-full py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+<span>Читать далее</span>
+<span class="material-symbols-outlined !text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 px-4 pb-6 pt-2 flex items-center justify-around z-50">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Главная</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-medium">Каталог</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">comment</span>
+<span class="text-[10px] font-medium">Кейсы</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 relative" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px] font-medium">Уведомления</span>
+<div class="absolute top-0 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Профиль</span>
+</a>
+</nav>
+</body></html>

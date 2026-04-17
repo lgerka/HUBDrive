@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#e69e19",
+              "background-light": "#ffffff",
+              "background-dark": "#211b11",
+            },
+            fontFamily: {
+              "display": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Hub Drive - Избранные авто</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header & Logo Section -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+<div class="flex flex-col items-center pt-4 pb-2">
+<!-- App Logo Placeholder -->
+<div class="flex items-center gap-2 mb-2">
+<div class="size-8 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-background-dark font-bold">speed</span>
+</div>
+<span class="text-xl font-black tracking-tighter text-slate-900 dark:text-white">HUB DRIVE</span>
+</div>
+<div class="w-full px-4 flex items-center justify-between py-2">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold">Избранные авто</h1>
+<div class="size-10"></div> <!-- Spacer for symmetry -->
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex px-4 border-b border-slate-100 dark:border-slate-800">
+<button class="flex-1 py-3 text-sm font-bold border-b-2 border-primary text-slate-900 dark:text-white">
+                Автомобили
+            </button>
+<button class="flex-1 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                Сравнение
+            </button>
+</div>
+</header>
+<!-- Content -->
+<main class="flex-1 p-4 space-y-4 pb-24">
+<!-- Car Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="relative h-56 w-full bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Modern silver Porsche 911 Carrera on a clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYPppn9-_owMizSztDbPy0Hcr3P1PEUVGsl4O2tE0RmIWclhDSE80k5B7v1Hiu3WTPdbFflrNI5GdQXckiuLOR2dV6jiFUSjl6LEbwaKotkH3dSCPb453n2af3tC0ZoyXlDw7r4-tqNdgGPQUViIhJyIs-7RgRE2cqaAY73WVxIWizzzoZNyX2VDbax8YvcUsqGuzPFPj0LAPkM4hJORsIao58Y1TCMwjA_blFTls-ePF5FLU92exFpGP7ZmrOYeoLT6WLQrCttaTd"/>
+<div class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-primary">
+                    В наличии
+                </div>
+<button class="absolute top-3 right-3 size-10 bg-white/90 dark:bg-black/80 backdrop-blur rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined fill-1">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="text-xl font-bold mb-1">Porsche 911 Carrera</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-2">2023, 450 л.с.</p>
+<div class="flex items-center justify-between mt-4">
+<span class="text-xl font-black text-slate-900 dark:text-white">25 000 000 ₸</span>
+<button class="bg-primary hover:bg-primary/90 text-slate-900 px-6 py-2 rounded-lg text-sm font-bold transition-colors">
+                        Подробнее
+                    </button>
+</div>
+</div>
+</div>
+<!-- Car Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="relative h-56 w-full bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Black BMW M5 Competition luxury sedan driving" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlaVxyUHoxBKfu737rpdyyPierYwkcZHrm4CK44lWE_DiqYToLPzvPP1J0rhPMJl37mTB-tWUV5KfcA0AzPK3P4nC4eeyJV1F96iUvCbJF1Z3GRfoFxck3wnHnot0Vqrn9PIgIU2rIeT_hVJcNqlP1qH7yXzMa964Qj9uwyjiYlru76ZVE5PjCqVQqqF9Rt-CrmHmr81oStXabLlDcNIsOnX0NT25AfFLHQlRcYsSAQVBIWnrpQYqtRAmP9rc9DAHA5VFFEMeLZjr6"/>
+<div class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    В пути
+                </div>
+<button class="absolute top-3 right-3 size-10 bg-white/90 dark:bg-black/80 backdrop-blur rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined fill-1">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="text-xl font-bold mb-1">BMW M5 Competition</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-2">2022, 625 л.с.</p>
+<div class="flex items-center justify-between mt-4">
+<span class="text-xl font-black text-slate-900 dark:text-white">18 500 000 ₸</span>
+<button class="bg-primary hover:bg-primary/90 text-slate-900 px-6 py-2 rounded-lg text-sm font-bold transition-colors">
+                        Подробнее
+                    </button>
+</div>
+</div>
+</div>
+<!-- Car Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="relative h-56 w-full bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="White Audi RS7 luxury sportback on showroom floor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt0j3F7kwB0_MDz9ZOOO2s7uRKOEDnVs3aRoLuCEeM3V9y0g9SVkhIv5tkveztn9fBg8QJLIjCG2PBqKal0Gkohb_CdewLdQvs_Gs2AJSqvleWy3h5L_9VJbgbulBQY7sXGhzlT8BARWh7FY0GhTHRNrTv5dOGqxG1hxfK5Tx8aLUHkjkLrY60LKe_nv3wmAMJrakoy9Xe5tUxVSkEW2vlMCW2dNftseAw9uwCJsY3BjyfXRD6EI8W_ASoD3B_CsdgeUJr5guzvS6b"/>
+<div class="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-primary">
+                    В наличии
+                </div>
+<button class="absolute top-3 right-3 size-10 bg-white/90 dark:bg-black/80 backdrop-blur rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined fill-1">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="text-xl font-bold mb-1">Audi RS7 Sportback</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-2">2023, 600 л.с.</p>
+<div class="flex items-center justify-between mt-4">
+<span class="text-xl font-black text-slate-900 dark:text-white">21 200 000 ₸</span>
+<button class="bg-primary hover:bg-primary/90 text-slate-900 px-6 py-2 rounded-lg text-sm font-bold transition-colors">
+                        Подробнее
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 px-6 py-3 pb-6 flex justify-between items-center z-50">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Главная</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">directions_car</span>
+<span class="text-[10px] font-bold">Каталог</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px] font-medium">Уведомления</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Профиль</span>
+</a>
+</nav>
+</body></html>

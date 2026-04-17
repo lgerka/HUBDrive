@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e69e19",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#211b11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e69e1933;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-white dark:bg-background-dark shadow-2xl">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 pt-6 pb-2 bg-white dark:bg-background-dark">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Выберите марку</h1>
+<div class="w-10 h-10 flex items-center justify-center">
+<img alt="Hub Drive Logo" class="w-8 h-8 object-contain" data-alt="Hub Drive automotive brand logo symbol" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKPVqM6TR2BtU6KIWdXpho2Ah7Ruo1FXLVtF9puFcMWkXOdLJqK8gV0CbgK9TCBuO1LXKOzyz2DqIbfTnjdBg_kfqn8KMnPWyfY3poJ9StvCz6YiOpKrvUo08i__9eVH82T-JKyRdBy0S4aet2UnIs2HJc3BGczqNL5Juqe-3YSXugHOYsyQgDcAEAfgdwH18Spvx97Vib_Wk0TjLDy0eQwyEhI-dmX1JwtAQAro38nhH6jnR-INRvS0c6mr7cN9vjc5hwFLChv-hS"/>
+</div>
+</header>
+<!-- Search Bar -->
+<div class="px-4 py-4 bg-white dark:bg-background-dark sticky top-0 z-10">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-base focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-slate-800 transition-all placeholder:text-slate-400" placeholder="Поиск марки автомобиля" type="text"/>
+</div>
+</div>
+<!-- Main Content Area with Alphabet Navigation -->
+<div class="relative flex flex-1 overflow-hidden">
+<!-- Car Brands List -->
+<div class="flex-1 overflow-y-auto pb-24 scroll-smooth">
+<!-- Section A -->
+<div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/30 text-xs font-bold text-slate-400 tracking-widest uppercase">A</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Audi" class="w-8 h-8" data-alt="Minimalist Audi logo in vector style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDft7cZFxnU0SURwTj3Q83D0uQ4Rdx2nwnnFZjpL4t1HKfgjEJgyPi6eJ9yeQANOruF6ReEjZL-jOyQicgV7t_ThPlp6l0ssbv_RPjZYxdKf1v4m-Yoqhde1Ns5To-OMpE8BolsBDiLOd6eOlaeu2dLYAjc-yzBMso1UEwbHdjp0XUVx5dCYP73g14cMf33pMq1QbQ-PgnJFk7N6itqUrceXEH2dAyU7zOYgK_EfT4Iq5OA_TzAOdoIvIww_pNd-2ojmWnUMy1xMlwV"/>
+</div>
+<span class="text-lg font-medium">Audi</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Acura" class="w-8 h-8" data-alt="Acura logo minimalist vector" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_bJJJ5Towk-ZmgwZRcVL4WCj-H-OO2GwDGlebYFViMpdWxyXE-dZZ73KW5g5l54z68n6DbhHYv5pS9j9cyLyrTW8CK3npG73-5KjVmiwVi2byg9sxgYG4gYFMsu4DlhrX7Ne-FpJX2sEuBEMTzOd1NohV7z_vyTiG0-d-vZRwGWHoe34hDHkNjwZ8FsQEghY2b8ujxEYz8k6TSsGMbSnx13oY8F6z5ri3dhECmcm40JH-xjCZGHY4gs4EsdesD_F7Oqn1jwTr_PRg"/>
+</div>
+<span class="text-lg font-medium">Acura</span>
+</div>
+<!-- Section B -->
+<div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/30 text-xs font-bold text-slate-400 tracking-widest uppercase">B</div>
+<!-- Selected State -->
+<div class="flex items-center gap-4 px-4 py-4 bg-primary/10 border-l-4 border-primary cursor-pointer border-b border-slate-50 dark:border-slate-800">
+<div class="w-12 h-12 rounded-lg bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center overflow-hidden">
+<img alt="BMW" class="w-8 h-8" data-alt="BMW car brand icon clean vector" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9nzk7LLmMXT8_ZfImGmdogCBgzRWQrGCDXhVbVapjHERp1uiACebvre6mC7fIl28k9MrLCuEqTpzEt9oBXk1TSj55CVuDlBs943IaXMwsW-I8dXHYa4-E8E_iwJHgXlZG00yhdv2TWzxC5SGpru1Ty20MT4A8oGEeoGuAM8-pBYNfeWphsOovtYej9u6bctrY5Ff0CTVRN2FSzZgK67WBk6LMXK9qPDLly8-bTlx0SLRnhBB6q4gP3EIsrNgkzW47J-ZkxBKVSjAO"/>
+</div>
+<span class="text-lg font-bold text-primary">BMW</span>
+<div class="ml-auto">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="BYD" class="w-8 h-8" data-alt="BYD electric car logo minimalist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBViLJgl5CA4B-ognch1NSNW-YzzgSRtMN3rnfEePeG7ZnSgF-DOijI6_7qfHfduutgvXN2Zd1XllFLx1uxDiUFZadyRXlF-WbDuXkxevRHgbR3GskLOYvSVOGonBJEQiUdGuNHs77oUT-JU1IgcFLzDXVrCkNPfzVd_r0tM6pDD_a5MhtpDrkdGsU1_as3OkoDlcpq_8Dv9woinxhKEi9gmwb68cXLV_4ZLoMtw_5-gg8ZzM3cK1Ow3I8y4PvdpbbP6jkU7TspMSZ-"/>
+</div>
+<span class="text-lg font-medium">BYD</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Bentley" class="w-8 h-8" data-alt="Bentley luxury car brand logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFXg1ZfHfIVTfkZ0QhEYURehuLLP8joYGmNa0uOWXs7K9BFQO0gO3s5Me7iYnH6C6LgRuYy9wk0HlUIWeUcF7yZg88FhYkewhYOEz4ewifoctsfyTh0LVcDEy_AlE_y3ePj95PlWpIsqzzE1PX4cn_iyRUt5Xls0WqkQpdN6dlqaB_G16BXnl7WyDe1079_KUmeXvsrq3tCxUjmKNSHB8ylYyxBIs2WnQG1HJjOWF8VTBIBxdBWw_4ZVhHL8fGHDhRUygIr5Vo9Yu4"/>
+</div>
+<span class="text-lg font-medium">Bentley</span>
+</div>
+<!-- Section C -->
+<div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/30 text-xs font-bold text-slate-400 tracking-widest uppercase">C</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Chery" class="w-8 h-8" data-alt="Chery automobile logo clean vector" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoANklikhC1f-U0q2-_Om3wp8u63mrK7gyY-idELhGw6AgoJUjWONNXs4U-JQd2BjGasrjMYRz9-ldmp-YzEnUHBlo1g07OTIJpjP30BYbxZbWjzuTJx-SQ4rrw37bLxR6aVpEaoAabbQyxV3BMBOMAExLlBMaszCwHNNS7BixgAFBWpyv6biBMiduF-JY29eCZqyra8bJX5clr-R3qf-To_KD7aRfsR792TeXl6NfITjpiFaRdiPsp-WCvEhg8mIgQprxAb82IskV"/>
+</div>
+<span class="text-lg font-medium">Chery</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Cadillac" class="w-8 h-8" data-alt="Cadillac emblem luxury car icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAf9imHrOvmfR7ES8wLYrnV3-yHXVvGDezp4Kz6s70RMg0S555Zm7R-kYf1ntIbaHYtiexkJ0Rhi8TBiDzJQe7y5Q0VvjgOnTquMEGD1FL_2f5FaJZbIgEqwQQsrW4aoDvBvrgBhi_WNs648U_8xVYVnxroRcbuljxK4Rcp5sUkLVtEf_pfbq0hwV90qSBpStVFsubaSlAdXWRi3-SxBPc9H-h-gUfte8wMQ68_GAZnmNFbRf8PQ22xfMnEoe_oUMWNQER55fSGwzh-"/>
+</div>
+<span class="text-lg font-medium">Cadillac</span>
+</div>
+<!-- Section G -->
+<div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/30 text-xs font-bold text-slate-400 tracking-widest uppercase">G</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-primary/5 cursor-pointer border-b border-slate-50 dark:border-slate-800 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Geely" class="w-8 h-8" data-alt="Geely car brand icon minimalist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBM2qcBsmoKKTcNhSIfpNYS5u4sL68OdIg7EViklAO_FW6XLihUdQanTyOrB9rW5rKynxJ0AUZ200BBM-Ye-FKY0BUTDhhfgaPD4WFRj6gOgMzGGM9vEcBLweKZrdV344PmRC7Gjj-bb0m00DcCBEuNeVBYG9LgWoMzgfrpqr8OMQOlfdYZiSbVl-DfJB1VBPdZ7BSGnmhhHas8fBP7Rg6s_o6Sds6SvBm0l5W6NzdcVREUcWA_5auVt-1qbxLNaQoKCBwn1lovy6FF"/>
+</div>
+<span class="text-lg font-medium">Geely</span>
+</div>
+</div>
+<!-- Alphabet Sidebar -->
+<div class="w-8 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-slate-400 py-4 bg-white dark:bg-background-dark border-l border-slate-50 dark:border-slate-800">
+<a class="hover:text-primary transition-colors" href="#">A</a>
+<a class="text-primary scale-125 font-black" href="#">B</a>
+<a class="hover:text-primary transition-colors" href="#">C</a>
+<a class="hover:text-primary transition-colors" href="#">D</a>
+<a class="hover:text-primary transition-colors" href="#">E</a>
+<a class="hover:text-primary transition-colors" href="#">F</a>
+<a class="hover:text-primary transition-colors" href="#">G</a>
+<a class="hover:text-primary transition-colors" href="#">H</a>
+<a class="hover:text-primary transition-colors" href="#">I</a>
+<a class="hover:text-primary transition-colors" href="#">J</a>
+<a class="hover:text-primary transition-colors" href="#">K</a>
+<a class="hover:text-primary transition-colors" href="#">L</a>
+<a class="hover:text-primary transition-colors" href="#">M</a>
+<a class="hover:text-primary transition-colors" href="#">N</a>
+<a class="hover:text-primary transition-colors" href="#">O</a>
+<a class="hover:text-primary transition-colors" href="#">P</a>
+<a class="hover:text-primary transition-colors" href="#">R</a>
+<a class="hover:text-primary transition-colors" href="#">S</a>
+<a class="hover:text-primary transition-colors" href="#">T</a>
+<a class="hover:text-primary transition-colors" href="#">V</a>
+<a class="hover:text-primary transition-colors" href="#">W</a>
+<a class="hover:text-primary transition-colors" href="#">X</a>
+<a class="hover:text-primary transition-colors" href="#">Y</a>
+<a class="hover:text-primary transition-colors" href="#">Z</a>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="absolute bottom-0 w-full flex items-center justify-around bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 px-4 pb-6 pt-3 z-20">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">notifications</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</nav>
+</div>
+</body></html>

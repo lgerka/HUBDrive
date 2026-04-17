@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e69e19",
+                        "background-light": "#ffffff",
+                        "background-dark": "#211b11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto border-x border-slate-100 dark:border-slate-800">
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-4 pb-2">
+<div class="flex items-center justify-between mb-4">
+<img alt="Hub Drive Logo" class="h-8 w-auto" data-alt="Hub Drive vibrant orange corporate logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOvvuYpGzLpR5TG_LGk4UnXMykkqReb6FxQHpdBsO_3ImzJAKFiUbvA92vA5fl00E-38_aa0VwslLe5EZR2hv2DNtIw52EBMYA-zr0rSJoL8rQNXU5SJSfZJu6eto8kzbZyIpLB27JJXeeaV05bcYWm4bpMolDkbNjXcVRlVmJTy2_IqOBNhtDNdiVrsumAcwfP_juPBogf_YqMwxNo3IG-MMmhycOFD2I_0X7m7pTLBuaP7xbvlgkNWP4i8kGtXxNRAMfn8eA3am9"/>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">settings</span>
+</button>
+</div>
+</div>
+<h1 class="text-2xl font-bold px-1 mb-2">Уведомления</h1>
+<!-- Tabs -->
+<div class="flex gap-6 px-1 border-b border-slate-100 dark:border-slate-800">
+<button class="pb-3 border-b-2 border-primary text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Все
+                </button>
+<button class="pb-3 border-b-2 border-transparent text-sm font-medium text-slate-500 dark:text-slate-400">
+                    Системные
+                </button>
+<button class="pb-3 border-b-2 border-transparent text-sm font-medium text-slate-500 dark:text-slate-400">
+                    Избранное
+                </button>
+</div>
+</header>
+<!-- Notification List -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+<!-- Notification Item: Car Alert -->
+<div class="group flex gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+<div class="relative shrink-0">
+<img alt="BMW X5" class="w-20 h-20 rounded-lg object-cover" data-alt="Modern white BMW X5 car photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2axBkZy1PpGyhE0DWuVNCVEVluZc7EyPoDfRkfFXe9x2M8caz9-47VUaZ2YXtaEZrZ2yjxkTMm9bb7W2-cKcpUWt8O8umeuraYYUehz0GU32oaA0SXOgRO30aDURPKDyS-0Nr69shISX037pFPzOts3W299fwENkePDFbBLaVmo0tnWTTiD4kTxUEuHATOlnQWTljuqKKDyqFZpy8EH0LzbrNJa0KH8xNPPY9J4fYXvIJQit8ajYu544ebL5G0zrEcTanCvgoOEDi"/>
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white dark:border-background-dark"></div>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Новый авто по фильтру</p>
+<span class="text-[10px] text-slate-400">15 мин назад</span>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">BMW X5, 2022, 35 млн ₸</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">Черный металлик, M-пакет, один владелец...</p>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+<!-- Notification Item: Price Drop -->
+<div class="group flex gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+<div class="shrink-0 size-12 flex items-center justify-center rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">trending_down</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Снижение цен</p>
+<span class="text-[10px] text-slate-400">1 час назад</span>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">Цены на избранные модели снижены</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Успейте купить! На ваш список избранного действуют скидки до 5%.</p>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+<!-- Notification Item: Car Alert 2 -->
+<div class="group flex gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+<div class="shrink-0">
+<img alt="Toyota Camry" class="w-20 h-20 rounded-lg object-cover" data-alt="Silver Toyota Camry business sedan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDjpVvb04lRs883gHUGGsSxetifs4vp05Cp1J2udJ-_fVnXOvUsK5QDuDARE0m-TfTZxiyOlbXq9kKJ4CdfaGlgGIZHUcWcMzF7JtL72zlUn1xKECbz03bmxO9sBEge13cOZqDF2UTY2by4Ll5u-qWbNdznmby4CMS2XIaRoY_KtoR_MXHgCzDk5Pq50w6YaDHhEtwxt2UNx2yTzLsJX4ym2WfPzg-6uMbuSdzDLBg1BNvxDiw3-SyP0CeOyBTIjJpGIKEqO7rDP-4"/>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Новый авто по фильтру</p>
+<span class="text-[10px] text-slate-400">3 часа назад</span>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">Toyota Camry, 2023, 18 млн ₸</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">Комплектация Luxe, бензин, 2.5 л.</p>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+<!-- Notification Item: System -->
+<div class="group flex gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+<div class="shrink-0 size-12 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">database</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Системное</p>
+<span class="text-[10px] text-slate-400">Вчера</span>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">Обновление базы</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">Добавлено более 500 новых предложений в вашем регионе.</p>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+</main>
+<!-- Empty State (Hidden by default, shown when list is empty) -->
+<div class="hidden flex-1 flex-col items-center justify-center p-8 text-center">
+<div class="size-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-slate-300 text-4xl">notifications_off</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">У вас пока нет уведомлений</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Мы сообщим вам, когда появятся интересные предложения или новости.</p>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="sticky bottom-0 bg-white dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 px-4 pb-6 pt-2">
+<div class="flex justify-between items-center max-w-sm mx-auto">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-medium text-slate-500 group-hover:text-primary">Главная</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">search</span>
+<span class="text-[10px] font-medium text-slate-500 group-hover:text-primary">Каталог</span>
+</a>
+<a class="flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined fill text-primary">notifications</span>
+<span class="text-[10px] font-bold text-primary">Уведомления</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">person</span>
+<span class="text-[10px] font-medium text-slate-500 group-hover:text-primary">Профиль</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBTrade Admin - News &amp; Content</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f6",
+                    "background": "#f8f9fb",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f3",
+                    "secondary-fixed-dim": "#ffb690",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#fda77a",
+                    "primary-fixed": "#ffdbca",
+                    "surface-dim": "#d9dadc",
+                    "on-primary-container": "#582200",
+                    "on-secondary-fixed": "#341100",
+                    "surface": "#f8f9fb",
+                    "secondary": "#8f4d27",
+                    "on-tertiary-fixed": "#001d32",
+                    "inverse-surface": "#2e3132",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "on-primary-fixed-variant": "#783200",
+                    "inverse-primary": "#ffb690",
+                    "tertiary-fixed": "#cde5ff",
+                    "surface-container": "#edeef0",
+                    "on-secondary-fixed-variant": "#713612",
+                    "primary-fixed-dim": "#ffb690",
+                    "on-surface": "#191c1e",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#003554",
+                    "on-error": "#ffffff",
+                    "tertiary": "#006398",
+                    "surface-container-highest": "#e1e2e4",
+                    "primary-container": "#f97316",
+                    "primary": "#9d4300",
+                    "outline": "#8c7164",
+                    "surface-variant": "#e1e2e4",
+                    "on-surface-variant": "#584237",
+                    "tertiary-container": "#00a2f4",
+                    "outline-variant": "#e0c0b1",
+                    "on-primary-fixed": "#341100",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdbca",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#9d4300",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#773a16",
+                    "surface-container-high": "#e7e8ea",
+                    "surface-bright": "#f8f9fb",
+                    "on-background": "#191c1e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .glass-nav { backdrop-filter: blur(20px); }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #9d4300 0%, #f97316 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex overflow-hidden">
+<!-- SideNavBar (Predicted Asset Mapping) -->
+<aside class="flex flex-col h-screen w-64 border-r-0 bg-slate-50 dark:bg-slate-900 py-8 shrink-0">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold text-orange-900 dark:text-orange-400 font-headline tracking-tight">The Ethereal Showroom</h1>
+<p class="text-xs text-slate-500 font-medium">Admin Curator</p>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors duration-200 group scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-manrope tracking-tight font-medium">Dashboard</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors duration-200 group scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">person_search</span>
+<span class="font-manrope tracking-tight font-medium">Leads</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors duration-200 group scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">directions_car</span>
+<span class="font-manrope tracking-tight font-medium">Cars</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-orange-800 dark:text-orange-500 font-bold border-r-4 border-orange-600 bg-slate-100 dark:bg-slate-800 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">newspaper</span>
+<span class="font-manrope tracking-tight font-medium">News</span>
+</a>
+<a class="flex items-center px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors duration-200 group scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-manrope tracking-tight font-medium">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-8">
+<button class="w-full py-3 px-4 btn-primary-gradient text-white rounded-full font-headline font-bold text-sm shadow-lg hover:-translate-y-0.5 transition-all">
+                New Broadcast
+            </button>
+</div>
+<div class="mt-auto px-4 pt-8 space-y-1">
+<a class="flex items-center px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">help_outline</span>
+<span class="font-manrope tracking-tight font-medium">Support</span>
+</a>
+<a class="flex items-center px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">logout</span>
+<span class="font-manrope tracking-tight font-medium">Logout</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- TopNavBar (Predicted Asset Mapping) -->
+<header class="flex justify-between items-center px-8 h-16 w-full bg-white/80 backdrop-blur-md z-10 shrink-0">
+<div class="flex items-center space-x-8">
+<span class="text-xl font-bold text-slate-900 font-headline">News &amp; Content</span>
+<nav class="hidden md:flex space-x-6">
+<a class="text-orange-700 border-b-2 border-orange-700 font-headline font-semibold tracking-wide py-5" href="#">Articles</a>
+<a class="text-slate-600 hover:text-orange-600 font-headline font-semibold tracking-wide py-5 transition-all" href="#">Media</a>
+<a class="text-slate-600 hover:text-orange-600 font-headline font-semibold tracking-wide py-5 transition-all" href="#">Categories</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-full text-sm focus:ring-1 focus:ring-orange-500 w-64" placeholder="Search archive..." type="text"/>
+</div>
+<div class="flex items-center space-x-2">
+<button class="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+<img alt="Admin user profile" data-alt="close-up portrait of a professional male editor in a clean studio setting with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC59QgQU-R0gpdmxy_cXNyzYzH3rAjhkVg-qwJTakfEDHU_kvAZRG6eZPJlu5JoVNLNaSlcS57dvZSuOPsfFvgLZfKpEEskWJwU2Ps2zmr0KMvgBJk4R_lxoDqInT3hRzZ8TKiSPuTvjlVNJh2VSOZqJ9bpj1sMoLdUn-O6uPkILgcQv250JL7KYEYS59SoSrexYq1eyYfQzd6in44M5mbVdzv6lPTUZAf-QVUECtPtC0T4oZuobf_nEVtd61rlCnwadfJqhOipGbEK"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<section class="flex-1 overflow-y-auto p-8">
+<div class="max-w-6xl mx-auto">
+<!-- Action Bar -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Content Repository</h2>
+<p class="text-slate-500 font-body mt-1">Manage editorial pieces and multimedia launches.</p>
+</div>
+<div class="flex space-x-3">
+<button class="px-6 py-2.5 rounded-full border border-outline-variant/20 font-headline font-bold text-sm text-slate-700 hover:bg-surface-container transition-all">
+                            Bulk Edit
+                        </button>
+<button class="px-6 py-2.5 rounded-full btn-primary-gradient text-white font-headline font-bold text-sm shadow-md hover:-translate-y-0.5 transition-all flex items-center">
+<span class="material-symbols-outlined text-sm mr-2">add</span>
+                            Create Post
+                        </button>
+</div>
+</div>
+<!-- Bento Grid Style Filter Strip (Custom Component) -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] border border-white/50">
+<p class="text-[0.6875rem] font-label uppercase tracking-widest text-slate-400 mb-1">Total Articles</p>
+<p class="text-2xl font-headline font-bold">1,284</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] border border-white/50">
+<p class="text-[0.6875rem] font-label uppercase tracking-widest text-slate-400 mb-1">Published</p>
+<p class="text-2xl font-headline font-bold text-primary">842</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] border border-white/50">
+<p class="text-[0.6875rem] font-label uppercase tracking-widest text-slate-400 mb-1">Scheduled</p>
+<p class="text-2xl font-headline font-bold">12</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] border border-white/50">
+<p class="text-[0.6875rem] font-label uppercase tracking-widest text-slate-400 mb-1">Weekly Views</p>
+<p class="text-2xl font-headline font-bold">48.2k</p>
+</div>
+</div>
+<!-- Article Table/List -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-surface-container">
+<th class="px-8 py-4 text-[0.6875rem] font-label uppercase tracking-widest text-on-surface-variant/70">Article Details</th>
+<th class="px-6 py-4 text-[0.6875rem] font-label uppercase tracking-widest text-on-surface-variant/70">Date</th>
+<th class="px-6 py-4 text-[0.6875rem] font-label uppercase tracking-widest text-on-surface-variant/70">Status</th>
+<th class="px-8 py-4 text-[0.6875rem] font-label uppercase tracking-widest text-on-surface-variant/70 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="group hover:bg-background transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center">
+<div class="h-16 w-20 rounded-lg overflow-hidden bg-surface-container shrink-0 mr-4">
+<img alt="Zeekr 001" class="w-full h-full object-cover" data-alt="sleek modern electric vehicle zeekr 001 in a futuristic minimal showroom with soft blue and white lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_0H-Fsw70a8Y8LyfhtGTOTCT1RLexioqe0kVWsJGPSbJw3NnMVTpK2cDwo1u5kSj5HiaJ41yQ-8mgUMRy_uRZuqkdsZ_7tW5zHiMBtRnW-MMxeP33D3KfWHpv6k8FnGgAIa-dvWKhbVbuaAgQOE_AtG0xe1lgQ0YVbwSYfeubMBcYosGT0qBl-F-CX5CwFuSZl0MpHJ3Myokxc3QuYEqGDXjNF3RVqj7lVNaKjfH-W4k-atLGEXXk1naRw43r4Wi-bo4zS4E7LPMk"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface leading-tight mb-1">Zeekr 001 YOU: New Arrival</h3>
+<div class="flex items-center text-xs text-slate-400 font-label">
+<span>EDITORIAL</span>
+<span class="mx-2 text-primary">•</span>
+<span>CAR REVIEWS</span>
+</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-medium text-slate-600">14 Oct, 2023</p>
+</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary-container/10 text-primary">Published</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end space-x-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-error hover:bg-error/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-background transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center">
+<div class="h-16 w-20 rounded-lg overflow-hidden bg-surface-container shrink-0 mr-4">
+<img alt="EV Trends" class="w-full h-full object-cover" data-alt="aerial shot of a solar farm and electric vehicle charging station at sunset with warm orange and purple hues" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLQek77os1iLHr7I_RErg-ltOPinkVwBwvgLN0NfPl5VWDUmVyqMmd288V5mvjUoSSmZtMXHDeGkg_a4Y-Tx0F902aC4Qi2UFWPy-J10-ND6WyJRZg-XIy5myWXXdXMCgcgyzn5EPCfxvmbGfFAJ1VCTuxngsQAb6Dm6JteMgW2Exgiv6R5h37mcdG94zOZgwW4MryfjCbpQhcaNXtw3Q5l3nt2I3kWJgYrJyToFi5w5HitJ1mpqG7shNKh93w2GcW5dM8jADju5jQ"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface leading-tight mb-1">Electric Vehicle Market Trends 2024</h3>
+<div class="flex items-center text-xs text-slate-400 font-label">
+<span>MARKET DATA</span>
+<span class="mx-2 text-primary">•</span>
+<span>ANALYTICS</span>
+</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-medium text-slate-600">12 Oct, 2023</p>
+</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary-container/10 text-primary">Published</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end space-x-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-error hover:bg-error/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-background transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center">
+<div class="h-16 w-20 rounded-lg overflow-hidden bg-surface-container shrink-0 mr-4">
+<img alt="Draft article" class="w-full h-full object-cover opacity-60 grayscale" data-alt="abstract architectural interior with clean lines and soft lighting on concrete walls with a minimalist feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBA6ABWFaS5lbxevoe1KnTq2B1xr3hjQra7O7Ulio543-NnT2xLGHOOGO1HxhJ7qczO01W6Cg7m4vzGeRYKqmIJIZXwvikgMLX5SBDdD9I-E6RwHN-MXMnfuO00TSOVSSV00oHvTjhWub7RLAvDXl4_-tZlEoYkNtIMUlAZ-oz8mOBISpmLMfVw7338lAt9i0uaqkTzqGyqHOg_OXfCOBdpHyXg5Rae8L1CjCEhq7v-TLIitzCJxJ6NdGMl3juWeCc-n524pN5qR40"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-slate-400 leading-tight mb-1">Sustainable Battery Production Insights</h3>
+<div class="flex items-center text-xs text-slate-400 font-label">
+<span>TECHNOLOGY</span>
+<span class="mx-2 text-primary">•</span>
+<span>MANUFACTURING</span>
+</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-medium text-slate-400 italic">Draft</p>
+</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500">Draft</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end space-x-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-error hover:bg-error/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-background transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center">
+<div class="h-16 w-20 rounded-lg overflow-hidden bg-surface-container shrink-0 mr-4">
+<img alt="Interior Luxury" class="w-full h-full object-cover" data-alt="close-up of luxury electric car interior with premium leather seats and large digital display screen in soft ambient light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABLXBVVBqnNA6Ixlo5sBa9Q4-jYzcG9kil0zL03HUIIEnRlo3WdDIdmtEuuScFY2XiXa2kXgKGuFB_naGXfnJg2BLmQmMvVPZkJogna0Pf2v7364JrNVOaZmGAg83ObR0XVPW3cuwK3tguASeNffRmVFtzsk2KleqYkm1f3XSpqHvOmY6JGUFPBb3NsttzaubByAoZWN3Lx7HIfWnK36E2a9AB-wVyQqHSycTEgQcrE3Y7OKOb1lsFPrLTSi-VZHzhWaUp8EXclKd9"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface leading-tight mb-1">The Rise of Smart Interiors in EVs</h3>
+<div class="flex items-center text-xs text-slate-400 font-label">
+<span>LIFESTYLE</span>
+<span class="mx-2 text-primary">•</span>
+<span>INNOVATION</span>
+</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-medium text-slate-600">08 Oct, 2023</p>
+</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary-container/10 text-primary">Published</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end space-x-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-error hover:bg-error/5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="px-8 py-4 flex items-center justify-between bg-surface-container-low/30">
+<p class="text-xs text-slate-500 font-body">Showing <span class="font-bold">1-4</span> of 1,284 articles</p>
+<div class="flex space-x-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-slate-400 transition-all">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold transition-all">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs text-slate-600 transition-all">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-xs text-slate-600 transition-all">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container text-slate-400 transition-all">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

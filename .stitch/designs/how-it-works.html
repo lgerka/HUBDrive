@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#edeef0",
+                    "secondary": "#8f4d27",
+                    "on-secondary-container": "#773a16",
+                    "surface-container-highest": "#e1e2e4",
+                    "on-error": "#ffffff",
+                    "tertiary": "#006398",
+                    "surface-tint": "#9d4300",
+                    "outline-variant": "#e0c0b1",
+                    "on-surface": "#191c1e",
+                    "tertiary-fixed": "#cde5ff",
+                    "surface": "#f8f9fb",
+                    "secondary-fixed": "#ffdbca",
+                    "inverse-on-surface": "#f0f1f3",
+                    "on-tertiary-fixed": "#001d32",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#341100",
+                    "primary": "#9d4300",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#003554",
+                    "on-surface-variant": "#584237",
+                    "on-secondary-fixed-variant": "#713612",
+                    "surface-container-low": "#f3f4f6",
+                    "on-background": "#191c1e",
+                    "inverse-primary": "#ffb690",
+                    "secondary-fixed-dim": "#ffb690",
+                    "surface-variant": "#e1e2e4",
+                    "on-secondary-fixed": "#341100",
+                    "secondary-container": "#fda77a",
+                    "inverse-surface": "#2e3132",
+                    "surface-dim": "#d9dadc",
+                    "on-primary-fixed-variant": "#783200",
+                    "primary-fixed-dim": "#ffb690",
+                    "primary-container": "#f97316",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e7e8ea",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#ffdbca",
+                    "tertiary-container": "#00a2f4",
+                    "error-container": "#ffdad6",
+                    "outline": "#8c7164",
+                    "on-primary-container": "#582200",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#f8f9fb",
+                    "background": "#f8f9fb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .bg-primary-gradient {
+        background: linear-gradient(135deg, #9d4300 0%, #f97316 100%);
+      }
+      .timeline-path {
+        background: linear-gradient(180deg, #9d4300 0%, #f97316 100%);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-[#f8f9fb]/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#9d4300] cursor-pointer">menu</span>
+<h1 class="text-lg font-extrabold tracking-[0.2em] text-[#9d4300] uppercase font-headline">ETHÉREAL</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/20">
+<img alt="Profile" data-alt="High-end professional portrait of a business person in a clean studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy0PIQXsWuvyZARF7upNuL0XZUSc5mjr0IlUEqptYFVsCXOrIaXWR-WbaGVsLnUNIqU3m4xirD8QIZJzJ-q9cm8dQWR9vCxs10deqWg5Eil8LmDUQPm9QWfInkM9YoT5EPUTGbPE9tQm4cOrKGQ-exEtdZkeWvtRZa603u8AXA3hUPSpuHjpfWCdrDabD2BXz8-nC8vcbcVCIklpr7ZLwf2Lbt1V4ih-dTwehFbonDfyYBLYtgcWsxBCp0KszHDmsE9Ct-j-uCMB_H"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-lg mx-auto">
+<!-- Hero Section -->
+<section class="mb-12">
+<h2 class="font-headline text-4xl font-extrabold text-on-surface tracking-tight leading-tight mb-4">
+                Как это работает?
+            </h2>
+<p class="text-on-surface-variant text-lg leading-relaxed opacity-80">
+                Простой путь к вашему новому автомобилю
+            </p>
+</section>
+<!-- Timeline Stepper -->
+<div class="relative">
+<!-- Vertical Line -->
+<div class="absolute left-6 top-0 bottom-0 w-0.5 timeline-path rounded-full opacity-20"></div>
+<div class="space-y-12">
+<!-- Step 1 -->
+<div class="relative pl-16">
+<div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-primary-gradient flex items-center justify-center z-10 shadow-lg">
+<span class="material-symbols-outlined text-white" data-icon="tune">tune</span>
+</div>
+<!-- Connector Circle -->
+<div class="absolute left-[22px] top-[14px] w-3 h-3 rounded-full bg-[#9d4300] ring-4 ring-surface z-20"></div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)]">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Создайте фильтр</h3>
+<p class="text-on-surface-variant leading-relaxed">Укажите параметры автомобиля вашей мечты: марку, модель, комплектацию и бюджет.</p>
+<div class="mt-4 flex gap-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary px-3 py-1 bg-primary/5 rounded-full">Параметры</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary px-3 py-1 bg-primary/5 rounded-full">Бюджет</span>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative pl-16">
+<div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-white flex items-center justify-center z-10 shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)]">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Подбор вариантов</h3>
+<p class="text-on-surface-variant leading-relaxed">Мы находим лучшие предложения на аукционах и у дилеров в Китае, предоставляя полный отчет.</p>
+<div class="mt-4 h-32 rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Cinematic shot of a luxury electric sedan parked in a futuristic showroom with dramatic orange lighting accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8Y-HY3ItGEoJNHmf_9G520v5XKJS0Y4WgNWKQskLKj5mpTg23rbpaArBUHl1vp9J05OWtMvYm9EfTu2s_ckdz3xtODUyD5X_TjIQmleao2ee18IS0NU3i2-sLsfrERfS-o3CkGa7HEE8cWMJs_E0x3bzYvFhEoDzELrvfYUSD4zavX7KeGNRGBwSd61FhFWcaixnyDrRB9emEuzThwKlCIwVcbD7Ht_usbliy5EyJLivFy5qEIBcQqbXYvCKazZCECDv-Lj4hRbsJ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent"></div>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative pl-16">
+<div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-white flex items-center justify-center z-10 shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary" data-icon="gavel">gavel</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)]">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Договор и оплата</h3>
+<p class="text-on-surface-variant leading-relaxed">Заключение официального договора и безопасная оплата через банк с гарантией защиты сделки.</p>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="relative pl-16">
+<div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-white flex items-center justify-center z-10 shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary" data-icon="ship">sailing</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)]">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Доставка и таможня</h3>
+<p class="text-on-surface-variant leading-relaxed">Мы берем на себя всю логистику, оформление документов и прохождение таможни под ключ.</p>
+<div class="mt-4 flex items-center gap-4 py-3 border-t border-surface-container">
+<span class="material-symbols-outlined text-primary/60 text-sm">local_shipping</span>
+<span class="font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Отслеживание 24/7</span>
+</div>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="relative pl-16">
+<div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-white flex items-center justify-center z-10 shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary" data-icon="vpn_key">vpn_key</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)]">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Получение ключей</h3>
+<p class="text-on-surface-variant leading-relaxed">Заберите ваш автомобиль в нашем центре или мы доставим его прямо к вашему дому.</p>
+<button class="mt-6 w-full py-4 bg-primary-gradient text-white rounded-full font-headline font-bold text-sm tracking-widest uppercase flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                            Начать подбор
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 pb-2 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-t-[1.5rem] z-50 shadow-[0px_-12px_32px_rgba(25,28,30,0.04)]">
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Showroom</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#9d4300] bg-[#f97316]/10 rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Tracking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

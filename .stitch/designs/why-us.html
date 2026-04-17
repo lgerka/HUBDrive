@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#edeef0",
+                    "secondary": "#8f4d27",
+                    "on-secondary-container": "#773a16",
+                    "surface-container-highest": "#e1e2e4",
+                    "on-error": "#ffffff",
+                    "tertiary": "#006398",
+                    "surface-tint": "#9d4300",
+                    "outline-variant": "#e0c0b1",
+                    "on-surface": "#191c1e",
+                    "tertiary-fixed": "#cde5ff",
+                    "surface": "#f8f9fb",
+                    "secondary-fixed": "#ffdbca",
+                    "inverse-on-surface": "#f0f1f3",
+                    "on-tertiary-fixed": "#001d32",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#341100",
+                    "primary": "#9d4300",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#003554",
+                    "on-surface-variant": "#584237",
+                    "on-secondary-fixed-variant": "#713612",
+                    "surface-container-low": "#f3f4f6",
+                    "on-background": "#191c1e",
+                    "inverse-primary": "#ffb690",
+                    "secondary-fixed-dim": "#ffb690",
+                    "surface-variant": "#e1e2e4",
+                    "on-secondary-fixed": "#341100",
+                    "secondary-container": "#fda77a",
+                    "inverse-surface": "#2e3132",
+                    "surface-dim": "#d9dadc",
+                    "on-primary-fixed-variant": "#783200",
+                    "primary-fixed-dim": "#ffb690",
+                    "primary-container": "#f97316",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e7e8ea",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#ffdbca",
+                    "tertiary-container": "#00a2f4",
+                    "error-container": "#ffdad6",
+                    "outline": "#8c7164",
+                    "on-primary-container": "#582200",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#f8f9fb",
+                    "background": "#f8f9fb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-nav {
+        background: rgba(248, 249, 251, 0.8);
+        backdrop-filter: blur(20px);
+      }
+      .noble-gradient {
+        background: linear-gradient(135deg, #9d4300 0%, #f97316 100%);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-x-hidden">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 glass-nav shadow-sm px-6 h-16 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+<h1 class="text-lg font-extrabold tracking-[0.2em] text-primary uppercase font-headline">ETHÉREAL</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="professional male portrait avatar in minimalist corporate style with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPd0njGnkTUDpnjVi5F-v4PXDJkuFLheWaQ3m3jlIkuWEgGwsIC_Mwg103uznpZJrxaJUyWudLIJ6hZ5CJ_6okqHezKXSGY7YCFYIes-FQnUskKIKORDuYpddg0ANLdAC2tajpvY0dIKyjRyXtbA7vYzF8SjW8ckyg7r5Gzx_RydDcknhW1ZpQdr3M0DM3YP3stmQdOLDYVfULVx70GHq8fCVOjaE4s5EbVQ0gRTIejGh2QbJTBfgBoPlx9U_75G_Jfp9N1DmpW100"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6">
+<!-- Hero Branding Section -->
+<section class="mb-12">
+<div class="inline-flex items-center gap-2 mb-4">
+<span class="w-8 h-[2px] noble-gradient"></span>
+<span class="text-xs font-label font-semibold uppercase tracking-[0.2em] text-primary">HUBDrive Advantage</span>
+</div>
+<h2 class="text-[2.25rem] font-headline font-extrabold leading-tight tracking-tight mb-4">
+                Почему выбирают HUBDrive?
+            </h2>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-[90%]">
+                Ваш надежный импортер электромобилей из Китая
+            </p>
+</section>
+<!-- Feature Grid (Bento Style) -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Card 1: Direct Supplies -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 flex flex-col gap-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)] group">
+<div class="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="factory">factory</span>
+</div>
+<div>
+<h3 class="text-xl font-headline font-bold mb-2">Прямые поставки</h3>
+<p class="text-on-surface-variant leading-relaxed">Working directly with manufacturers to ensure the highest quality and genuine parts.</p>
+</div>
+<div class="mt-auto pt-4 flex items-center gap-2 text-primary text-sm font-semibold">
+<span class="font-label uppercase tracking-widest">Learn More</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2: Transparency -->
+<div class="bg-surface-container-low rounded-2xl p-8 flex flex-col gap-6 group border border-outline-variant/10">
+<div class="w-14 h-14 rounded-2xl bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="visibility">visibility</span>
+</div>
+<div>
+<h3 class="text-xl font-headline font-bold mb-2">Полная прозрачность</h3>
+<p class="text-on-surface-variant leading-relaxed">Tracking every stage of delivery from the factory floor to your doorstep.</p>
+</div>
+<div class="flex gap-1 mt-2">
+<div class="h-1 w-8 rounded-full noble-gradient"></div>
+<div class="h-1 w-4 rounded-full bg-outline-variant/30"></div>
+<div class="h-1 w-4 rounded-full bg-outline-variant/30"></div>
+</div>
+</div>
+<!-- Card 3: Warranty -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 flex flex-col gap-6 shadow-[0px_12px_32px_rgba(25,28,30,0.04)] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 noble-gradient opacity-[0.03] rounded-bl-full"></div>
+<div class="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="verified_user">verified_user</span>
+</div>
+<div>
+<h3 class="text-xl font-headline font-bold mb-2">Гарантия и сервис</h3>
+<p class="text-on-surface-variant leading-relaxed">Official warranty and maintenance support in our specialized service centers.</p>
+</div>
+</div>
+<!-- Card 4: Profitability -->
+<div class="noble-gradient rounded-2xl p-8 text-white flex flex-col gap-6 shadow-xl shadow-primary/20">
+<div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="payments">payments</span>
+</div>
+<div>
+<div class="text-white/80 text-xs font-label uppercase tracking-widest mb-1">Maximum Savings</div>
+<h3 class="text-3xl font-headline font-extrabold mb-2">Выгода до 30%</h3>
+<p class="text-white/90 leading-relaxed">Saving money compared to local dealers by cutting out the middleman.</p>
+</div>
+<button class="bg-white text-primary px-6 py-3 rounded-full font-bold text-sm tracking-wide shadow-lg self-start">
+                    Calculate Benefit
+                </button>
+</div>
+</div>
+<!-- Ecosystem Footer -->
+<footer class="mt-16 text-center">
+<p class="text-on-surface-variant/60 font-label text-[10px] uppercase tracking-[0.3em]">
+                Official partner ecosystem
+            </p>
+<div class="flex justify-center gap-8 mt-6 opacity-30 grayscale">
+<span class="material-symbols-outlined text-2xl" data-icon="electric_car">electric_car</span>
+<span class="material-symbols-outlined text-2xl" data-icon="hub">hub</span>
+<span class="material-symbols-outlined text-2xl" data-icon="language">language</span>
+</div>
+</footer>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 pb-2 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-t-[1.5rem] z-50 shadow-[0px_-12px_32px_rgba(25,28,30,0.04)]">
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="directions_car">directions_car</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest">Showroom</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description">description</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 hover:text-[#f97316] transition-colors scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="local_shipping">local_shipping</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest">Tracking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary bg-[#f97316]/10 rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+</body></html>

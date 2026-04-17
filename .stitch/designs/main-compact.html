@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBTrade - Premium EV Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        :root {
+            --primary-orange: #FF6B00;
+            --bg-light-gray: #F8F9FA;
+            --icon-bg: #F2F4F7;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#FF6B00",
+                        "surface": "#F8F9FA",
+                        "on-surface": "#1A1C1E",
+                        "surface-container": "#FFFFFF",
+                        "surface-container-low": "#F2F4F7",
+                        "outline-variant": "#E1E2E4",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+            background-color: #F8F9FA;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-surface/80 backdrop-blur-md w-full top-0 sticky z-50">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<h1 class="text-primary font-extrabold text-xl tracking-tighter font-headline">HUBTrade</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
+<img alt="professional portrait of a user for profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHaHvbmUaw7-N1pzKArJBc02Cl4Fewze7uA-LcRPY75Wr4X31Y4Edzdr_K3r2fYoVIKqUTFBQwToskz7dFor0UZDrMNatWoJoD1NJMBLXRvYibChrIcoBnYPsYZ59-hV4Bmq4YiAUlJlzAj_ZpBuUrw-jKns_CN-bsgSQsFFSjJuWef5JQD4H_hc8Y3W14RVP7eMABEIVLhMeGiH2LGaQJFzD0AyfFX819mKWTr5H7sfXdLTnqfqdoKnb9VaqCHHoQ2B4V6gbiHDHf"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pb-32 overflow-x-hidden">
+<!-- Hero Banner Carousel -->
+<section class="mt-2 px-6">
+<div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+<!-- Slide 1: Начало (Onboarding/Start) -->
+<div class="min-w-[90%] h-48 rounded-[2rem] relative overflow-hidden snap-center group">
+<img alt="Premium mobility banner" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0uha5OXDYHPVaDamoTMXtZxdvmuaSjK2qHSAU2tTSl80B543RQaQVg3DjtKBgSh4fLiazEFZut9iKKVlk9MlV9QOU3FDntW1wNFM_ZKnE4w0v8P73DSoQeQzsolcvXuSX9LlajTaMY_vu1FYEx0_-xTEQAkkav1t3nzINjlXZsrDTaKMOBFUTCyG45A-4q3SRwfT7dqA6A_Op-tqRjHe-9pET6b5bCxGN2Qu6c-H8nF5ntiZx996tNfjUPie"/>
+<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+<div class="absolute inset-0 flex flex-col justify-center px-8 text-white">
+<p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 font-label">HUBDrive</p>
+<h2 class="text-xl font-headline font-extrabold leading-tight mb-4 max-w-[200px]">Будущее премиальной мобильности</h2>
+<div>
+<button class="bg-primary text-white text-[11px] font-bold px-5 py-2 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">
+Узнать больше
+</button>
+</div>
+</div>
+</div>
+<!-- Slide 2 -->
+<div class="min-w-[90%] h-48 rounded-[2rem] relative overflow-hidden snap-center">
+<img alt="sleek futuristic electric vehicle" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH48NUK_YgP3_ApXyRzAd7BDvNFexbqfppSqex3lJxVITXyMkUDgyNuL3hNjGp8copC3rXTAWV0GEF37bJma1ysjmSzL8m4el22RjUnAlftuoOJf3scU-ck27ZDlxfSHiq1xMBuIGcPkLz4mk71Qfls9h25-t1z4hjIVtZU7XINbv8VWGzN6oYMQVHsLiA9xenoqBcTzoQwd3NODqztjnKLh4eSRGfKvE9uTGAaucXTlnCnKdKkFsGyZHOOHP0IGGka21IyyUDiQO-"/>
+<div class="absolute inset-0 bg-black/40"></div>
+<div class="absolute bottom-6 left-6 right-6 text-white">
+<p class="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-1 font-label">НОВИНКА</p>
+<h2 class="text-xl font-headline font-bold leading-tight">Zeekr 001: За гранью привычного</h2>
+</div>
+</div>
+<!-- Slide 3 -->
+<div class="min-w-[90%] h-48 rounded-[2rem] relative overflow-hidden snap-center">
+<img alt="luxury car steering wheel" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC1mBP62g8RZnhkmFZNTyp61nPkUDCKf3BzSQa9sJRCeswQImrqtW9VXZfGHT_rXmQsvgQdaOP5CfwlhlxFU_9mgubSHJMJa7z4Flld2dfIYZTuDFxNZqSX93H7nHlY1XLAyjrwpuLO9IQyeDHO5UqtlphC9P9mtjKDHJ24JTwOpl-X1A_sSYafH1R4Wq5vCKzNgZ2r9q4c_QGjWveXtjV2AhM--mvzFutQm8lZEsa1hUmvkMLpu6QW-EMFUrQBp_urdSExMYPVHQ6"/>
+<div class="absolute inset-0 bg-black/40"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<p class="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-1 font-label">ПРЕМИУМ</p>
+<h2 class="text-xl font-headline font-bold leading-tight">Lixiang L9 — Семейный бизнес-класс</h2>
+</div>
+</div>
+</div>
+<!-- Pagination Dots -->
+<div class="flex justify-center gap-1.5 mt-4">
+<div class="w-6 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+</div>
+</section>
+<!-- Quick Access Grid (Optimized Compact Style) -->
+<section class="mt-6 px-6">
+<div class="grid grid-cols-2 gap-3">
+<!-- Filter -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'wght' 400;">tune</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Подбор по фильтру</span>
+</button>
+<!-- All Cars -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'wght' 400;">directions_car</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Все авто</span>
+</button>
+<!-- Favorites -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Избранное</span>
+</button>
+<!-- News -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'wght' 400;">newspaper</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Новости</span>
+</button>
+<!-- Profile -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'wght' 400;">person</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Кабинет</span>
+</button>
+<!-- Support -->
+<button class="bg-white p-4 rounded-[1.75rem] flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 bg-[#F2F4F7] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'wght' 400;">support_agent</span>
+</div>
+<span class="text-[13px] font-bold font-headline text-on-surface text-center">Поддержка</span>
+</button>
+</div>
+</section>
+<!-- Recommended Section -->
+<section class="mt-10">
+<div class="flex justify-between items-center px-6 mb-4">
+<h3 class="text-lg font-headline font-bold">Рекомендовано для вас</h3>
+<button class="text-primary font-bold text-sm">Все</button>
+</div>
+<div class="flex gap-6 overflow-x-auto px-6 hide-scrollbar">
+<!-- Car Card 1 -->
+<div class="min-w-[280px] bg-white rounded-[2rem] shadow-sm overflow-hidden group">
+<div class="relative h-44">
+<img alt="modern white luxury sedan" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC36P92Oz_qSerlBoz777MneusN2RreMgUIkUq93ebmvhzmnyNKvdHlD1ynaIcZeXecSX1qi9MZ8K4yPm_KA_rY1ZlcaG4NOevdfRve-0Ow08CpA1c4u6TKGRKrXyyPFRXA6_-hxPbwz2ufjcGCJQgwIxal2rXVvvhsnkl5i6ScI7r9HqoBiwwhwCXllgWusN3IUUlT2_azh_DR6UspHcjnHYPBEZQaDCauO-FzR7zhR988Nb0vd74ubq2KaDIVvPHdWNTcyF1EKCGS"/>
+<div class="absolute top-4 right-4 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+                        98% Match
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h4 class="text-base font-bold font-headline leading-tight pr-4">Tesla Model 3 Performance</h4>
+<span class="text-primary font-bold text-lg">₽4.8M</span>
+</div>
+<div class="flex items-center gap-4 text-gray-400 text-xs font-medium">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">explore</span>
+<span>3.3с</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">battery_charging_full</span>
+<span>547км</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Car Card 2 -->
+<div class="min-w-[280px] bg-white rounded-[2rem] shadow-sm overflow-hidden">
+<div class="relative h-44">
+<img alt="high performance gray electric SUV" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEyXwpZ_8nXHDI-UY0ZULOJE1aRZj2YcGyoWv2ut3C2iI5UIeP89srl2eu25mThcnh1YWLamDLwom8uI6yRSVnvb3gza5fOp3JpynEPvc10lKDlMM8MAzVHecCx_4aCAyArE5ZjWE34uMeuu1u8td5bUuUdr5DLaoHZN7QGqytn3MMiiGR9zntTfJQ1w3QGnQqBSY4uo1GSF9EeT0VE-XyYKCsa-aQ3hNc0vAYG1Zcw9T6fga6Emhdv78h5Mp0oNkGJpx0Lg4Hd5Pz"/>
+<div class="absolute top-4 right-4 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+                        92% Match
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h4 class="text-base font-bold font-headline leading-tight pr-4">Polestar 2 BST</h4>
+<span class="text-primary font-bold text-lg">₽6.2M</span>
+</div>
+<div class="flex items-center gap-4 text-gray-400 text-xs font-medium">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">explore</span>
+<span>4.4с</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">battery_charging_full</span>
+<span>480км</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Achievements Section -->
+<section class="mt-12 px-6">
+<h3 class="text-lg font-headline font-bold mb-6">Наши достижения</h3>
+<div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+<!-- Stat Card 1 -->
+<div class="min-w-[170px] bg-white p-6 rounded-[2.5rem] text-center shadow-sm">
+<div class="w-12 h-12 bg-[#F2F4F7] rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+</div>
+<p class="text-2xl font-bold font-headline mb-1">500+</p>
+<p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-tight">машин<br/>передано</p>
+</div>
+<!-- Stat Card 2 -->
+<div class="min-w-[170px] bg-white p-6 rounded-[2.5rem] text-center shadow-sm">
+<div class="w-12 h-12 bg-[#F2F4F7] rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-2xl font-bold font-headline mb-1">4.9</p>
+<p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-tight">рейтинг<br/>сервиса</p>
+</div>
+<!-- Stat Card 3 -->
+<div class="min-w-[170px] bg-white p-6 rounded-[2.5rem] text-center shadow-sm">
+<div class="w-12 h-12 bg-[#F2F4F7] rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-2xl font-bold font-headline mb-1">15+</p>
+<p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-tight">мировых<br/>брендов</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[2.5rem] bg-white border-t border-gray-100 shadow-[0px_-8px_30px_rgba(0,0,0,0.04)]">
+<div class="flex justify-around items-center px-4 py-4 pb-safe">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-primary font-bold transition-all" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-body font-bold text-[10px] uppercase tracking-wider mt-1">HOME</span>
+</a>
+<!-- Markets -->
+<a class="flex flex-col items-center justify-center text-gray-400 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined text-2xl">bar_chart</span>
+<span class="font-body font-bold text-[10px] uppercase tracking-wider mt-1">MARKETS</span>
+</a>
+<!-- Trade -->
+<a class="flex flex-col items-center justify-center text-gray-400 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined text-2xl">swap_horiz</span>
+<span class="font-body font-bold text-[10px] uppercase tracking-wider mt-1">TRADE</span>
+</a>
+<!-- Wallet -->
+<a class="flex flex-col items-center justify-center text-gray-400 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+<span class="font-body font-bold text-[10px] uppercase tracking-wider mt-1">WALLET</span>
+</a>
+</div>
+</nav>
+</body></html>

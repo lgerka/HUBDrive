@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .spec-dot::after {
+            content: "•";
+            margin: 0 8px;
+            color: #f97316;
+        }
+        .spec-dot:last-child::after {
+            content: "";
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-primary-fixed": "#341100",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-variant": "#e1e2e4",
+                        "surface-bright": "#f8f9fb",
+                        "outline-variant": "#e0c0b1",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#783200",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e",
+                        "on-secondary-fixed": "#341100",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e1e2e4",
+                        "surface": "#f8f9fb",
+                        "primary-fixed": "#ffdbca",
+                        "inverse-surface": "#2e3132",
+                        "error-container": "#ffdad6",
+                        "outline": "#8c7164",
+                        "inverse-primary": "#ffb690",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#582200",
+                        "secondary": "#8f4d27",
+                        "on-secondary-container": "#773a16",
+                        "primary-container": "#f97316",
+                        "inverse-on-surface": "#f0f1f3",
+                        "surface-tint": "#9d4300",
+                        "surface-container-low": "#f3f4f6",
+                        "primary": "#9d4300",
+                        "tertiary-container": "#00a2f4",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-container": "#edeef0",
+                        "on-tertiary-container": "#003554",
+                        "tertiary": "#006398",
+                        "secondary-container": "#fda77a",
+                        "on-surface": "#191c1e",
+                        "on-secondary-fixed-variant": "#713612",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#ffb690",
+                        "surface-dim": "#d9dadc",
+                        "primary-fixed-dim": "#ffb690",
+                        "background": "#f8f9fb",
+                        "on-surface-variant": "#584237",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#ffdbca"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "1.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased selection:bg-primary/10">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none tonal-shift bg-slate-100 dark:bg-slate-800">
+<div class="flex items-center justify-between px-6 py-4 w-full max-w-2xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined text-orange-900 dark:text-orange-500" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Manrope'] font-bold text-lg tracking-tight text-orange-900 dark:text-orange-500">Избранное</h1>
+</div>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto min-h-screen">
+<!-- Favorites Count / Filter Segment -->
+<div class="flex justify-between items-end mb-8">
+<div class="space-y-1">
+<p class="text-sm font-label uppercase tracking-widest text-on-surface-variant opacity-60">Ваш выбор</p>
+<h2 class="font-headline font-extrabold text-3xl tracking-tight">3 автомобиля</h2>
+</div>
+<button class="p-2 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+</div>
+<!-- Vertical List of Premium Cards -->
+<div class="space-y-10">
+<!-- Card 1: Zeekr 001 -->
+<article class="group bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col transition-all duration-300">
+<div class="relative aspect-[16/9] overflow-hidden">
+<img alt="Zeekr 001" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Modern electric shooting brake Zeekr 001 in sleek grey finish parked in a high-tech minimalist showroom with cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD936hWc4_DgKcCABrl96ihCzbC5pSf2UH0iaqxImu1BobOlgmVybMNjQT4VNQAjNt7M86BG4pT041GBxmuDnWp3K5H7GpCAS83dSFdhkokeMa47zdm8dLWHjt2Ik7aCbi7GBjBm5BmygdZ4zoXST7lwbukL8oCgU2EaihipErvsRUnGb_44ZFcCakXbyHt8wbZqvmD1rS14fcG3bhk7LpG4quagticdKW4b9puL8HGO0_CMVH2P7ovMkDV67VHQ-hx3rMGxiSSOYWd"/>
+<!-- Badges -->
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-sm">В наличии</span>
+</div>
+<!-- Favorite Toggle -->
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-primary shadow-sm hover:scale-110 active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-6 md:p-8 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline font-bold text-2xl text-on-surface">Zeekr 001</h3>
+<p class="font-headline font-extrabold text-xl text-primary mt-1">15 500 000 ₸</p>
+</div>
+<div class="bg-primary/5 px-4 py-2 rounded-2xl">
+<span class="text-primary font-bold text-sm tracking-tight">EV</span>
+</div>
+</div>
+<!-- Spec Strip -->
+<div class="flex items-center text-xs font-label uppercase tracking-wider text-on-surface-variant">
+<span class="spec-dot">2023</span>
+<span class="spec-dot">0 км</span>
+<span class="spec-dot">Электро</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-bold rounded-full shadow-lg shadow-primary/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-300">
+                        Связаться
+                    </button>
+</div>
+</article>
+<!-- Card 2: Li Auto L9 -->
+<article class="group bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col transition-all duration-300">
+<div class="relative aspect-[16/9] overflow-hidden">
+<img alt="Li Auto L9" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Luxury full-size SUV Li Auto L9 in pearl white driving through a scenic mountain road at sunset with golden hour glow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2OFLa1TksnJriP6g2AdyXZTK3q1CNMHqbh4xxljlLPhlKl9DQdKvnSpryfjZaH2k0ig8IjbhIB2-3RRmebDXrD8oUdkwTh1B72LUD97vQ5rWF7O2hLREn7jgs0XBeaBbVC_NlNkDmwjqKCZXjOIV1y1xKW6U2Jvt8eMRcGzlHf6UsmKDnNxa0Ya7jUZKh3IuEfmC_cZ84teenE85ocyHFKCCELtqcJsdooy21S-8uKWRcIfkAmsfJaa5jLtgyqDD8Xxre0cyghHjo"/>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-sm">В наличии</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-primary shadow-sm hover:scale-110 active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-6 md:p-8 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline font-bold text-2xl text-on-surface">Li Auto L9</h3>
+<p class="font-headline font-extrabold text-xl text-primary mt-1">32 800 000 ₸</p>
+</div>
+<div class="bg-primary/5 px-4 py-2 rounded-2xl">
+<span class="text-primary font-bold text-sm tracking-tight">EREV</span>
+</div>
+</div>
+<!-- Spec Strip -->
+<div class="flex items-center text-xs font-label uppercase tracking-wider text-on-surface-variant">
+<span class="spec-dot">2024</span>
+<span class="spec-dot">150 км</span>
+<span class="spec-dot">Гибрид</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-bold rounded-full shadow-lg shadow-primary/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-300">
+                        Связаться
+                    </button>
+</div>
+</article>
+<!-- Card 3: Lotus Eletre -->
+<article class="group bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col transition-all duration-300">
+<div class="relative aspect-[16/9] overflow-hidden">
+<img alt="Lotus Eletre" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Hyper-SUV Lotus Eletre in bright yellow finish parked in a concrete architectural space with dramatic shadows and sharp lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDqe1F_jwC5A5mMKL-fgbN6SOEpAHEJ2CmifunJ2w6p2VhVGs2bnT7dbq4Po1lLCeTfrmb-SgobGLPU-xxfEmVHTInNDHDzRXoh0X1lvPoWtjn33ykkV4UiwVQ99uKbaTiWgYkS6OFq-cPkGmrLkSPesPAS3ZxSirukUBR3UYfE7LzL26miUSWWLeGmcMpibszfHOgc_YSi03WZqqx5o0LuwG72thBXNLzcs0Rfvl_oNknZLuSbUKLHQXSkcA1xNiYPUiQDvbzVhhu"/>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-sm">В наличии</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-primary shadow-sm hover:scale-110 active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-6 md:p-8 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline font-bold text-2xl text-on-surface">Lotus Eletre S</h3>
+<p class="font-headline font-extrabold text-xl text-primary mt-1">45 200 000 ₸</p>
+</div>
+<div class="bg-primary/5 px-4 py-2 rounded-2xl">
+<span class="text-primary font-bold text-sm tracking-tight">EV</span>
+</div>
+</div>
+<!-- Spec Strip -->
+<div class="flex items-center text-xs font-label uppercase tracking-wider text-on-surface-variant">
+<span class="spec-dot">2023</span>
+<span class="spec-dot">0 км</span>
+<span class="spec-dot">Электро</span>
+</div>
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-bold rounded-full shadow-lg shadow-primary/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-300">
+                        Связаться
+                    </button>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-[0px_-12px_32px_rgba(25,28,30,0.04)] no-line tonal-layering">
+<div class="flex justify-around items-center w-full px-4 pb-6 pt-3 max-w-2xl mx-auto">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1.5 hover:text-orange-700 dark:hover:text-orange-300 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Главная</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1.5 hover:text-orange-700 dark:hover:text-orange-300 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Каталог</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1.5 hover:text-orange-700 dark:hover:text-orange-300 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Уведомления</span>
+</a>
+<!-- ACTIVE ITEM: Профиль -->
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-400 rounded-2xl px-4 py-1.5 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Профиль</span>
+</a>
+</div>
+</nav>
+</body></html>

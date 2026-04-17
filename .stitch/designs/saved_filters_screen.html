@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e69e19",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#211b11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Hub Drive - Сохраненные фильтры</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="sticky top-0 z-50 flex items-center bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-4 py-3 justify-between">
+<div class="flex size-10 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">menu</span>
+</div>
+<div class="flex-1 flex justify-center">
+<img alt="Hub Drive Logo" class="h-8" data-alt="Hub Drive modern orange and black logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOOoCS6QDqPPlfxCiTcWcTnJW3y2W5aPP5JBPawZoIQ30nvhy4B5qe2eBRB6PuilkWosH1KGg1_CBIQ9tp0wOz6iTRswq2AY36YwLEyRzzLuH0cD7PvmBFcpqnFj9PHHEfsmmDcdTp-SK2B9QGHmyvEGuCI_a0La8anXi82u0hARAeRhLjZW81qf7raxIyvAxZ1u_zTW7AtDiGorEkWZ5bBnuOer1mAfDvZNvV52NFS3xZtqhw1XFLvlDM_Ra0aVpZj8GLQ4ZN-Ame"/>
+</div>
+<div class="flex size-10 shrink-0 items-center justify-end">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">search</span>
+</div>
+</header>
+<!-- Content -->
+<main class="flex-1 pb-32">
+<div class="px-4 pt-6 pb-2">
+<h1 class="text-2xl font-bold tracking-tight">Сохраненные фильтры</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Управляйте вашими активными поисками</p>
+</div>
+<div class="flex flex-col gap-4 p-4">
+<!-- Filter Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+<span class="mr-1 h-1.5 w-1.5 rounded-full bg-primary"></span>
+                                    Hot
+                                </span>
+<h3 class="mt-2 text-lg font-bold">Семейный внедорожник</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Toyota, Бюджет: до 15,000,000 ₸</p>
+</div>
+<div class="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-lg bg-cover bg-center" data-alt="Abstract silhouette of a large SUV" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDRwMhAzJGijXpvKB_84xZcBl0lH67bCcErhm44nioR2dr5xdmMr-0nUniGzzoaWPqScUL-9G8uYyzFxy3WF6iIfedlrv5JmWSG8j9cEtOe3QXfi-DuqC8aF4DswkwXInVjpnSMtFIuk9XtwsVK6UbK667_RhCJYr6meYPgRjsn0rebrvkjVvVRK3b5QmZgpGaQFsT_zc800YfytfGyr0cRxMSjLs2br1BR9VYBDSDoHwjCwUE38UQyAnZ859njTYsZVyBlwKKhLbir')"></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800">
+<div class="flex items-center gap-2">
+<label class="relative flex h-6 w-11 cursor-pointer items-center rounded-full bg-slate-200 dark:bg-slate-700 has-[:checked]:bg-primary transition-colors">
+<input checked="" class="sr-only" type="checkbox"/>
+<div class="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform translate-x-5"></div>
+</label>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Уведомления</span>
+</div>
+<div class="flex gap-3">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+<span class="mr-1 h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                    Warm
+                                </span>
+<h3 class="mt-2 text-lg font-bold">Городской электромобиль</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Zeekr, Tesla, Бюджет: до 20,000,000 ₸</p>
+</div>
+<div class="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-lg bg-cover bg-center" data-alt="Abstract silhouette of a sleek electric car" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBodz-G28kVrTvTakp8M1yS_gTxlBcX_qZBiU17hBCt1znHKKdep7uuq8XeyvQ3yDQsEEGfFdojgGiffv-UsMu9vH_GFeV87WxH6lWXRUu4mu8ysu0SnPiw_FXjCmqUn_yeJY0yrE_RFqa_h6XduKwWcqQONHxjfgG0sH0IiMJUGdo4pAe0Y2UUcA93qArAY8_5gkPvtO9kf8gBIfIqNV80LA02ZB-YLFSBDERyt7RAkbaHi0cKUV-lig-1sQ00Vi4swWv6Rxdez7ny')"></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800">
+<div class="flex items-center gap-2">
+<label class="relative flex h-6 w-11 cursor-pointer items-center rounded-full bg-slate-200 dark:bg-slate-700 has-[:checked]:bg-primary transition-colors">
+<input class="sr-only" type="checkbox"/>
+<div class="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform"></div>
+</label>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Уведомления</span>
+</div>
+<div class="flex gap-3">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+<span class="mr-1 h-1.5 w-1.5 rounded-full bg-primary"></span>
+                                    Hot
+                                </span>
+<h3 class="mt-2 text-lg font-bold">Первое авто для сына</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Hyundai, Kia, Бюджет: до 8,000,000 ₸</p>
+</div>
+<div class="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-lg bg-cover bg-center" data-alt="Abstract silhouette of a compact sedan" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBCp_ArIJSfW3pc-YsXRc7OEsMhIMwmf__lAX6puXtx6T1OLgDtHrvg8VjtOWqjnPHj8yiDz_ogs9z36KteSnXs7Y5y93YcMqIzjTBhvqmpc88UoACLmwfm4sdIcxgUz9wrLa6xbUHZwZTP40Tg-EaWvUEhmXOrMS22aCFn4bZfJd9hWKDtUpRWkZZEZ8aVnrTJUEu6klbtu5QNvLB8_H_kF8bGGbBlZFZMSsVjrBKqPHrWm_1-ohzdAtQco3PJ9CBowSWwLabsa4eZ')"></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800">
+<div class="flex items-center gap-2">
+<label class="relative flex h-6 w-11 cursor-pointer items-center rounded-full bg-slate-200 dark:bg-slate-700 has-[:checked]:bg-primary transition-colors">
+<input checked="" class="sr-only" type="checkbox"/>
+<div class="absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform translate-x-5"></div>
+</label>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Уведомления</span>
+</div>
+<div class="flex gap-3">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Action Button -->
+<div class="fixed bottom-20 left-0 right-0 px-4 pb-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">add_circle</span>
+                Создать новый фильтр
+            </button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pb-6 pt-2">
+<div class="flex items-center justify-around max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Главная</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-medium">Каталог</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">notifications</span>
+<span class="text-[10px] font-medium">Уведомления</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Профиль</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

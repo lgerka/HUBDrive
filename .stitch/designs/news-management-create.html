@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create News Entry | Ethereal News Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#9d4300",
+                        "on-secondary-fixed-variant": "#713612",
+                        "on-primary-fixed": "#341100",
+                        "outline-variant": "#e0c0b1",
+                        "surface-dim": "#d9dadc",
+                        "on-secondary-container": "#773a16",
+                        "inverse-surface": "#2e3132",
+                        "secondary-fixed": "#ffdbca",
+                        "background": "#f8f9fb",
+                        "surface-variant": "#e1e2e4",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9fb",
+                        "primary-container": "#f97316",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-container": "#edeef0",
+                        "on-tertiary-fixed": "#001d32",
+                        "inverse-primary": "#ffb690",
+                        "surface-bright": "#f8f9fb",
+                        "on-tertiary-container": "#003554",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "surface-container-highest": "#e1e2e4",
+                        "primary-fixed": "#ffdbca",
+                        "secondary-fixed-dim": "#ffb690",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#8c7164",
+                        "error": "#ba1a1a",
+                        "on-background": "#191c1e",
+                        "tertiary-container": "#00a2f4",
+                        "on-primary-container": "#582200",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f3f4f6",
+                        "tertiary": "#006398",
+                        "surface-tint": "#9d4300",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-surface-variant": "#584237",
+                        "on-secondary-fixed": "#341100",
+                        "secondary-container": "#fda77a",
+                        "inverse-on-surface": "#f0f1f3",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#ffb690",
+                        "on-primary-fixed-variant": "#783200",
+                        "surface-container-high": "#e7e8ea",
+                        "secondary": "#8f4d27",
+                        "on-surface": "#191c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen flex flex-col z-40 bg-white border-r border-slate-100 w-64">
+<div class="p-8">
+<h1 class="text-lg font-black text-orange-700 font-headline tracking-tight">The Curator</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-slate-400 mt-1 font-semibold">System Administrator</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 text-orange-700 font-semibold bg-[#f3f4f6] rounded-r-full py-3 px-6 translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">article</span>
+<span class="font-headline tracking-tight font-medium">Content Manager</span>
+</a>
+<a class="flex items-center gap-3 text-[#191c1e] py-3 px-6 hover:bg-[#f3f4f6] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">image</span>
+<span class="font-headline tracking-tight font-medium">Media Library</span>
+</a>
+<a class="flex items-center gap-3 text-[#191c1e] py-3 px-6 hover:bg-[#f3f4f6] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-headline tracking-tight font-medium">Categories</span>
+</a>
+<a class="flex items-center gap-3 text-[#191c1e] py-3 px-6 hover:bg-[#f3f4f6] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-headline tracking-tight font-medium">User Roles</span>
+</a>
+<a class="flex items-center gap-3 text-[#191c1e] py-3 px-6 hover:bg-[#f3f4f6] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-headline tracking-tight font-medium">Audit Logs</span>
+</a>
+</nav>
+<div class="mt-auto p-8 space-y-4">
+<div class="flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full bg-slate-100 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a creative director in a minimalist studio setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMiamJ0vES1WZ5PJuPAQkwdeKd38xfHRCofePhCDjwfTFCerLmQr6sxBr0eKJxBXKZph0TezOZwXY7lTVJBDSG_uD1hltPhYA257hiEGNXhnXeB6qoVVUnFf9aNt89KrC8Kg4ZEvAzr_H-Bdxd_lnvQ5eT2TOYYjiDwpwyO51EycGcV10tlKf6ozeUYg8Wp19zU0ut3Da3Rr2lAauNcTzspoiT7z-DSMBGwUzaBPPlUOHrluGjXdtm29W9IBHTm0ReA_KFDeN75t3g"/>
+</div>
+<div>
+<p class="text-sm font-bold font-headline">Admin Avatar</p>
+<p class="text-xs text-slate-400">View Profile</p>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-100 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-[#191c1e] px-2 py-2 text-sm hover:text-orange-700 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 text-[#191c1e] px-2 py-2 text-sm hover:text-orange-700 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-30 bg-[#f8f9fb] flex justify-between items-center w-full px-8 py-4 bg-[#f3f4f6]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-[#191c1e] font-headline">Ethereal News Admin</span>
+<div class="hidden lg:flex items-center gap-6">
+<a class="text-[#191c1e] font-medium hover:text-orange-600 transition-colors duration-300" href="#">Dashboard</a>
+<a class="text-[#191c1e] font-medium hover:text-orange-600 transition-colors duration-300" href="#">Analytics</a>
+<a class="text-orange-700 font-bold border-b-2 border-orange-700" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4">
+<button class="p-2 text-slate-500 hover:text-orange-700 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-orange-700 transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+<button class="px-5 py-2 text-sm font-semibold text-orange-700 hover:bg-white rounded-full transition-all active:scale-95 duration-200">Save Draft</button>
+<button class="px-6 py-2 text-sm font-semibold text-white bg-gradient-to-br from-[#9d4300] to-[#f97316] rounded-full shadow-sm hover:translate-y-[-2px] transition-all active:scale-95 duration-200">Publish Post</button>
+</div>
+</header>
+<!-- Creation Canvas -->
+<div class="p-12 max-w-6xl mx-auto w-full">
+<div class="mb-10">
+<h2 class="text-4xl font-headline font-bold text-[#191c1e] tracking-tight mb-2">Create New Entry</h2>
+<p class="text-slate-500 font-body">Compose and curate your latest editorial feature for the Ethereal ecosystem.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+<!-- Main Form Column -->
+<div class="lg:col-span-2 space-y-10">
+<!-- Headline Section -->
+<section class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">News Headline</label>
+<input class="w-full bg-transparent border-b border-outline-variant/20 focus:border-primary-container focus:ring-0 text-3xl font-headline font-bold py-4 transition-colors placeholder:text-slate-300" placeholder="Enter a compelling title..." type="text"/>
+</section>
+<!-- Short Description -->
+<section class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">Short Description</label>
+<textarea class="w-full bg-surface-container-low rounded-xl p-6 border-none focus:ring-2 focus:ring-primary-container/20 text-lg leading-relaxed resize-none" placeholder="A brief summary for the preview card..." rows="3"></textarea>
+</section>
+<!-- Detailed Content -->
+<section class="space-y-4">
+<div class="flex justify-between items-end mb-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">Detailed News Text</label>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-100 rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">format_bold</span></button>
+<button class="p-2 hover:bg-slate-100 rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">format_italic</span></button>
+<button class="p-2 hover:bg-slate-100 rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">link</span></button>
+<button class="p-2 hover:bg-slate-100 rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">format_quote</span></button>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(25,28,30,0.04)] min-h-[500px] p-8 border border-slate-50">
+<textarea class="w-full h-full min-h-[440px] bg-transparent border-none focus:ring-0 text-slate-700 leading-loose resize-none" placeholder="Start writing the story..."></textarea>
+</div>
+</section>
+</div>
+<!-- Sidebar Metadata Column -->
+<div class="space-y-8">
+<!-- Cover Image Upload -->
+<div class="bg-surface-container-low rounded-xl p-6 space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">Cover Image</label>
+<div class="aspect-video rounded-lg overflow-hidden relative bg-slate-200 group cursor-pointer border-2 border-dashed border-slate-300 hover:border-primary-container transition-colors flex items-center justify-center">
+<div class="text-center p-6">
+<span class="material-symbols-outlined text-slate-400 text-4xl mb-2">cloud_upload</span>
+<p class="text-xs text-slate-500 font-medium">Click or drag to upload high-resolution thumbnail</p>
+</div>
+<!-- Background overlay image if any -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="abstract pattern of swirling ethereal light in shades of orange and white on a light gray background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfqoSuYYjdSqnaFVeKNzKD9cq6uopJTWekOSQ9M0GYEfOkvl2T3W6WJ_7IlBiRd5jDU2r8SufZzW1DraifMLacMhJTZQ3WgUwZ18nXhkE8x4BR1pPgpN4Yg3CmVpJtCZ_-RsR6-r-1WFqnQQpMmvOLr3XX4Zz3Y3ueKnF-g7q-i_PfUzBVE2cbYH1xj3tyPObliDZFIX0T7ciFduMXQk-EHQqNNLHQaO4bV3_cjgRX9IhcU3MFdeisQu3Aw_z6pU0A8I4acHIjeZep"/>
+</div>
+</div>
+</div>
+<!-- Publication Controls -->
+<div class="bg-white rounded-xl p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.04)] space-y-6">
+<div class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">Status</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-low rounded-full px-6 py-3 border-none focus:ring-2 focus:ring-primary-container/20 font-medium text-slate-700">
+<option value="draft">Draft</option>
+<option value="published">Published</option>
+<option value="scheduled">Scheduled</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</div>
+<div class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-primary">Publication Date</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low rounded-full px-6 py-3 border-none focus:ring-2 focus:ring-primary-container/20 font-medium text-slate-700" type="date"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">calendar_today</span>
+</div>
+</div>
+<div class="pt-4 space-y-4 border-t border-slate-100">
+<div class="flex items-center justify-between text-sm">
+<span class="text-slate-500">Auto-sharing</span>
+<div class="w-10 h-5 bg-primary-container rounded-full relative cursor-pointer">
+<div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-sm">
+<span class="text-slate-500">Allow comments</span>
+<div class="w-10 h-5 bg-slate-200 rounded-full relative cursor-pointer">
+<div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- SEO Tip Card -->
+<div class="bg-gradient-to-br from-slate-900 to-[#191c1e] rounded-xl p-8 text-white">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h4 class="font-headline font-bold text-sm tracking-tight">Curator Tips</h4>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed mb-6">Articles with a short description between 140-160 characters perform 40% better in showroom discovery.</p>
+<button class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-full text-xs font-bold tracking-widest uppercase transition-colors">Improve SEO</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-auto p-8 flex justify-between items-center text-[10px] text-slate-400 font-bold tracking-widest uppercase">
+<div class="flex gap-6">
+<span>Last Saved: Just now</span>
+<span>Word Count: 0</span>
+</div>
+<div>
+                © 2024 Ethereal Showroom Digital Assets
+            </div>
+</footer>
+</main>
+<!-- Floating Action for Mobile (Hidden on Desktop) -->
+<button class="md:hidden fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50">
+<span class="material-symbols-outlined">send</span>
+</button>
+</body></html>
