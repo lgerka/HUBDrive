@@ -13,26 +13,53 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
     useEffect(() => {
         if (!isReady) return;
         
         async function checkAdmin() {
             try {
-                const res = await fetch('/api/admin/ping', {
-                    headers: { 'x-telegram-init-data': initData }
-                });
-                setIsAuthorized(res.ok);
-                if (!res.ok) {
-                    router.replace('/');
+                const headers: Record<string, string> = {};
+                if (initData) {
+                    headers['x-telegram-init-data'] = initData;
                 }
+                const res = await fetch('/api/admin/ping', { headers });
+                setIsAuthorized(res.ok);
             } catch {
                 setIsAuthorized(false);
-                router.replace('/');
             }
         }
         
         checkAdmin();
-    }, [isReady, user, initData, router]);
+    }, [isReady, user, initData]);
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoggingIn(true);
+        setLoginError('');
+        try {
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            if (res.ok) {
+                // Verify again
+                const verifyRes = await fetch('/api/admin/ping');
+                if (verifyRes.ok) setIsAuthorized(true);
+                else setLoginError('Login successful, but authorization ping failed.');
+            } else {
+                setLoginError('Invalid password');
+            }
+        } catch {
+            setLoginError('Network error');
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     if (!isReady || isAuthorized === null) {
          return (
@@ -43,7 +70,33 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     }
 
     if (!isAuthorized) {
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="bg-white p-8 rounded-xl shadow-sm border max-w-sm w-full">
+                    <h1 className="text-xl font-bold mb-6 text-center text-slate-800">Admin Login</h1>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <input 
+                                type="password" 
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                placeholder="Enter admin password"
+                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                required
+                            />
+                        </div>
+                        {loginError && <p className="text-red-500 text-sm font-medium">{loginError}</p>}
+                        <button 
+                            type="submit" 
+                            disabled={isLoggingIn}
+                            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                        >
+                            {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Login"}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
     }
 
     const navItems = [

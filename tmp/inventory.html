@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBTrade | Inventory Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#8c7164",
+                        "primary-container": "#f97316",
+                        "surface-variant": "#e1e2e4",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#cde5ff",
+                        "tertiary-container": "#00a2f4",
+                        "secondary-fixed": "#ffdbca",
+                        "primary-fixed-dim": "#ffb690",
+                        "on-tertiary-container": "#003554",
+                        "on-secondary-fixed": "#341100",
+                        "on-primary-fixed": "#341100",
+                        "secondary-container": "#fda77a",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-tertiary-fixed": "#001d32",
+                        "on-primary-fixed-variant": "#783200",
+                        "on-surface": "#191c1e",
+                        "inverse-primary": "#ffb690",
+                        "background": "#f8f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#9d4300",
+                        "surface-bright": "#f8f9fb",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9fb",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#713612",
+                        "on-secondary-container": "#773a16",
+                        "surface-tint": "#9d4300",
+                        "surface-container": "#edeef0",
+                        "inverse-on-surface": "#f0f1f3",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "on-primary-container": "#582200",
+                        "inverse-surface": "#2e3132",
+                        "surface-dim": "#d9dadc",
+                        "surface-container-low": "#f3f4f6",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-background": "#191c1e",
+                        "surface-container-highest": "#e1e2e4",
+                        "secondary": "#8f4d27",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#e0c0b1",
+                        "tertiary": "#006398",
+                        "primary-fixed": "#ffdbca",
+                        "on-surface-variant": "#584237",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e8ea"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar (Authority: JSON & Design System) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f8f9fb] dark:bg-slate-950 flex flex-col p-6 space-y-8 h-full border-r border-[#e0c0b1]/20 transition-all duration-300 ease-in-out z-50">
+<div class="flex flex-col gap-1">
+<span class="text-2xl font-black text-[#9d4300] dark:text-[#f97316] font-headline">HUBTrade</span>
+<span class="text-xs text-slate-400 font-label tracking-widest uppercase">Admin Panel</span>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Dashboard Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#9d4300] dark:hover:text-[#f97316] hover:translate-x-1 transition-all duration-300 ease-in-out font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Leads Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#9d4300] dark:hover:text-[#f97316] hover:translate-x-1 transition-all duration-300 ease-in-out font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span>Leads</span>
+</a>
+<!-- Cars Tab (Active Mapping to Inventory/Cars) -->
+<a class="flex items-center gap-3 px-4 py-3 text-[#9d4300] dark:text-[#f97316] bg-white dark:bg-slate-900 rounded-lg shadow-sm transition-all duration-300 ease-in-out font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span>Cars</span>
+</a>
+<!-- News Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#9d4300] dark:hover:text-[#f97316] hover:translate-x-1 transition-all duration-300 ease-in-out font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">newspaper</span>
+<span>News</span>
+</a>
+<!-- Settings Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#9d4300] dark:hover:text-[#f97316] hover:translate-x-1 transition-all duration-300 ease-in-out font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-[#f3f4f6] dark:border-slate-900">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#9d4300] transition-all font-['Manrope'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Help Center</span>
+</a>
+<div class="flex items-center gap-3 mt-6 px-4">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="HUBTrade Admin" data-alt="Professional headshot of a mature male executive in a sharp business suit with a friendly yet authoritative expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADfgbHwTJx9j01VED2a5zAiFVVFNuXsKlfCOn6iObjTGA9stWjnCpFEi3QybzLvXObgORLITBTjj5jMp6vTEMNqVWu2ctg-yThoQ2MS0_CDI-PywA2FZKkWgh6ykYFFVKOHmdhN-b9XaiEGSHKb_zet706G_1c4UroB3ozD7ypwPpT3qwusBZU6YCRRngpcMfiDVWJvdKdzZ9q4uSN6VR32-2Uu0hZtrl7EPlOMj2kR9XC-n7tpl0AWf7XQlALLxHa8-VrVfhYwzWj"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-on-surface">Alex Mercer</span>
+<span class="text-[10px] text-slate-400">Head of Sales</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Authority: JSON & Design System) -->
+<header class="flex justify-between items-center px-8 w-full sticky top-0 z-40 bg-[#f8f9fb]/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-[#e0c0b1]/20 h-16 shadow-sm dark:shadow-none">
+<div class="flex items-center gap-8">
+<h1 class="font-['Manrope'] tracking-tight text-xl font-bold text-[#191c1e] dark:text-white">Inventory</h1>
+<!-- Search Bar -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-container transition-colors">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-sm focus:ring-1 focus:ring-primary-container/20 transition-all" placeholder="Search vehicles..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4">
+<button class="p-2 text-slate-500 hover:bg-[#f3f4f6] dark:hover:bg-slate-800 transition-colors rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary-container rounded-full"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-[#f3f4f6] dark:hover:bg-slate-800 transition-colors rounded-full">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-headline text-sm font-semibold shadow-lg shadow-orange-500/10 hover:-translate-y-0.5 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Add New Vehicle
+                </button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8">
+<!-- Stats Banner (Asymmetric Bento Style) -->
+<div class="grid grid-cols-12 gap-6 mb-12">
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl p-8 flex justify-between items-end border border-transparent shadow-[0px_12px_32px_rgba(25,28,30,0.02)]">
+<div>
+<span class="text-label-sm font-label uppercase tracking-widest text-slate-400 mb-2 block">Total Inventory Value</span>
+<h2 class="text-4xl font-headline font-bold text-on-surface">$12,482,900</h2>
+</div>
+<div class="flex gap-8 text-right">
+<div>
+<span class="block text-primary-container font-headline font-bold text-xl">142</span>
+<span class="text-[10px] uppercase font-label tracking-tighter text-slate-500">Units</span>
+</div>
+<div>
+<span class="block text-tertiary-container font-headline font-bold text-xl">28</span>
+<span class="text-[10px] uppercase font-label tracking-tighter text-slate-500">In Transit</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 bg-gradient-to-br from-[#9d4300] to-[#f97316] rounded-2xl p-8 text-white">
+<span class="material-symbols-outlined text-4xl opacity-40 mb-4">trending_up</span>
+<h3 class="text-lg font-headline font-semibold mb-1">Stock Turnover Rate</h3>
+<p class="text-sm text-white/80">Inventory is moving 12% faster than last month.</p>
+</div>
+</div>
+<!-- Modern Table Section -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-[0px_12px_32px_rgba(25,28,30,0.02)] overflow-hidden">
+<div class="px-8 py-6 border-b border-surface-container-low flex justify-between items-center">
+<h3 class="font-headline font-bold text-lg">Active Listings</h3>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filter
+                        </button>
+<button class="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">download</span> Export
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">Preview</th>
+<th class="px-6 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">Brand &amp; Model</th>
+<th class="px-6 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">Year</th>
+<th class="px-6 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">VIN-code</th>
+<th class="px-6 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">Status</th>
+<th class="px-6 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold">Price</th>
+<th class="px-8 py-4 text-[10px] font-label uppercase tracking-widest text-slate-400 font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-4">
+<div class="w-16 h-10 rounded-lg overflow-hidden bg-surface-container relative">
+<div class="absolute inset-0 bg-[#ffb690]/10 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover" data-alt="Side profile of a sleek white Zeekr 001 electric car in a minimalist studio setting with soft glow lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJO6ritkGi4ggZ18Y3_nsRJPAw2hs6PPEsxE84U6QdUgayu0hVgqkSC5Wg44R03nSJg1oX16_9E96Ig4tX-ccZm43Q_TaREQFSFYNu3_JMUnEMpplMh9TLSSmmpqJ89k2R1tF6FXRCp1pfbun39Qvm5CxxtWSxSygLBZFSIcxO83Pu6IMRj0IU2g8sGl-Q7Zfa0fkGzLbOYR6RosVJtRAU2V8WJMfK1vNvb-VKc1J6RQIaZfhCz9MnP1uerZ3u7tHaGvAoRqo1GqUo"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-headline font-bold text-on-surface text-sm">Zeekr 001 YOU</span>
+<span class="text-xs text-slate-400 font-body">Dual-motor AWD</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body text-sm font-medium">2023</td>
+<td class="px-6 py-4 font-mono text-[11px] text-slate-500 uppercase tracking-tighter">LRW7A2EC5PC0001</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider">In Transit</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-headline font-bold text-sm">$62,500</span>
+</td>
+<td class="px-8 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-slate-400 hover:text-primary-container transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 text-slate-400 hover:text-error transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-4">
+<div class="w-16 h-10 rounded-lg overflow-hidden bg-surface-container relative">
+<div class="absolute inset-0 bg-[#ffb690]/10 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover" data-alt="Luxury electric sedan in dark obsidian black parked against a modern concrete architectural wall with cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJuqJSp91RhisjMmZ2y552sR3DrDkvidLVw90gLsapOLa-rkfPfPbQ8uvqGKGi5cIm51yFx-59Vfu-y2G4EUKUt-qN7SphRB4qWeqUmHwtHg5f3DF3Qex9Xkv1nyvneXHVad2Ck_AQAs1j2riCJ0OgCPBiNXd9V51p7K6JksaNkzge0kxoo-o-pbfTM4WrcNtIW7jrUW5pmNIQVW9J2qncnTOYXUGOruJj1aao8GJTl7_W-YeInqHLUyTWf2WWGLmOw5N8eQGVYAcb"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-headline font-bold text-on-surface text-sm">NIO ET7</span>
+<span class="text-xs text-slate-400 font-body">100 kWh Battery</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body text-sm font-medium">2024</td>
+<td class="px-6 py-4 font-mono text-[11px] text-slate-500 uppercase tracking-tighter">NXA8B3DF6QA0942</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wider">In Stock</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-headline font-bold text-sm">$78,200</span>
+</td>
+<td class="px-8 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-slate-400 hover:text-primary-container transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 text-slate-400 hover:text-error transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-4">
+<div class="w-16 h-10 rounded-lg overflow-hidden bg-surface-container relative">
+<div class="absolute inset-0 bg-[#ffb690]/10 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover" data-alt="Dynamic shot of a silver premium sports car driving through a desert road during sunrise with long shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZTKOAjHlPsKC9rqr3G1w79z7_bxuQ5qo-jFyNmgVIobMkt1dbxPZZDpFyc9ZwF94ADawrLPibbo6fWbbd0vYod1QIx3MpIRBcl_f9TEibc6E2NqFul5WCsX-5l4S7tw9qn8QU6b2qD7hfSPPcqPXpn5vJIv5xozlZRdGYP8uy8OPFWfrkS1oLB06ycC1p8biUOYzgl2g1r6Zf5X8FD8iHKwelToPl5qzd2mWvnIsrOeBQ8wy6f6cNuhduFPKPv077CIMoJCXGzBTD"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-headline font-bold text-on-surface text-sm">BMW i7 M70</span>
+<span class="text-xs text-slate-400 font-body">Executive Trim</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body text-sm font-medium">2023</td>
+<td class="px-6 py-4 font-mono text-[11px] text-slate-500 uppercase tracking-tighter">WBA2G3S00PD0012</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">Sold</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-headline font-bold text-sm">$154,000</span>
+</td>
+<td class="px-8 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-slate-400 hover:text-primary-container transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 text-slate-400 hover:text-error transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-4">
+<div class="w-16 h-10 rounded-lg overflow-hidden bg-surface-container relative">
+<div class="absolute inset-0 bg-[#ffb690]/10 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover" data-alt="Rear view of a modern electric SUV showing futuristic taillights in a dark moody garage environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3fKTlI8fNLMmKyyGfIjIyazQ6eyhQRq1lNGebjzffSHGLEoFqX7TygR8qZkBhOyZ_oRBBNN2Pg-PCaeYZ90LMDuMTi4HsSW7c5CwRTX4Unrg-OBsn3K_PSj9WL7k3coO8hbpk41sbKLT7nAsN0dBWqXp8_72NjPFAl2_-oG8yz7JegxokwRAvHGGQ83GvlBykx_HVAuTBVr-Qm0Vy5ye_uRvhZHt9VYUubgBw-QRMe2lpIEc73jnUByUAckrw49PgsaTvSciOJJ8D"/>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-headline font-bold text-on-surface text-sm">HiPhi Z</span>
+<span class="text-xs text-slate-400 font-body">Future Edition</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body text-sm font-medium">2024</td>
+<td class="px-6 py-4 font-mono text-[11px] text-slate-500 uppercase tracking-tighter">HPH4M9X10LA9021</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wider">In Stock</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-headline font-bold text-sm">$89,900</span>
+</td>
+<td class="px-8 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-slate-400 hover:text-primary-container transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-2 text-slate-400 hover:text-error transition-colors rounded-lg"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-6 flex items-center justify-between border-t border-surface-container-low">
+<span class="text-xs text-slate-400">Showing 4 of 142 vehicles</span>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-lg border border-outline-variant/20 text-xs font-semibold hover:bg-surface-container-low transition-colors">Previous</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container text-xs font-semibold text-primary">1</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant/20 text-xs font-semibold hover:bg-surface-container-low transition-colors">2</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant/20 text-xs font-semibold hover:bg-surface-container-low transition-colors">3</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant/20 text-xs font-semibold hover:bg-surface-container-low transition-colors">Next</button>
+</div>
+</div>
+</div>
+<!-- Signature Spec Strip (Minimalist Editorial Element) -->
+<div class="mt-12 py-6 flex justify-center items-center gap-6 border-t border-surface-container-low">
+<span class="text-[10px] font-label uppercase tracking-[0.2em] text-slate-400">Global Logistics Protocol 4.0</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="text-[10px] font-label uppercase tracking-[0.2em] text-slate-400">Inventory Refresh: Just Now</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="text-[10px] font-label uppercase tracking-[0.2em] text-slate-400">Secure Dealer Network</span>
+</div>
+</div>
+</main>
+</body></html>

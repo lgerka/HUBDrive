@@ -8,7 +8,7 @@ export default function OnboardingStep1() {
       <header className="bg-surface/80 dark:bg-background/80 backdrop-blur-md fixed top-0 z-50 flex justify-between items-center w-full px-6 py-4">
         <div className="flex items-center gap-2">
           <Zap className="text-primary w-6 h-6 fill-primary" />
-          <span className="text-xl font-extrabold tracking-tighter text-primary font-headline">HUBTrade</span>
+          <span className="text-xl font-extrabold tracking-tighter text-primary font-headline">HUBDrive</span>
         </div>
         <Link href="/" className="font-headline font-bold tracking-tight text-gray-400 hover:opacity-80 transition-opacity active:scale-95 duration-200">
           Skip
@@ -60,7 +60,7 @@ export default function OnboardingStep1() {
       <div className="h-20 bg-surface-container-low dark:bg-[#1A1C1E] flex items-center justify-center px-8">
         <div className="flex items-center gap-2 opacity-40">
           <ShieldCheck className="w-4 h-4" />
-          <span className="text-[10px] uppercase tracking-widest font-label font-medium">Official HUBTrade Partner Ecosystem</span>
+          <span className="text-[10px] uppercase tracking-widest font-label font-medium">Official HUBDrive Partner Ecosystem</span>
         </div>
       </div>
     </div>

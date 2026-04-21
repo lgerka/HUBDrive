@@ -74,7 +74,7 @@ export default function AdminNewsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
         <div>
           <h2 className="text-3xl font-sans font-extrabold tracking-tight text-on-surface">Медиа и Публикации</h2>
-          <p className="text-muted-foreground font-sans mt-2">Новости, видеоотзывы и обзоры платформы HUBTrade.</p>
+          <p className="text-muted-foreground font-sans mt-2">Новости, видеоотзывы и обзоры платформы HUBDrive.</p>
         </div>
         <div className="flex space-x-3 w-full sm:w-auto">
           <button 

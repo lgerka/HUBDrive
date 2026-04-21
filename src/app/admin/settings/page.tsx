@@ -87,7 +87,7 @@ export default function AdminSettingsPage() {
            </div>
            <div>
              <h2 className="text-3xl font-sans font-extrabold tracking-tight text-on-surface">Настройки Платформы</h2>
-             <p className="text-muted-foreground font-sans mt-1">Определите глобальные переменные для HUBTrade.</p>
+             <p className="text-muted-foreground font-sans mt-1">Определите глобальные переменные для HUBDrive.</p>
            </div>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Название компании</label>
                     <input 
-                      placeholder="HUBTrade" 
+                      placeholder="HUBDrive" 
                       className="w-full bg-surface-container-low border-none rounded-xl py-4 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans outline-none" 
                       value={settings.companyName} 
                       onChange={e => setSettings({...settings, companyName: e.target.value})} 
@@ -120,7 +120,7 @@ export default function AdminSettingsPage() {
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Контактный Email</label>
                     <input 
                       type="email"
-                      placeholder="hello@hubtrade.kz" 
+                      placeholder="hello@hubdrive.kz" 
                       className="w-full bg-surface-container-low border-none rounded-xl py-4 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans outline-none" 
                       value={settings.contactEmail} 
                       onChange={e => setSettings({...settings, contactEmail: e.target.value})} 

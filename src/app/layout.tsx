@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HUBTrade - Автомобили из Китая",
+  title: "HUBDrive - Автомобили из Китая",
   description: "Премиальный сервис покупки проверенных автомобилей с пробегом",
 };
 

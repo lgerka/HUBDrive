@@ -30,7 +30,7 @@ export function VehicleInfoBlocks({ description, equipment }: VehicleInfoBlocksP
                             </div>
                             <div>
                                 <h3 className="font-headline font-bold text-base md:text-lg text-on-surface">Состояние и проверка</h3>
-                                <p className="text-on-surface-variant text-xs md:text-sm">Осмотрено HUBTrade</p>
+                                <p className="text-on-surface-variant text-xs md:text-sm">Осмотрено HUBDrive</p>
                             </div>
                         </div>
                         <div className="text-right">

@@ -15,6 +15,10 @@ const NAV_ITEMS = [
 export function BottomNav() {
     const pathname = usePathname()
 
+    if (pathname === '/onboarding/profile') {
+        return null;
+    }
+
     return (
         <nav className="fixed bottom-0 w-full z-50 bg-[#f8f9fb]/90 dark:bg-[#191c1e]/90 backdrop-blur-xl rounded-t-3xl shadow-[0px_-8px_24px_rgba(25,28,30,0.03)] border-t border-surface-container pb-[env(safe-area-inset-bottom)]">
             <div className="flex justify-around items-center pt-3 pb-4 px-4 w-full">

@@ -8,7 +8,7 @@ export function TopNav() {
             <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto relative">
                 <div className="flex items-center gap-4">
                     <Menu className="text-[#191c1e] dark:text-[#f8f9fb] hover:opacity-80 transition-opacity cursor-pointer w-6 h-6" />
-                    <h1 className="text-xl font-black tracking-tighter text-[#191c1e] dark:text-[#f8f9fb] font-headline">HUBTrade</h1>
+                    <h1 className="text-xl font-black tracking-tighter text-[#191c1e] dark:text-[#f8f9fb] font-headline">HUBDrive</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <Bell className="text-[#191c1e] dark:text-[#f8f9fb] hover:opacity-80 transition-opacity cursor-pointer w-6 h-6" />

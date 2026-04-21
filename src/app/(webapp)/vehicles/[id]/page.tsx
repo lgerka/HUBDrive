@@ -151,7 +151,7 @@ export default function VehicleDetailPage() {
                     <button onClick={() => router.back()} className="text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90">
                         <ArrowLeft className="w-6 h-6" />
                     </button>
-                    <h1 className="font-headline font-bold text-lg tracking-tight text-primary">HUBTrade</h1>
+                    <h1 className="font-headline font-bold text-lg tracking-tight text-primary">HUBDrive</h1>
                     <button className="text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90">
                         <Share2 className="w-6 h-6" />
                     </button>

@@ -9,18 +9,21 @@ import { SlidersHorizontal, Heart, Info, Headset, LogOut, Star } from "lucide-re
 import { useRouter } from "next/navigation";
 import { useFavoritesStore } from "@/lib/state/favorites.store";
 import { useFiltersStore } from "@/lib/state/filters.store";
+import { useUserStore } from "@/lib/state/user.store";
 
 export default function ProfilePage() {
     const { user, webApp, initData } = useTelegram();
     const router = useRouter();
     const { favoriteIds } = useFavoritesStore();
     const { filters, fetchFilters } = useFiltersStore();
+    const { profile, fetchProfile } = useUserStore();
 
     useEffect(() => {
         if (initData) {
             fetchFilters(initData);
+            fetchProfile(initData);
         }
-    }, [initData, fetchFilters]);
+    }, [initData, fetchFilters, fetchProfile]);
 
     const handleEditProfile = () => {
         router.push("/profile/edit");
@@ -34,13 +37,16 @@ export default function ProfilePage() {
         }
     };
 
-    const userName = user 
+    const tgName = user 
         ? `${user.first_name} ${user.last_name || ""}`.trim() 
         : "Гость";
         
-    const userPhone = user?.username 
+    const tgPhone = user?.username 
         ? `@${user.username}` 
         : "+7 777 123 45 67"; 
+
+    const displayPhone = profile?.phone || tgPhone;
+    const displayName = profile?.name || tgName;
 
     const getFavoriteBadge = (count: number) => {
         if (count === 1) return '1 авто';
@@ -60,8 +66,8 @@ export default function ProfilePage() {
 
             <main className="pt-24 px-6 max-w-2xl mx-auto space-y-8 w-full">
                 <ProfileUserInfo 
-                    name={userName}
-                    phone={userPhone}
+                    name={displayName}
+                    phone={displayPhone}
                     avatarUrl={user?.photo_url}
                     onEdit={handleEditProfile}
                 />

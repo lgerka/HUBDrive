@@ -85,7 +85,7 @@ export default function AboutAdminPage() {
                 <div className="flex flex-col mb-10 gap-2">
                     <h2 className="text-3xl md:text-[3.5rem] font-extrabold font-headline tracking-tight text-on-surface leading-tight">О компании (About)</h2>
                     <p className="text-slate-500 font-body text-lg max-w-2xl">
-                        Этот контент будет транслироваться во вкладке "О компании" публичного приложения HUBTrade. Убедитесь в точности фактов.
+                        Этот контент будет транслироваться во вкладке "О компании" публичного приложения HUBDrive. Убедитесь в точности фактов.
                     </p>
                 </div>
 
@@ -106,7 +106,7 @@ export default function AboutAdminPage() {
                                 <textarea 
                                     className="w-full bg-surface-container-low/50 border-none rounded-3xl px-6 py-6 focus:ring-1 focus:ring-primary-container text-on-surface font-body leading-relaxed outline-none transition-all resize-y min-h-[220px] placeholder:text-slate-300" 
                                     rows={8} 
-                                    placeholder="HUBTrade — платформа номер один..."
+                                    placeholder="HUBDrive — платформа номер один..."
                                     value={story} 
                                     onChange={(e) => setStory(e.target.value)}
                                 />

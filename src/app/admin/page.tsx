@@ -59,7 +59,7 @@ export default function AdminDashboard() {
       {/* Page Header */}
       <section className="flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Обзор HUBTrade</h2>
+          <h2 className="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Обзор HUBDrive</h2>
           <p className="text-on-surface-variant mt-1 text-lg">Сводная статистика платформы.</p>
         </div>
         <div className="flex space-x-2">

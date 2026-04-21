@@ -1,8 +1,8 @@
-# Design System: HUBTrade
+# Design System: HUBDrive
 **Project ID:** 15420168746026509113
 
 ## 1. Visual Theme & Atmosphere
-HUBTrade features a high-contrast, modern, and utilitarian aesthetic. While the core theme leans towards dark mode accents, it utilizes a clean, open layout with high legibility. The mood is professional, dense with information, yet airy enough to allow easy scannability of vehicle specifications and system notifications. It relies heavily on neutral slate tones with vibrant primary color pops to guide user attention.
+HUBDrive features a high-contrast, modern, and utilitarian aesthetic. While the core theme leans towards dark mode accents, it utilizes a clean, open layout with high legibility. The mood is professional, dense with information, yet airy enough to allow easy scannability of vehicle specifications and system notifications. It relies heavily on neutral slate tones with vibrant primary color pops to guide user attention.
 
 ## 2. Color Palette & Roles
 * **Azure Blue / Primary** (#135BEC): Used for primary actions, active states, key icons, and important text highlights. It provides a sharp, energetic contrast against neutral backgrounds.

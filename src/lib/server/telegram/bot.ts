@@ -8,7 +8,7 @@ export const bot = new Bot(token || 'dummy_token');
 
 export function initBotCommands() {
     bot.command("start", async (ctx) => {
-        const text = "👋 Добро пожаловать в HUBTrade!\nЗдесь вы можете найти лучшие автомобили из Китая.\n\nНажмите кнопку ниже, чтобы открыть наш каталог.";
+        const text = "👋 Добро пожаловать в HUBDrive!\nЗдесь вы можете найти лучшие автомобили из Китая.\n\nНажмите кнопку ниже, чтобы открыть наш каталог.";
         
         const telegramId = ctx.from?.id.toString();
         const username = ctx.from?.username;

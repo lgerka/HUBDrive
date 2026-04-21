@@ -7,7 +7,7 @@ import { useRef } from "react";
 const STORIES = [
   {
     id: 1,
-    title: "HUBTrade",
+    title: "HUBDrive",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC7KjFzPbRm68Q-pUXfOg5QrVlcESBEnEYYx5ewMvA3f88ysCED3JMVQ2-onOaOWBdTTxM6iVCnjURk3_0S64v5_ZoLgPmVDDnmliYLdnSyQB9PHzCxEbFwjXixpsmLq-08J497MIkhtQdhUFQAqOWlzAkkKiH5hx2tO-glUrNGn8bjVRI--3GRQTduS6M7s72LklnVCgP3vCt6Hn7fj7G4VHCcsN7SzLxLuzjpT8dAhgJguaKCbGs3W3j-6SwYXDT6E2I7NMQeEoLH",
     link: "/onboarding/step-1",
   },

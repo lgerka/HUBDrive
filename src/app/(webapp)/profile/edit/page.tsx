@@ -5,27 +5,62 @@ import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { EditProfileForm } from '@/components/hubdrive/profile/edit-profile-form';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useUserStore } from "@/lib/state/user.store";
+import { useEffect } from 'react';
 
 export default function EditProfilePage() {
     const router = useRouter();
-    const { user } = useTelegram();
+    const { user, initData } = useTelegram();
     const { toast } = useToast();
+    const { profile, fetchProfile, updateProfile } = useUserStore();
 
-    const userName = user 
+    useEffect(() => {
+        if (initData && !profile) {
+            fetchProfile(initData);
+        }
+    }, [initData, profile, fetchProfile]);
+
+    const tgName = user 
         ? `${user.first_name} ${user.last_name || ""}`.trim() 
-        : "Александр Петров"; // Placeholder like design if no user
+        : "Александр Петров"; 
         
-    const userPhone = user?.username 
+    const tgPhone = user?.username 
         ? `@${user.username}` 
         : "+7 (999) 123-45-67"; 
 
-    const handleSubmit = (data: any) => {
-        console.log("Profile updated:", data);
-        toast({
-            title: "Успешно",
-            description: "Ваш профиль обновлен",
-        });
-        router.back();
+    const displayName = profile?.name || tgName;
+    const displayPhone = profile?.phone || tgPhone;
+    const displayCity = profile?.city || "Алматы";
+
+    const handleSubmit = async (data: any) => {
+        try {
+            if (initData) {
+                const res = await fetch('/api/me', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-telegram-init-data': initData
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) throw new Error('Ошибка сохранения');
+
+                updateProfile(data);
+            }
+            
+            toast({
+                title: "Успешно",
+                description: "Ваш профиль обновлен",
+            });
+            router.back();
+        } catch (error) {
+            toast({
+                title: "Ошибка",
+                description: "Не удалось сохранить изменения",
+                variant: "destructive"
+            });
+        }
     };
 
     return (
@@ -55,9 +90,9 @@ export default function EditProfilePage() {
             <div className="flex-1 w-full">
                 <EditProfileForm 
                     initialData={{
-                        name: userName,
-                        phone: userPhone,
-                        city: "Алматы", // Default city for demo
+                        name: displayName,
+                        phone: displayPhone,
+                        city: displayCity,
                         photoUrl: user?.photo_url
                     }}
                     onSubmit={handleSubmit}

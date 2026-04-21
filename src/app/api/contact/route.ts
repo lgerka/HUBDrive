@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 <b>Цена:</b> ${price}
 <b>ID:</b> ${vehicle.id}
 
-<a href="https://hub-trade-psi.vercel.app/vehicles/${vehicle.id}">Открыть в приложении</a>
+<a href="https://hub-drive-psi.vercel.app/vehicles/${vehicle.id}">Открыть в приложении</a>
         `.trim();
 
         // Send via Telegram Bot API to all admins

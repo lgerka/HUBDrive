@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUBTrade Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9fb",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#f3f4f6",
+                    "primary-fixed-dim": "#ffb690",
+                    "on-secondary-fixed-variant": "#713612",
+                    "primary-fixed": "#ffdbca",
+                    "tertiary-container": "#00a2f4",
+                    "secondary-fixed": "#ffdbca",
+                    "tertiary-fixed-dim": "#93ccff",
+                    "outline": "#8c7164",
+                    "on-secondary-container": "#773a16",
+                    "secondary-container": "#fda77a",
+                    "on-secondary-fixed": "#341100",
+                    "tertiary": "#006398",
+                    "outline-variant": "#e0c0b1",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-fixed-variant": "#004b74",
+                    "on-primary-fixed-variant": "#783200",
+                    "on-background": "#191c1e",
+                    "surface-tint": "#9d4300",
+                    "on-tertiary-fixed": "#001d32",
+                    "on-surface": "#191c1e",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#003554",
+                    "on-surface-variant": "#584237",
+                    "surface-container": "#edeef0",
+                    "error": "#ba1a1a",
+                    "surface": "#f8f9fb",
+                    "on-primary-container": "#582200",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#cde5ff",
+                    "background": "#f8f9fb",
+                    "surface-variant": "#e1e2e4",
+                    "on-primary-fixed": "#341100",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e1e2e4",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e7e8ea",
+                    "primary": "#9d4300",
+                    "error-container": "#ffdad6",
+                    "secondary": "#8f4d27",
+                    "primary-container": "#f97316",
+                    "surface-dim": "#d9dadc",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f3",
+                    "secondary-fixed-dim": "#ffb690",
+                    "inverse-primary": "#ffb690"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-900 flex flex-col h-full py-8 px-4 z-50">
+<div class="mb-10 px-2">
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">THE CURATOR</h1>
+<p class="text-xs font-medium text-slate-500 uppercase tracking-tighter mt-1">Showroom Admin</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard (Active) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-orange-600 dark:text-orange-500 font-bold border-r-4 border-orange-500 bg-orange-50/50 dark:bg-orange-900/10 transition-all duration-300 ease-out active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-manrope font-semibold tracking-tight">Dashboard</span>
+</a>
+<!-- Leads -->
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person_search">person_search</span>
+<span class="font-manrope font-semibold tracking-tight">Leads</span>
+</a>
+<!-- Cars -->
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+<span class="font-manrope font-semibold tracking-tight">Cars</span>
+</a>
+<!-- News -->
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="newspaper">newspaper</span>
+<span class="font-manrope font-semibold tracking-tight">News</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-manrope font-semibold tracking-tight">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-2">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-white rounded-full py-3 px-4 flex items-center justify-center space-x-2 font-bold shadow-sm hover:-translate-y-0.5 transition-all duration-300">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+<span class="text-xs uppercase tracking-widest">Add New Vehicle</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 backdrop-blur-xl flex items-center justify-between px-8 shadow-sm shadow-slate-200/50">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-xl focus:ring-1 focus:ring-primary-container text-sm transition-all" placeholder="Поиск по системе..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6 ml-8">
+<div class="hidden md:flex space-x-6">
+<a class="font-inter text-sm text-orange-600 border-b-2 border-orange-500 pb-2" href="#">Analytics</a>
+<a class="font-inter text-sm text-slate-600 hover:text-orange-500 transition-colors" href="#">Inbox</a>
+<a class="font-inter text-sm text-slate-600 hover:text-orange-500 transition-colors" href="#">Reports</a>
+</div>
+<div class="flex items-center space-x-3 border-l pl-6 border-slate-100">
+<button class="text-slate-600 hover:text-orange-500 transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="text-slate-600 hover:text-orange-500 transition-colors"><span class="material-symbols-outlined" data-icon="help_outline">help_outline</span></button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="professional male portrait for administrator avatar in clean modern studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-ZJZrOxwYXXxjTC5L0bg3wYfRV3qyLV2899O4O_tKNSQPZrAosmv-7zitB38dTEWAgM1E3DjswsvM0ruOtHegstFNifgLbUgKWO5tus7DanCxBfzL9RZ49u-gZEbDz0epVwtxQizj5HuJ5SscsIm2lxfp49FQOCqh4yisABt3ImQc8XdEhrhfqmCsAV32M2cA31iCxdFDyEN-avo4UUX_oRKAARUZMN1fuL2SCd_5iLmNifFcBDWXDs4ULfzCzZecEPfLrEf7r9dt"/>
+</div>
+</div>
+</div>
+</header>
+<div class="pt-24 px-8 pb-12 space-y-10">
+<!-- Page Header -->
+<section class="flex items-end justify-between">
+<div>
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Обзор HUBTrade</h2>
+<p class="text-on-surface-variant mt-1 text-lg">Добро пожаловать в панель управления куратора.</p>
+</div>
+<div class="flex space-x-2">
+<div class="flex items-center bg-surface-container-lowest px-4 py-2 rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-primary mr-2" data-icon="calendar_today">calendar_today</span>
+<span class="text-sm font-medium">Последние 30 дней</span>
+</div>
+</div>
+</section>
+<!-- 1. Top Stats Row -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Всего пользователей</p>
+<h3 class="text-4xl font-extrabold text-on-surface font-headline">12,450</h3>
+<div class="mt-4 flex items-center text-green-600 text-xs font-bold">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="trending_up">trending_up</span>
+                        +12% за неделю
+                    </div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Активных фильтров</p>
+<h3 class="text-4xl font-extrabold text-on-surface font-headline">842</h3>
+<div class="mt-4 flex items-center text-primary text-xs font-bold">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="update">update</span>
+                        Обновлено 5 мин назад
+                    </div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border-l-4 border-primary transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold text-primary uppercase tracking-widest mb-2 font-label">Горячих лидов</p>
+<h3 class="text-4xl font-extrabold text-on-surface font-headline">34</h3>
+<div class="mt-4 flex items-center text-orange-600 text-xs font-bold">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="priority_high">priority_high</span>
+                        Требуют внимания
+                    </div>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Машин в наличии</p>
+<h3 class="text-4xl font-extrabold text-on-surface font-headline">156</h3>
+<div class="mt-4 flex items-center text-slate-500 text-xs font-bold">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="inventory_2">inventory_2</span>
+                        9 новых поступлений
+                    </div>
+</div>
+</section>
+<!-- 2. Chart Section (Bento Style) -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 bg-surface-container-lowest p-8 rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="text-xl font-bold font-headline">Новая аудитория</h3>
+<p class="text-sm text-on-surface-variant">Динамика прироста за 30 дней</p>
+</div>
+<div class="flex space-x-4 text-xs font-bold uppercase tracking-widest">
+<span class="flex items-center text-primary"><span class="w-3 h-3 bg-primary rounded-full mr-2"></span> Прямые</span>
+<span class="flex items-center text-slate-400"><span class="w-3 h-3 bg-slate-300 rounded-full mr-2"></span> Рефералы</span>
+</div>
+</div>
+<!-- SVG Chart Mockup -->
+<div class="h-64 w-full mt-4">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 1000 300">
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#9d4300;stop-opacity:0.2"></stop>
+<stop offset="100%" style="stop-color:#9d4300;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#f3f4f6" stroke-width="1" x1="0" x2="1000" y1="0" y2="0"></line>
+<line stroke="#f3f4f6" stroke-width="1" x1="0" x2="1000" y1="100" y2="100"></line>
+<line stroke="#f3f4f6" stroke-width="1" x1="0" x2="1000" y1="200" y2="200"></line>
+<line stroke="#f3f4f6" stroke-width="2" x1="0" x2="1000" y1="300" y2="300"></line>
+<!-- Main Path -->
+<path d="M0,250 Q100,240 200,180 T400,150 T600,100 T800,120 T1000,40" fill="none" stroke="#9d4300" stroke-linecap="round" stroke-width="4"></path>
+<path d="M0,250 Q100,240 200,180 T400,150 T600,100 T800,120 T1000,40 V300 H0 Z" fill="url(#grad1)"></path>
+<!-- Points -->
+<circle cx="200" cy="180" fill="#9d4300" r="6" stroke="white" stroke-width="2"></circle>
+<circle cx="600" cy="100" fill="#9d4300" r="6" stroke="white" stroke-width="2"></circle>
+<circle cx="1000" cy="40" fill="#9d4300" r="6" stroke="white" stroke-width="2"></circle>
+</svg>
+</div>
+<div class="flex justify-between mt-4 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-label">
+<span>01 Окт</span>
+<span>08 Окт</span>
+<span>15 Окт</span>
+<span>22 Окт</span>
+<span>30 Окт</span>
+</div>
+</div>
+<!-- Featured Car Minimal Card -->
+<div class="bg-primary rounded-xl p-8 text-white relative overflow-hidden group">
+<div class="relative z-10 h-full flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Топ продаж месяца</span>
+<h3 class="text-2xl font-extrabold mt-2 font-headline leading-tight">Lucid Air Sapphire</h3>
+<div class="mt-4 flex items-center space-x-2 text-xs">
+<span class="bg-white/20 px-2 py-1 rounded">2.1s 0-100</span>
+<span class="bg-white/20 px-2 py-1 rounded">1234 HP</span>
+</div>
+<div class="mt-auto">
+<p class="text-3xl font-bold font-headline">$249,000</p>
+<button class="mt-4 w-full py-3 bg-white text-primary font-bold rounded-full text-sm uppercase tracking-widest hover:bg-orange-50 transition-colors">Смотреть детали</button>
+</div>
+</div>
+<!-- Decorative Circle -->
+<div class="absolute -bottom-20 -right-20 w-64 h-64 bg-primary-container rounded-full opacity-20 blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+<div class="absolute top-10 right-10 opacity-10">
+<span class="material-symbols-outlined text-9xl" data-icon="electric_car">electric_car</span>
+</div>
+</div>
+</section>
+<!-- 3. Bottom Table -->
+<section class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<div class="p-8 flex justify-between items-center border-b border-surface-container-low">
+<h3 class="text-xl font-bold font-headline">Последние горячие лиды</h3>
+<button class="text-primary text-sm font-bold flex items-center hover:opacity-80">
+                        Весь список
+                        <span class="material-symbols-outlined ml-1" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">Имя Клиента</th>
+<th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">Телефон</th>
+<th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">Модель авто</th>
+<th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">Бюджет</th>
+<th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label text-right">Статус</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs mr-3">АВ</div>
+<span class="font-semibold text-on-surface">Александр Волков</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-medium">+7 (900) 123-45-67</td>
+<td class="px-8 py-5 font-medium text-on-surface">Tesla Model S Plaid</td>
+<td class="px-8 py-5 text-sm font-headline font-bold text-primary">$135,000</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-orange-100 text-orange-600">Новый</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs mr-3">ЕМ</div>
+<span class="font-semibold text-on-surface">Елена Морозова</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-medium">+7 (921) 987-65-43</td>
+<td class="px-8 py-5 font-medium text-on-surface">Porsche Taycan Turbo S</td>
+<td class="px-8 py-5 text-sm font-headline font-bold text-primary">$210,000</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-blue-100 text-blue-600">В обработке</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs mr-3">ДП</div>
+<span class="font-semibold text-on-surface">Дмитрий Петров</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-medium">+7 (911) 444-55-66</td>
+<td class="px-8 py-5 font-medium text-on-surface">Rivian R1S Launch Ed.</td>
+<td class="px-8 py-5 text-sm font-headline font-bold text-primary">$92,500</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-orange-100 text-orange-600">Новый</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-xs mr-3">ОС</div>
+<span class="font-semibold text-on-surface">Ольга Соколова</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-medium">+7 (905) 555-00-11</td>
+<td class="px-8 py-5 font-medium text-on-surface">BMW iX M60</td>
+<td class="px-8 py-5 text-sm font-headline font-bold text-primary">$115,000</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-green-100 text-green-600">Звонок назначен</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</body></html>
