@@ -30,6 +30,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         if (app) {
             app.ready();
             app.expand();
+            app.disableVerticalSwipes?.();
             setWebApp(app);
             setIsReady(true);
             setIsInTelegram(true);
