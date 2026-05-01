@@ -35,9 +35,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
             setIsInTelegram(true);
         } else {
             setIsInTelegram(false);
-            if (process.env.NODE_ENV === 'development') {
-                setIsReady(true);
-            }
+            setIsReady(true); // Always ready, even outside Telegram
         }
     }, []);
 
