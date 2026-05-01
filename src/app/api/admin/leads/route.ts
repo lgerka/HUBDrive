@@ -70,3 +70,28 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const isAdmin = await verifyAdmin(request, prisma);
+        if (!isAdmin) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 });
+        }
+        
+        await prisma.user.delete({
+            where: { id }
+        });
+        
+        return NextResponse.json({ success: true });
+    } catch (err) {
+        console.error("Delete Lead Error:", err);
+        return NextResponse.json({ error: "Server error" }, { status: 500 });
+    }
+}

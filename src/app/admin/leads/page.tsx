@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, Search, ExternalLink, Star, Flame, ThermometerSun, Snowflake, Info } from "lucide-react";
+import { Loader2, Search, ExternalLink, Star, Flame, ThermometerSun, Snowflake, Info, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useRouter } from "next/navigation";
@@ -214,14 +214,38 @@ export default function LeadsPage() {
                                         </select>
                                     </td>
                                     <td className="px-6 py-5 align-top mb-auto text-right">
-                                        {/* Fallback to telegramId logic or a direct copy click if username absent */}
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${lead.telegramId}`, '_blank'); }}
-                                            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-bold text-sm bg-surface-container-high hover:bg-surface-container-highest transition-colors text-on-surface"
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                            Telegram
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {/* Fallback to telegramId logic or a direct copy click if username absent */}
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${lead.telegramId}`, '_blank'); }}
+                                                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-bold text-sm bg-surface-container-high hover:bg-surface-container-highest transition-colors text-on-surface"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Telegram
+                                            </button>
+                                            <button 
+                                                onClick={async (e) => { 
+                                                    e.stopPropagation(); 
+                                                    if (confirm("Вы уверены, что хотите удалить этого лида? Это действие необратимо.")) {
+                                                        try {
+                                                            const res = await fetch(`/api/admin/leads?id=${lead.id}`, {
+                                                                method: 'DELETE',
+                                                                headers: { 'x-telegram-init-data': initData || '' }
+                                                            });
+                                                            if (res.ok) {
+                                                                setLeads(leads.filter(l => l.id !== lead.id));
+                                                            }
+                                                        } catch (err) {
+                                                            console.error("Failed to delete lead", err);
+                                                        }
+                                                    }
+                                                }}
+                                                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                title="Удалить лида"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
