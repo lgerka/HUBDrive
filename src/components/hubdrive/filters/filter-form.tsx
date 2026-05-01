@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Filter } from '@/lib/state/filters.store';
 import { ChevronDown, Search, Car, Check, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CAR_MODELS } from '@/constants/models';
 
 interface FilterFormProps {
     initialData?: Partial<Filter>;
@@ -25,7 +26,11 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
     });
 
     const handleChange = (field: keyof Filter, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        if (field === 'brand') {
+            setFormData(prev => ({ ...prev, [field]: value, model: '' }));
+        } else {
+            setFormData(prev => ({ ...prev, [field]: value }));
+        }
     };
 
     const handleArrayChange = (field: 'bodyTypes' | 'engineTypes', value: string) => {
@@ -129,17 +134,24 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                             </div>
                             <ChevronDown className="text-on-surface/30 w-5 h-5" />
                         </div>
-                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors border-b border-transparent">
+                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer border-b border-transparent">
                             <div className="flex items-center gap-3 w-full">
                                 <Car className="text-on-surface/40 w-5 h-5" />
-                                <input 
-                                    type="text"
-                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none placeholder:text-on-surface/50"
-                                    placeholder="Модель (опционально)"
-                                    value={formData.model}
+                                <select 
+                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none appearance-none disabled:opacity-50"
+                                    value={formData.model || ''}
                                     onChange={(e) => handleChange('model', e.target.value)}
-                                />
+                                    disabled={!formData.brand || !CAR_MODELS[formData.brand as string]}
+                                >
+                                    <option value="" disabled>
+                                        {!formData.brand ? "Сначала выберите марку" : "Выберите модель (опционально)"}
+                                    </option>
+                                    {formData.brand && CAR_MODELS[formData.brand as string]?.map((model) => (
+                                        <option key={model} value={model}>{model}</option>
+                                    ))}
+                                </select>
                             </div>
+                            <ChevronDown className="text-on-surface/30 w-5 h-5" />
                         </div>
                     </div>
                 </section>
