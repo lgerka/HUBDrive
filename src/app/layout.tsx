@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -35,6 +36,7 @@ export default function RootLayout({
         className={`${manrope.variable} ${inter.variable} bg-surface font-body text-on-surface antialiased`}
       >
         {children}
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
