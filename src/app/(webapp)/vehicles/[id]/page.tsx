@@ -143,6 +143,23 @@ export default function VehicleDetailPage() {
         });
     };
 
+    const handleShare = async () => {
+        const shareData = {
+            title: `${vehicle.brand} ${vehicle.model}`,
+            text: `Посмотри этот автомобиль: ${vehicle.brand} ${vehicle.model}`,
+            url: window.location.href
+        };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareData.url)}&text=${encodeURIComponent(shareData.text)}`);
+            }
+        } catch (err) {
+            console.error("Error sharing", err);
+        }
+    };
+
     return (
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background pb-[calc(170px+env(safe-area-inset-bottom))] antialiased">
             {/* Top Nav (sticky) matching HTML */}
@@ -152,9 +169,7 @@ export default function VehicleDetailPage() {
                         <ArrowLeft className="w-6 h-6" />
                     </button>
                     <h1 className="font-headline font-bold text-lg tracking-tight text-primary">HUBDrive</h1>
-                    <button className="text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90">
-                        <Share2 className="w-6 h-6" />
-                    </button>
+                    <div className="w-6" />
                 </div>
                 <div className="bg-surface-container w-full h-[1px]"></div>
             </header>
@@ -181,9 +196,14 @@ export default function VehicleDetailPage() {
                                     Новинка
                                 </span>
                             </div>
-                            <h2 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
-                                {vehicle.brand} {vehicle.model}
-                            </h2>
+                            <div className="flex items-center gap-3">
+                                <h2 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
+                                    {vehicle.brand} {vehicle.model}
+                                </h2>
+                                <button onClick={handleShare} className="p-2 -ml-1 mt-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container active:scale-95 transition-all">
+                                    <Share2 className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                         <div className="text-right shrink-0">
                             <p className="font-headline text-2xl font-black text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>

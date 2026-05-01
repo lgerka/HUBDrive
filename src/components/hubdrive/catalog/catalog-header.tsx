@@ -11,16 +11,14 @@ interface CatalogHeaderProps {
 }
 
 export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: CatalogHeaderProps) {
-    const { status, setStatus } = useCatalogQuery();
+    const { status, setStatus, sort, setSort } = useCatalogQuery();
 
     return (
         <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md pb-2">
             <div className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
-                <button className="text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95 duration-200 p-2 rounded-full -ml-2">
-                    <Menu className="w-6 h-6" />
-                </button>
+                <div className="w-10"></div>
                 <h1 className="font-headline font-bold text-xl tracking-tight text-primary">Каталог</h1>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-10 justify-end">
                     <button className="text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95 duration-200 p-2 rounded-full -mr-2">
                         <Search className="w-6 h-6" />
                     </button>
@@ -52,9 +50,18 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
 
             {/* Filter / Sort Row */}
             <div className="px-6 max-w-5xl mx-auto w-full flex justify-between items-center mb-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full">
-                    <span className="text-on-surface-variant font-medium text-xs uppercase tracking-wider">Сортировка: По дате</span>
-                </div>
+                <button 
+                    onClick={() => {
+                        if (sort === 'newest') setSort('price_asc');
+                        else if (sort === 'price_asc') setSort('price_desc');
+                        else setSort('newest');
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95 duration-200 rounded-full"
+                >
+                    <span className="text-on-surface-variant font-medium text-xs uppercase tracking-wider">
+                        Сортировка: {sort === 'price_asc' ? 'Дешевле' : sort === 'price_desc' ? 'Дороже' : 'По дате'}
+                    </span>
+                </button>
                 <button className="w-10 h-10 flex items-center justify-center bg-surface-container-lowest rounded-full shadow-sm border border-transparent">
                     <SlidersHorizontal className="w-5 h-5 text-primary" />
                 </button>

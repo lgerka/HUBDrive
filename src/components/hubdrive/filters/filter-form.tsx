@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter } from '@/lib/state/filters.store';
 import { ChevronDown, Search, Car, Check, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,19 @@ interface FilterFormProps {
 }
 
 export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.visualViewport) {
+            const handler = () => {
+                const isKeyboard = window.visualViewport!.height < window.innerHeight * 0.8;
+                setIsKeyboardOpen(isKeyboard);
+            };
+            window.visualViewport.addEventListener('resize', handler);
+            return () => window.visualViewport!.removeEventListener('resize', handler);
+        }
+    }, []);
+
     const [formData, setFormData] = useState<Partial<Filter>>({
         title: initialData?.title || '',
         brand: initialData?.brand || '',
@@ -319,7 +332,10 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
             </main>
 
             {/* Sticky Footer */}
-            <footer className="fixed bottom-[calc(76px+env(safe-area-inset-bottom))] left-0 w-full px-6 pb-4 pt-4 bg-gradient-to-t from-surface via-surface/95 to-transparent z-40">
+            <footer className={cn(
+                "fixed bottom-[calc(76px+env(safe-area-inset-bottom))] left-0 w-full px-6 pb-4 pt-4 bg-gradient-to-t from-surface via-surface/95 to-transparent z-40 transition-transform duration-300",
+                isKeyboardOpen ? "translate-y-[200%]" : "translate-y-0"
+            )}>
                 <div className="max-w-2xl mx-auto">
                     <button 
                         type="submit"

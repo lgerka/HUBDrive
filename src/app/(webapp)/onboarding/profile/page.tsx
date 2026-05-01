@@ -23,24 +23,34 @@ export default function OnboardingProfilePage() {
         }
     }, [user]);
 
-    const formatPhone = (val: string) => {
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value;
+        const isDeleting = val.length < phone.length;
+        
         let v = val.replace(/\D/g, '');
         if (v.startsWith('7') || v.startsWith('8')) {
-           v = v.substring(1);
+            v = v.substring(1);
         }
-        if (v.length > 0) {
-            let res = '+7';
-            if (v.length > 0) res += ` (${v.substring(0, 3)}`;
-            if (v.length >= 3) res += `) ${v.substring(3, 6)}`;
-            if (v.length >= 6) res += `-${v.substring(6, 8)}`;
-            if (v.length >= 8) res += `-${v.substring(8, 10)}`;
-            return res;
+        
+        if (isDeleting && v.length === 0) {
+            setPhone('');
+            setError('');
+            return;
         }
-        return val.length ? '+7' : '';
-    };
 
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPhone(formatPhone(e.target.value));
+        if (v.length === 0) {
+            setPhone('+7 ');
+            setError('');
+            return;
+        }
+
+        let res = '+7 ';
+        if (v.length > 0) res += `(${v.substring(0, 3)}`;
+        if (v.length >= 3) res += `) ${v.substring(3, 6)}`;
+        if (v.length >= 6) res += `-${v.substring(6, 8)}`;
+        if (v.length >= 8) res += `-${v.substring(8, 10)}`;
+        
+        setPhone(res);
         setError('');
     };
 

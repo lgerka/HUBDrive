@@ -35,3 +35,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const isAdmin = await verifyAdmin(request, prisma);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        await prisma.user.delete({
+            where: { id }
+        });
+
+        return new NextResponse(null, { status: 204 });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

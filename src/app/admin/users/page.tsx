@@ -196,14 +196,35 @@ export default function AdminUsersPage() {
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Акт.
                         </div>
                       </td>
-                      <td className="px-6 py-5 rounded-r-2xl text-right">
-                         <button 
-                           onClick={() => toggleRole(user.id, user.role)}
-                           className="text-xs font-bold text-primary hover:underline"
-                         >
-                           {isManager ? 'Сделать клиентом' : 'Сделать администратором'}
-                         </button>
-                      </td>
+                       <td className="px-6 py-5 rounded-r-2xl text-right">
+                         <div className="flex items-center justify-end gap-3">
+                           <button 
+                             onClick={() => toggleRole(user.id, user.role)}
+                             className="text-xs font-bold text-primary hover:underline"
+                           >
+                             {isManager ? 'Сделать клиентом' : 'Сделать администратором'}
+                           </button>
+                           <button 
+                             onClick={async () => {
+                               if (!confirm('Вы уверены, что хотите удалить этого пользователя? Это действие необратимо.')) return;
+                               try {
+                                 const res = await fetch(`/api/admin/users/${user.id}`, {
+                                   method: "DELETE",
+                                   headers: { "x-telegram-init-data": initData }
+                                 });
+                                 if (res.ok) await loadUsers();
+                                 else alert("Ошибка при удалении");
+                               } catch (e) {
+                                 console.error(e);
+                               }
+                             }}
+                             className="text-muted-foreground hover:text-red-500 transition-colors"
+                             title="Удалить лида/пользователя"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </button>
+                         </div>
+                       </td>
                     </tr>
                   )
                 })}
