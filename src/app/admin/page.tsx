@@ -26,24 +26,42 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await fetch("/api/admin/stats", {
-          headers: { "x-telegram-init-data": initData },
-        });
+        const headers: Record<string, string> = {};
+        if (initData) headers["x-telegram-init-data"] = initData;
+        const res = await fetch("/api/admin/stats", { headers });
         if (res.ok) {
           const data = await res.json();
           setStats(data);
+        } else {
+          const text = await res.text();
+          console.error("API Error:", res.status, text);
+          setError(`API Error: ${res.status} ${text}`);
         }
       } catch (err) {
         console.error(err);
+        setError(String(err));
       } finally {
         setIsLoading(false);
       }
     }
     loadStats();
   }, [initData]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-64 items-center justify-center p-8 text-center space-y-4">
+        <div className="text-red-500 font-bold text-xl">Ошибка загрузки данных</div>
+        <div className="text-slate-600 bg-red-50 p-4 rounded-lg w-full overflow-auto max-w-2xl text-left font-mono text-sm">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || !stats) {
     return (
