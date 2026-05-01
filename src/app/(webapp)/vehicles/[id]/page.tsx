@@ -153,7 +153,7 @@ export default function VehicleDetailPage() {
             if (navigator.share) {
                 await navigator.share(shareData);
             } else if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareData.url)}&text=${encodeURIComponent(shareData.text)}`);
+                (window.Telegram.WebApp as any).openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareData.url)}&text=${encodeURIComponent(shareData.text)}`);
             }
         } catch (err) {
             console.error("Error sharing", err);
