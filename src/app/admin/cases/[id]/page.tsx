@@ -53,7 +53,6 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
   }, [initData, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
-    if (!initData) return;
     setIsSaving(true);
     try {
       const url = isNew ? "/api/admin/cases" : `/api/admin/cases/${unwrappedParams.id}`;

@@ -36,7 +36,6 @@ export default function AdminVehiclesPage() {
   }
 
   useEffect(() => {
-    if (!initData) return;
     async function loadVehicles() {
       try {
         const res = await fetch("/api/admin/vehicles", {

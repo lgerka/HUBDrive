@@ -71,7 +71,6 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   }, [initData, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
-    if (!initData) return;
     setIsSaving(true);
     try {
       const url = isNew ? "/api/admin/vehicles" : `/api/admin/vehicles/${unwrappedParams.id}`;

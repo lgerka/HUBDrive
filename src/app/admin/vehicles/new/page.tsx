@@ -35,7 +35,6 @@ export default function AdminNewVehiclePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!initData) return;
     
     setIsSubmitting(true);
     try {

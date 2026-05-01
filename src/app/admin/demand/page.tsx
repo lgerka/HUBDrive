@@ -19,7 +19,6 @@ export default function AdminDemandPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!initData) return;
     async function fetchDemand() {
       try {
         const res = await fetch("/api/admin/demand", {

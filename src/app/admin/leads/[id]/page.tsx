@@ -14,7 +14,6 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
   const [lead, setLead] = useState<any>(null);
 
   useEffect(() => {
-    if (!initData) return;
     async function loadLead() {
       try {
         const res = await fetch(`/api/admin/leads/${unwrappedParams.id}`, {

@@ -38,7 +38,6 @@ export default function LeadsPage() {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        if (!initData) return;
         async function loadLeads() {
             try {
                 const res = await fetch("/api/admin/leads", {

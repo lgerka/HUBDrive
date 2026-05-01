@@ -23,7 +23,6 @@ export default function AdminSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!initData) return;
     async function loadSettings() {
       try {
         const res = await fetch("/api/admin/settings", {
@@ -49,7 +48,6 @@ export default function AdminSettingsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!initData) return;
     setIsSaving(true);
     try {
       const res = await fetch("/api/admin/settings", {

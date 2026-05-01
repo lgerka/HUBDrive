@@ -37,7 +37,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
 
   const loadUsers = async () => {
-    if (!initData) return;
     try {
       const res = await fetch("/api/admin/users", {
         headers: { "x-telegram-init-data": initData },
@@ -57,7 +56,6 @@ export default function AdminUsersPage() {
   }, [initData]);
 
   const toggleRole = async (userId: string, currentRole: string) => {
-    if (!initData) return;
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     if (!confirm(`Вы уверены, что хотите изменить роль на ${newRole}?`)) return;
 

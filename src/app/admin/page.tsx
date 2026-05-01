@@ -27,7 +27,6 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!initData) return;
     async function loadStats() {
       try {
         const res = await fetch("/api/admin/stats", {

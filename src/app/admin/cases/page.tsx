@@ -24,7 +24,6 @@ export default function AdminCasesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!initData) return;
     async function loadCases() {
       try {
         const res = await fetch("/api/admin/cases", {

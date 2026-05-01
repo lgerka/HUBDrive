@@ -47,7 +47,6 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!initData) return;
     setIsSaving(true);
     try {
       const url = isNew ? "/api/admin/news" : `/api/admin/news/${unwrappedParams.id}`;

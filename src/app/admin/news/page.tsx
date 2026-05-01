@@ -38,7 +38,6 @@ export default function AdminNewsPage() {
   }
 
   useEffect(() => {
-    if (!initData) return;
     async function loadNews() {
       try {
         const res = await fetch("/api/admin/news", {
