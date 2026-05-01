@@ -76,27 +76,70 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                                     onChange={(e) => handleChange('brand', e.target.value)}
                                 >
                                     <option value="" disabled>Выберите марку</option>
-                                    <option value="Zeekr">Zeekr</option>
-                                    <option value="Li Auto">Li Auto</option>
-                                    <option value="BYD">BYD</option>
+                                    <optgroup label="Китайские бренды">
+                                        <option value="Avatr">Avatr</option>
+                                        <option value="BYD">BYD</option>
+                                        <option value="Changan">Changan</option>
+                                        <option value="Chery">Chery</option>
+                                        <option value="Dongfeng">Dongfeng</option>
+                                        <option value="Exeed">Exeed</option>
+                                        <option value="FAW">FAW</option>
+                                        <option value="GAC">GAC</option>
+                                        <option value="Geely">Geely</option>
+                                        <option value="Great Wall">Great Wall</option>
+                                        <option value="Haval">Haval</option>
+                                        <option value="Hongqi">Hongqi</option>
+                                        <option value="Jetour">Jetour</option>
+                                        <option value="Li Auto">Li Auto</option>
+                                        <option value="Lynk & Co">Lynk & Co</option>
+                                        <option value="Nio">Nio</option>
+                                        <option value="Omoda">Omoda</option>
+                                        <option value="Tank">Tank</option>
+                                        <option value="Voyah">Voyah</option>
+                                        <option value="Xpeng">Xpeng</option>
+                                        <option value="Zeekr">Zeekr</option>
+                                    </optgroup>
+                                    <optgroup label="Европейские бренды">
+                                        <option value="Alfa Romeo">Alfa Romeo</option>
+                                        <option value="Aston Martin">Aston Martin</option>
+                                        <option value="Audi">Audi</option>
+                                        <option value="Bentley">Bentley</option>
+                                        <option value="BMW">BMW</option>
+                                        <option value="Citroën">Citroën</option>
+                                        <option value="Dacia">Dacia</option>
+                                        <option value="Ferrari">Ferrari</option>
+                                        <option value="Fiat">Fiat</option>
+                                        <option value="Jaguar">Jaguar</option>
+                                        <option value="Lamborghini">Lamborghini</option>
+                                        <option value="Land Rover">Land Rover</option>
+                                        <option value="Maserati">Maserati</option>
+                                        <option value="Mercedes-Benz">Mercedes-Benz</option>
+                                        <option value="Mini">Mini</option>
+                                        <option value="Opel">Opel</option>
+                                        <option value="Peugeot">Peugeot</option>
+                                        <option value="Porsche">Porsche</option>
+                                        <option value="Renault">Renault</option>
+                                        <option value="Rolls-Royce">Rolls-Royce</option>
+                                        <option value="Seat">Seat</option>
+                                        <option value="Skoda">Skoda</option>
+                                        <option value="Volkswagen">Volkswagen</option>
+                                        <option value="Volvo">Volvo</option>
+                                    </optgroup>
                                 </select>
                             </div>
                             <ChevronDown className="text-on-surface/30 w-5 h-5" />
                         </div>
-                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer border-b border-transparent">
+                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors border-b border-transparent">
                             <div className="flex items-center gap-3 w-full">
                                 <Car className="text-on-surface/40 w-5 h-5" />
-                                <select 
-                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none appearance-none"
+                                <input 
+                                    type="text"
+                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none placeholder:text-on-surface/50"
+                                    placeholder="Модель (опционально)"
                                     value={formData.model}
                                     onChange={(e) => handleChange('model', e.target.value)}
-                                >
-                                    <option value="" disabled>Выберите модель</option>
-                                    <option value="001">001 (Zeekr)</option>
-                                    <option value="L9">L9 (Li Auto)</option>
-                                </select>
+                                />
                             </div>
-                            <ChevronDown className="text-on-surface/30 w-5 h-5" />
                         </div>
                     </div>
                 </section>
