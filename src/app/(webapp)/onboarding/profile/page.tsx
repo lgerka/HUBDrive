@@ -84,7 +84,24 @@ export default function OnboardingProfilePage() {
                 if (initData) {
                     await fetchProfile(initData);
                 }
-                router.push('/');
+                
+                // Проверяем, есть ли фильтр, ожидающий сохранения
+                const pendingFilter = sessionStorage.getItem('pendingFilter');
+                if (pendingFilter && initData) {
+                    try {
+                        const { useFiltersStore } = await import('@/lib/state/filters.store');
+                        await useFiltersStore.getState().addFilterAsync(JSON.parse(pendingFilter), initData);
+                        sessionStorage.removeItem('pendingFilter');
+                        
+                        // Если есть параметр returnUrl, можем использовать его, либо просто на фильтры
+                        router.push('/filters');
+                    } catch (e) {
+                        console.error('Failed to save pending filter', e);
+                        router.push('/');
+                    }
+                } else {
+                    router.push('/');
+                }
             } else {
                 setError(data.error || 'Произошла ошибка при сохранении');
             }

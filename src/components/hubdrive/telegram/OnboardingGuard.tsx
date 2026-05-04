@@ -32,15 +32,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     }, [isReady, initData, profile, fetchProfile]);
 
     useEffect(() => {
-        if (isChecked && profile) {
-            const needsOnboarding = !profile.name || !profile.phone;
-            
-            if (needsOnboarding && !pathname?.startsWith('/onboarding')) {
-                router.replace('/onboarding/stories');
-            } else if (!needsOnboarding && pathname?.startsWith('/onboarding')) {
-                router.replace('/');
-            }
-        }
+        // We only show the splash screen while loading the profile.
+        // progressive profiling is handled in specific actions (e.g. saving a filter).
     }, [isChecked, profile, pathname, router]);
 
     // To prevent flash of content during initial check

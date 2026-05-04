@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { FilterForm } from '@/components/hubdrive/filters/filter-form';
 import { useFiltersStore } from '@/lib/state/filters.store';
+import { useUserStore } from '@/lib/state/user.store';
 import { ArrowLeft } from 'lucide-react';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 
@@ -10,8 +11,16 @@ export default function NewFilterPage() {
     const router = useRouter();
     const { initData } = useTelegram();
     const { addFilterAsync } = useFiltersStore();
+    const { profile } = useUserStore();
 
     const handleSubmit = async (data: any) => {
+        if (!profile?.phone) {
+            // Если нет телефона, перекидываем на профиль, сохранив настройки фильтра
+            sessionStorage.setItem('pendingFilter', JSON.stringify(data));
+            router.push('/onboarding/profile?returnUrl=/filters');
+            return;
+        }
+
         if (initData) {
             await addFilterAsync(data, initData);
         }
