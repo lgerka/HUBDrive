@@ -10,8 +10,10 @@ import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 export default function NewFilterPage() {
     const router = useRouter();
     const { initData } = useTelegram();
-    const { addFilterAsync } = useFiltersStore();
+    const { addFilterAsync, filters } = useFiltersStore();
     const { profile } = useUserStore();
+
+    const isFirstFilter = filters.length === 0;
 
     const handleSubmit = async (data: any) => {
         if (!profile?.phone) {
@@ -33,12 +35,14 @@ export default function NewFilterPage() {
             <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none max-w-2xl mx-auto">
                 <div className="flex items-center justify-between px-6 h-16 w-full">
                     <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => router.back()}
-                            className="hover:opacity-80 transition-opacity active:scale-95 duration-200"
-                        >
-                            <ArrowLeft className="w-6 h-6 text-on-surface" />
-                        </button>
+                        {!isFirstFilter && (
+                            <button 
+                                onClick={() => router.back()}
+                                className="hover:opacity-80 transition-opacity active:scale-95 duration-200"
+                            >
+                                <ArrowLeft className="w-6 h-6 text-on-surface" />
+                            </button>
+                        )}
                         <h1 className="font-headline font-bold text-lg text-on-surface">Создать фильтр</h1>
                     </div>
                 </div>
@@ -47,10 +51,20 @@ export default function NewFilterPage() {
 
             {/* Main Content */}
             <div className="flex-1 w-full mt-16">
-                <FilterForm
-                    onSubmit={handleSubmit}
-                    onCancel={() => router.back()}
-                />
+                {isFirstFilter && (
+                    <div className="px-6 py-8 bg-gradient-to-b from-primary/5 to-transparent border-b border-gray-100 dark:border-white/5">
+                        <h2 className="text-2xl font-headline font-extrabold text-on-surface mb-2 tracking-tight">Настройте первый фильтр</h2>
+                        <p className="text-base text-gray-600 dark:text-gray-300 font-body leading-relaxed max-w-md">
+                            Мы будем показывать подходящие авто и уведомлять вас о новых совпадениях.
+                        </p>
+                    </div>
+                )}
+                <div className={isFirstFilter ? "pt-4" : ""}>
+                    <FilterForm
+                        onSubmit={handleSubmit}
+                        onCancel={isFirstFilter ? undefined : () => router.back()}
+                    />
+                </div>
             </div>
         </div>
     );
