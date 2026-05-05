@@ -26,9 +26,6 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
         const initializeApp = async () => {
             try {
-                // DEBUG: Force onboarding for testing purposes by clearing the flag
-                localStorage.removeItem('onboardingCompleted');
-                
                 // Check localStorage
                 const hasCompletedOnboarding = localStorage.getItem('onboardingCompleted') === 'true';
                 
@@ -48,7 +45,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                 } else {
                     // Determine routing
                     const filterCount = useFiltersStore.getState().filters.length;
-                    if (filterCount === 0 && pathname !== '/filters/new') {
+                    if (filterCount === 0 && window.location.pathname !== '/filters/new') {
                         setIsRouting(true);
                         router.replace('/filters/new');
                     } else {
@@ -64,7 +61,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         initializeApp();
         
         return () => { mounted = false; };
-    }, [isReady, initData, profile, fetchProfile, fetchFilters, pathname, router]);
+    }, [isReady, initData, profile, fetchProfile, fetchFilters, router]);
 
     // Reset routing state once we reach the destination
     useEffect(() => {
