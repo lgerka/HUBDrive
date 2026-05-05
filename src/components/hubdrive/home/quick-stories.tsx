@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 const STORIES = [
   {
@@ -45,6 +45,14 @@ const STORIES = [
 
 export function QuickStories() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasWatched, setHasWatched] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const watched = localStorage.getItem('hasWatchedStories') === 'true';
+      setHasWatched(watched);
+    }
+  }, []);
 
   // Hidden scrollbar utilities combined into inline style for simplicity without external CSS changes
   return (
@@ -57,8 +65,8 @@ export function QuickStories() {
         <style dangerouslySetInnerHTML={{__html: `::-webkit-scrollbar { display: none; }`}} />
         
         {STORIES.map((story) => (
-          <Link href={story.link} key={story.id} className="flex flex-col items-center gap-2 flex-shrink-0 group">
-            <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-primary-container group-hover:scale-105 transition-transform duration-200">
+          <Link href={`/stories?id=${story.id}`} key={story.id} className="flex flex-col items-center gap-2 flex-shrink-0 group">
+            <div className={`w-16 h-16 rounded-full p-[2px] ${hasWatched ? 'bg-surface-variant dark:bg-surface-variant' : 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500'} group-hover:scale-105 transition-transform duration-200`}>
               <div className="w-full h-full rounded-full border-2 border-background overflow-hidden relative">
                 <Image
                   src={story.image}
@@ -69,7 +77,7 @@ export function QuickStories() {
                 />
               </div>
             </div>
-            <span className="text-[10px] font-medium text-on-surface text-center font-label max-w-[70px] truncate">
+            <span className={`text-[10px] font-medium text-center font-label max-w-[70px] truncate ${hasWatched ? 'text-on-surface/60' : 'text-on-surface'}`}>
               {story.title}
             </span>
           </Link>

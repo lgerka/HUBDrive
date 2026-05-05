@@ -77,15 +77,17 @@ export default function FiltersPage() {
             </main>
 
             {/* Fixed Action Button */}
-            <div className="fixed bottom-20 left-0 right-0 px-4 pb-4 max-w-5xl mx-auto">
-                <button 
-                    onClick={() => router.push('/filters/new')}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]"
-                >
-                    <PlusCircle className="w-6 h-6" />
-                    Создать новый фильтр
-                </button>
-            </div>
+            {filters.length > 0 && (
+                <div className="fixed bottom-20 left-0 right-0 px-4 pb-4 max-w-5xl mx-auto z-10">
+                    <button 
+                        onClick={() => router.push('/filters/new')}
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]"
+                    >
+                        <PlusCircle className="w-6 h-6" />
+                        Создать новый фильтр
+                    </button>
+                </div>
+            )}
             
             <BottomNav />
         </div>
