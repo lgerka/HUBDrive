@@ -101,10 +101,9 @@ export function OnboardingStories({ onComplete }: OnboardingStoriesProps) {
             {/* Header */}
             <header className="absolute top-8 w-full z-50 flex justify-between items-center px-4">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 relative">
+                    <div className="w-28 h-8 relative">
                          <Image src="/hub-drive-logo.png" alt="HUBDrive Logo" fill className="object-contain" />
                     </div>
-                    <span className="text-xl font-extrabold tracking-tighter text-primary font-headline shadow-sm drop-shadow-md">HUBDrive</span>
                 </div>
                 <button 
                     onClick={onComplete}
