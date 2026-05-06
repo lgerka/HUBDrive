@@ -23,7 +23,7 @@ export function HeroSection() {
                 onScroll={handleScroll}
             >
                 {/* Slide 1: Начало (Onboarding/Start) */}
-                <Link href="/onboarding/step-1" className="shrink-0 w-[85vw] max-w-[300px] h-[150px] md:w-[320px] md:h-[180px] rounded-3xl relative overflow-hidden snap-center group block">
+                <div className="shrink-0 w-[85vw] max-w-[300px] h-[150px] md:w-[320px] md:h-[180px] rounded-3xl relative overflow-hidden snap-center group block">
                     <img alt="Premium mobility banner" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/ADBb0uha5OXDYHPVaDamoTMXtZxdvmuaSjK2qHSAU2tTSl80B543RQaQVg3DjtKBgSh4fLiazEFZut9iKKVlk9MlV9QOU3FDntW1wNFM_ZKnE4w0v8P73DSoQeQzsolcvXuSX9LlajTaMY_vu1FYEx0_-xTEQAkkav1t3nzINjlXZsrDTaKMOBFUTCyG45A-4q3SRwfT7dqA6A_Op-tqRjHe-9pET6b5bCxGN2Qu6c-H8nF5ntiZx996tNfjUPie"/>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"></div>
                     <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
@@ -32,12 +32,9 @@ export function HeroSection() {
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1.5 font-label">НАЧАЛО</p>
                                 <h2 className="text-base font-headline font-extrabold leading-tight max-w-[160px]">Будущее премиальной мобильности</h2>
                             </div>
-                            <span className="inline-block bg-primary text-white text-[10px] font-bold px-4 py-2 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-md shadow-primary/20 shrink-0">
-                                Открыть
-                            </span>
                         </div>
                     </div>
-                </Link>
+                </div>
                 {/* Slide 2 */}
                 <div className="shrink-0 w-[85vw] max-w-[300px] h-[150px] md:w-[320px] md:h-[180px] rounded-3xl relative overflow-hidden snap-center group">
                     <img alt="sleek futuristic electric vehicle" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH48NUK_YgP3_ApXyRzAd7BDvNFexbqfppSqex3lJxVITXyMkUDgyNuL3hNjGp8copC3rXTAWV0GEF37bJma1ysjmSzL8m4el22RjUnAlftuoOJf3scU-ck27ZDlxfSHiq1xMBuIGcPkLz4mk71Qfls9h25-t1z4hjIVtZU7XINbv8VWGzN6oYMQVHsLiA9xenoqBcTzoQwd3NODqztjnKLh4eSRGfKvE9uTGAaucXTlnCnKdKkFsGyZHOOHP0IGGka21IyyUDiQO-"/>
