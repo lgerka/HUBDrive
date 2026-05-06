@@ -2,18 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { Filter } from '@/lib/state/filters.store';
-import { ChevronDown, Search, Car, Check, Save } from 'lucide-react';
+import { ChevronDown, Search, Car, Check, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAR_MODELS } from '@/constants/models';
 
 interface FilterFormProps {
     initialData?: Partial<Filter>;
-    onSubmit: (data: Partial<Filter>) => void;
+    onSubmit: (data: Partial<Filter>) => void | Promise<void>;
     onCancel?: () => void;
 }
 
 export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && window.visualViewport) {
@@ -55,9 +56,14 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsSubmitting(true);
+        try {
+            await onSubmit(formData);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const BODY_TYPES = ['Седан', 'Внедорожник', 'Минивэн', 'Купе'];
@@ -339,10 +345,11 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                 <div className="max-w-2xl mx-auto">
                     <button 
                         type="submit"
-                        className="w-full h-16 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-extrabold text-lg rounded-full shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3"
+                        disabled={isSubmitting}
+                        className="w-full h-16 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-extrabold text-lg rounded-full shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 disabled:active:scale-100"
                     >
-                        <Save className="w-5 h-5 fill-current" />
-                        Сохранить фильтр
+                        {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5 fill-current" />}
+                        {isSubmitting ? 'Сохранение...' : 'Сохранить фильтр'}
                     </button>
                 </div>
             </footer>

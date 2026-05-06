@@ -2,11 +2,10 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, ArrowLeft, Bell } from 'lucide-react';
 import { useFiltersStore } from '@/lib/state/filters.store';
 import { FilterCard } from '@/components/hubdrive/filters/filter-card';
 import { EmptyState } from '@/components/hubdrive/common/empty-state';
-import { TopNav } from '@/components/hubdrive/navigation/top-nav';
 import { BottomNav } from '@/components/hubdrive/navigation/bottom-nav';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 
@@ -37,7 +36,21 @@ export default function FiltersPage() {
 
     return (
         <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-background">
-            <TopNav />
+            {/* Custom Header for Filters Page */}
+            <header className="sticky top-0 z-50 flex items-center justify-between bg-background/90 backdrop-blur-md px-4 py-3 border-b border-border">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => router.back()}
+                        className="flex items-center justify-center size-10 rounded-full hover:bg-muted transition-colors -ml-2 text-foreground"
+                    >
+                        <ArrowLeft className="w-6 h-6" />
+                    </button>
+                    <h2 className="text-lg font-bold tracking-tight text-foreground">Мои фильтры</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                    {/* Bell icon removed as per user request */}
+                </div>
+            </header>
             
             {/* Content */}
             <main className="flex-1 pb-32">
@@ -58,8 +71,6 @@ export default function FiltersPage() {
                                 icon={Search}
                                 title="Фильтров пока нет"
                                 description="Создайте фильтр, чтобы мы могли подбирать для вас подходящие автомобили."
-                                actionLabel="Создать фильтр"
-                                onAction={() => router.push('/filters/new')}
                             />
                         </div>
                     ) : (
@@ -77,17 +88,15 @@ export default function FiltersPage() {
             </main>
 
             {/* Fixed Action Button */}
-            {filters.length > 0 && (
-                <div className="fixed bottom-20 left-0 right-0 px-4 pb-4 max-w-5xl mx-auto z-10">
-                    <button 
-                        onClick={() => router.push('/filters/new')}
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]"
-                    >
-                        <PlusCircle className="w-6 h-6" />
-                        Создать новый фильтр
-                    </button>
-                </div>
-            )}
+            <div className="fixed bottom-24 right-6 z-10">
+                <button 
+                    onClick={() => router.push('/filters/new')}
+                    className="w-14 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30 transition-all active:scale-[0.90]"
+                    aria-label="Создать новый фильтр"
+                >
+                    <Plus className="w-7 h-7" />
+                </button>
+            </div>
             
             <BottomNav />
         </div>

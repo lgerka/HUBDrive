@@ -37,29 +37,21 @@ export function EditProfileForm({ initialData, onSubmit }: EditProfileFormProps)
             {/* App Logo & Avatar Section */}
             <div className="flex flex-col items-center justify-center py-8 px-4">
                 <Image 
-                    src="/logo.svg" 
-                    alt="Hub Drive Logo" 
-                    width={48} 
-                    height={48} 
-                    className="object-contain mb-6" 
+                    src="/hub-drive-logo.png" 
+                    alt="HUBDrive Logo" 
+                    width={140} 
+                    height={32} 
+                    className="object-contain mb-8" 
+                    priority
                 />
                 
-                {/* Profile Photo Upload */}
-                <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                {/* Profile Photo Display */}
+                <div className="relative">
                     <div 
                         className="bg-muted bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-background shadow-sm overflow-hidden" 
                         style={{ backgroundImage: `url('${displayPhoto}')` }}
                     />
-                    <button 
-                        type="button"
-                        className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2.5 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center justify-center"
-                    >
-                        <Camera className="w-5 h-5" />
-                    </button>
                 </div>
-                <p className="text-primary text-sm font-semibold mt-4 cursor-pointer hover:underline">
-                    Изменить фото
-                </p>
             </div>
 
             {/* Form Fields */}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useTelegram } from './TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
 import { useFiltersStore } from '@/lib/state/filters.store';
@@ -10,14 +9,11 @@ import { OnboardingStories } from '@/components/hubdrive/onboarding/onboarding-s
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const { initData, isReady } = useTelegram();
-    const router = useRouter();
-    const pathname = usePathname();
     const { profile, fetchProfile } = useUserStore();
     const { fetchFilters } = useFiltersStore();
     
     const [isChecked, setIsChecked] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const [isRouting, setIsRouting] = useState(false);
 
     useEffect(() => {
         if (!isReady) return;
@@ -43,46 +39,30 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                     setShowOnboarding(true);
                     setIsChecked(true);
                 } else {
-                    // Determine routing
-                    const filterCount = useFiltersStore.getState().filters.length;
-                    if (filterCount === 0 && window.location.pathname !== '/filters/new') {
-                        setIsRouting(true);
-                        router.replace('/filters/new');
-                    } else {
-                        setIsChecked(true);
-                    }
+                    setIsChecked(true);
                 }
             } catch (err) {
                 console.error("Initialization error:", err);
                 if (mounted) setIsChecked(true); // Fallback to let the app load
             }
         };
-        
+
         initializeApp();
         
         return () => { mounted = false; };
-    }, [isReady, initData, profile, fetchProfile, fetchFilters, router]);
-
-    // Reset routing state once we reach the destination
-    useEffect(() => {
-        if (isRouting && pathname === '/filters/new') {
-            setIsRouting(false);
-            setIsChecked(true);
-        }
-    }, [pathname, isRouting]);
+    }, [isReady, initData, profile, fetchProfile, fetchFilters]);
 
     const handleCompleteOnboarding = () => {
         localStorage.setItem('onboardingCompleted', 'true');
         setShowOnboarding(false);
-        setIsRouting(true);
-        router.push('/filters/new');
+        setIsChecked(true);
     };
 
     if (showOnboarding) {
         return <OnboardingStories onComplete={handleCompleteOnboarding} />;
     }
 
-    if (!isChecked || (!isReady && initData) || isRouting) {
+    if (!isChecked || (!isReady && initData)) {
         return <SplashScreen />;
     }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Loader2, ArrowLeft, ArrowRight, Settings2, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Types matching the backend push notification system
 interface NotificationData {
@@ -17,6 +18,7 @@ interface NotificationData {
 export default function NotificationsPage() {
     const { initData } = useTelegram();
     const router = useRouter();
+    const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
 
@@ -61,7 +63,10 @@ export default function NotificationsPage() {
                 </button>
                 <h1 className="ml-4 font-headline text-2xl font-bold tracking-tight">Уведомления</h1>
                 <div className="ml-auto flex items-center gap-2">
-                    <button className="w-10 h-10 rounded-full flex items-center justify-center text-[#9d4300] bg-[#ffdbca] transition-all hover:bg-[#ffb690]/50 active:scale-95">
+                    <button 
+                        onClick={() => toast({ title: "В разработке", description: "Настройки уведомлений скоро появятся" })}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-[#9d4300] bg-[#ffdbca] transition-all hover:bg-[#ffb690]/50 active:scale-95"
+                    >
                         <Settings2 className="w-5 h-5"/>
                     </button>
                 </div>

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Check, CarFront, CheckCircle2, Image as ImageIcon } from "lucide-react";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 // In a real app, this would be fetched based on the [id] param
 // Using the details from the design
@@ -33,6 +35,7 @@ const CASE_DETAIL = {
 
 export default function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
+    const [zoomImage, setZoomImage] = useState<string | null>(null);
 
     return (
         <div className="min-h-[100dvh] w-full bg-background flex flex-col pb-[calc(24px+env(safe-area-inset-bottom))] lg:max-w-2xl lg:mx-auto lg:shadow-xl lg:border-x">
@@ -48,7 +51,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                     <h2 className="text-lg font-bold tracking-tight text-foreground">Hub Drive</h2>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Image src="/logo.svg" alt="Hub Drive Logo" width={32} height={32} className="h-8 w-auto" />
+                    <Image src="/hub-drive-logo.png" alt="Hub Drive Logo" width={100} height={24} className="object-contain" priority />
                 </div>
             </header>
 
@@ -60,7 +63,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                         <img 
                             src={CASE_DETAIL.heroImage} 
                             alt={CASE_DETAIL.car} 
-                            className="w-full h-full object-cover" 
+                            className="w-full h-full object-cover cursor-pointer" 
+                            onClick={() => setZoomImage(CASE_DETAIL.heroImage)}
                         />
                     </div>
                     
@@ -147,7 +151,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                     </h2>
                     <div className="grid grid-cols-2 gap-2">
                         {CASE_DETAIL.galleryImages.map((img, idx) => (
-                            <div key={idx} className="aspect-square rounded-lg overflow-hidden relative group bg-muted">
+                            <div key={idx} className="aspect-square rounded-lg overflow-hidden relative group bg-muted cursor-pointer" onClick={() => setZoomImage(img.src)}>
                                 <img 
                                     src={img.src} 
                                     alt={img.label} 
@@ -163,6 +167,21 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </section>
             </main>
+
+            <Dialog open={!!zoomImage} onOpenChange={(open) => !open && setZoomImage(null)}>
+                <DialogContent className="max-w-[100vw] h-[100dvh] w-screen flex flex-col p-0 m-0 bg-black/95 border-none rounded-none overflow-hidden justify-center items-center">
+                    <DialogTitle className="sr-only">Просмотр фото</DialogTitle>
+                    {zoomImage && (
+                        <div className="relative w-full h-full flex items-center justify-center p-4">
+                            <img 
+                                src={zoomImage} 
+                                alt="Zoomed view" 
+                                className="max-w-full max-h-full object-contain" 
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

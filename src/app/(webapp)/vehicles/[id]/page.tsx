@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart, Loader2, ImageOff, Eye } from 'lucide-react';
@@ -22,6 +22,14 @@ export default function VehicleDetailPage() {
     const { toggleFavorite, isFavorite } = useFavoritesStore();
     const { initData } = useTelegram();
     const id = params.id as string;
+
+    const fakeViewCount = useMemo(() => {
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return Math.abs(hash) % 20 + 5;
+    }, [id]);
 
     const [vehicle, setVehicle] = useState<Vehicle | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -213,7 +221,7 @@ export default function VehicleDetailPage() {
                     <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">
                         <Eye className="text-primary w-5 h-5 shrink-0" />
                         <p className="text-sm font-medium text-on-surface-variant">
-                            Сейчас этот автомобиль смотрят <span className="font-bold text-primary">12 человек</span>
+                            Сейчас этот автомобиль смотрят <span className="font-bold text-primary">{fakeViewCount} человек</span>
                         </p>
                     </div>
 

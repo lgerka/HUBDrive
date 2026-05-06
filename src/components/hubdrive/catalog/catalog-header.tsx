@@ -2,7 +2,13 @@ import React from 'react';
 import { Search, X, SlidersHorizontal, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCatalogQuery } from '@/lib/state/use-catalog-query';
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface CatalogHeaderProps {
     searchValue: string;
@@ -11,7 +17,7 @@ interface CatalogHeaderProps {
 }
 
 export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: CatalogHeaderProps) {
-    const { status, setStatus, sort, setSort } = useCatalogQuery();
+    const { status, setStatus, sort, setSort, brand, setBrand } = useCatalogQuery();
 
     return (
         <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md pb-2">
@@ -62,9 +68,61 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
                         Сортировка: {sort === 'price_asc' ? 'Дешевле' : sort === 'price_desc' ? 'Дороже' : 'По дате'}
                     </span>
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center bg-surface-container-lowest rounded-full shadow-sm border border-transparent">
-                    <SlidersHorizontal className="w-5 h-5 text-primary" />
-                </button>
+                
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <button className="w-10 h-10 flex items-center justify-center bg-surface-container-lowest rounded-full shadow-sm border border-transparent hover:bg-surface-container-low transition-colors">
+                            <SlidersHorizontal className="w-5 h-5 text-primary" />
+                        </button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="rounded-t-3xl pb-10">
+                        <SheetHeader className="mb-6">
+                            <SheetTitle className="font-headline text-2xl font-bold tracking-tight text-center">Фильтры</SheetTitle>
+                        </SheetHeader>
+                        
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Наличие</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['all', 'in_stock', 'in_transit'].map(s => (
+                                        <button 
+                                            key={s}
+                                            onClick={() => setStatus(s)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-xl text-sm font-semibold transition-all border",
+                                                status === s 
+                                                    ? "bg-primary text-white border-primary" 
+                                                    : "bg-surface-container-low text-on-surface border-transparent"
+                                            )}
+                                        >
+                                            {s === 'all' ? 'Все' : s === 'in_stock' ? 'В наличии' : 'В пути'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Марка</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['all', 'Zeekr', 'LiXiang', 'BYD', 'Avatr', 'Voyah'].map(b => (
+                                        <button 
+                                            key={b}
+                                            onClick={() => setBrand(b)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-xl text-sm font-semibold transition-all border",
+                                                brand === b 
+                                                    ? "bg-primary text-white border-primary" 
+                                                    : "bg-surface-container-low text-on-surface border-transparent"
+                                            )}
+                                        >
+                                            {b === 'all' ? 'Все марки' : b}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
 
         </header>
