@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Check, CarFront, CheckCircle2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Check, CarFront, CheckCircle2, Image as ImageIcon, X } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
@@ -36,6 +36,7 @@ const CASE_DETAIL = {
 export default function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [zoomImage, setZoomImage] = useState<string | null>(null);
+    const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
     return (
         <div className="min-h-[100dvh] w-full bg-background flex flex-col pb-[calc(24px+env(safe-area-inset-bottom))] lg:max-w-2xl lg:mx-auto lg:shadow-xl lg:border-x">
@@ -168,20 +169,46 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                 </section>
             </main>
 
-            <Dialog open={!!zoomImage} onOpenChange={(open) => !open && setZoomImage(null)}>
-                <DialogContent className="max-w-[100vw] h-[100dvh] w-screen flex flex-col p-0 m-0 bg-black/95 border-none rounded-none overflow-hidden justify-center items-center">
-                    <DialogTitle className="sr-only">Просмотр фото</DialogTitle>
-                    {zoomImage && (
-                        <div className="relative w-full h-full flex items-center justify-center p-4">
-                            <img 
-                                src={zoomImage} 
-                                alt="Zoomed view" 
-                                className="max-w-full max-h-full object-contain" 
-                            />
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            {zoomImage && (
+                <div 
+                    className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center"
+                    style={{ touchAction: 'none' }}
+                    onClick={() => setZoomImage(null)}
+                    onTouchStart={(e) => setTouchStartY(e.touches[0].clientY)}
+                    onTouchMove={(e) => {
+                        if (touchStartY === null) return;
+                        const diff = e.touches[0].clientY - touchStartY;
+                        // Close on swipe down or up
+                        if (Math.abs(diff) > 70) {
+                            setZoomImage(null);
+                            setTouchStartY(null);
+                        }
+                    }}
+                    onTouchEnd={() => setTouchStartY(null)}
+                >
+                    <div className="relative w-full h-full flex items-center justify-center p-4">
+                        <img 
+                            src={zoomImage} 
+                            alt="Zoomed view" 
+                            className="max-w-full max-h-full object-contain" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setZoomImage(null);
+                            }}
+                        />
+                        {/* Explicit white close button for visibility */}
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setZoomImage(null);
+                            }}
+                            className="absolute top-6 right-6 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors z-[110]"
+                        >
+                            <X className="w-8 h-8" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
