@@ -20,7 +20,13 @@ interface InitData {
 }
 
 export function verifyInitData(initData: string): { isValid: boolean; user?: User } {
-    if (initData === 'dev_mock' && process.env.NODE_ENV === 'development') {
+    // MED-01: dev_mock только если явно разрешён И это development
+    // Требует ALLOW_DEV_MOCK=true в .env, чтобы не сработало в staging
+    if (
+        initData === 'dev_mock' &&
+        process.env.NODE_ENV === 'development' &&
+        process.env.ALLOW_DEV_MOCK === 'true'
+    ) {
         return {
             isValid: true,
             user: { id: 7777777, first_name: 'Dev', last_name: 'Tester', username: 'dev_tester' }

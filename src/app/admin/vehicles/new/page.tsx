@@ -3,7 +3,7 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, ArrowLeft, UploadCloud, Save } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Plus, Trash2, ImagePlus, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminNewVehiclePage() {
@@ -26,8 +26,23 @@ export default function AdminNewVehiclePage() {
     priceKeyTurnKZT: "",
     priceChina: "",
     deliveryEtaWeeks: "",
-    status: "in_stock"
+    status: "in_stock",
+    media: [] as string[],
+    videoUrl: ""
   });
+  
+  const [newImage, setNewImage] = useState("");
+
+  const addImage = () => {
+    if (newImage) {
+      setFormData(prev => ({ ...prev, media: [...prev.media, newImage] }));
+      setNewImage("");
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({ ...prev, media: prev.media.filter((_, i) => i !== index) }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -227,15 +242,73 @@ export default function AdminNewVehiclePage() {
 
           </div>
 
-          {/* Media Upload */}
+          {/* Gallery Upload & Video */}
           <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
-             <h2 className="font-headline text-xl font-extrabold mb-6">Медиа</h2>
-             <div className="border-2 border-dashed border-[#e0c0b1]/50 bg-[#ffdbca]/5 transition-all hover:bg-[#ffdbca]/20 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer group hover:border-[#f97316]/30">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                  <UploadCloud className="w-5 h-5 text-primary" />
+             <div className="flex justify-between items-center mb-6">
+                <h2 className="font-headline text-xl font-extrabold">Медиа</h2>
+                <span className="text-[10px] font-label uppercase tracking-widest text-slate-400">{formData.media.length} Фото</span>
+             </div>
+
+             <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input 
+                    type="text"
+                    className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-300" 
+                    placeholder="Прямая ссылка на фото (https://...)" 
+                    value={newImage} 
+                    onChange={e => setNewImage(e.target.value)} 
+                    onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addImage(); }}}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={addImage}
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 font-headline text-sm font-bold shadow-sm hover:bg-slate-100 transition-colors shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Добавить
+                  </button>
                 </div>
-                <p className="font-headline font-bold text-sm text-slate-600">Загрузить фото</p>
-                <span className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-widest">В разработке (Скоро)</span>
+
+                {formData.media.length > 0 ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
+                    {formData.media.map((img, i) => (
+                      <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img} alt={`Preview ${i+1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button 
+                            type="button" 
+                            onClick={() => removeImage(i)}
+                            className="bg-white p-3 rounded-full shadow-xl hover:bg-red-50 text-slate-400 hover:text-error transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 mt-4 bg-slate-50/50">
+                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">
+                      <ImagePlus className="w-8 h-8 text-slate-300" />
+                    </div>
+                    <span className="font-headline font-bold text-sm tracking-wide">Добавьте URL фотографий</span>
+                  </div>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-slate-100">
+                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2 block">
+                      <Video className="w-3.5 h-3.5" /> Ссылка на Видеообзор (YouTube)
+                   </label>
+                   <input 
+                     type="text"
+                     placeholder="https://youtu.be/..." 
+                     className="w-full bg-surface-container-low/50 border-none rounded-2xl py-4 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans font-medium outline-none" 
+                     value={formData.videoUrl} 
+                     onChange={handleChange} 
+                     name="videoUrl"
+                   />
+                   <p className="text-[10px] text-muted-foreground mt-2 font-medium">Если указано, в карточке автомобиля появится плеер.</p>
+                </div>
              </div>
           </div>
 

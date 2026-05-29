@@ -1,17 +1,17 @@
 import { verifyInitData } from '@/lib/telegram/verifyInitData';
+import { verifySessionToken } from '@/lib/server/session';
 import { PrismaClient } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 export async function verifyAdmin(request: Request, prisma: PrismaClient) {
-    // Check for web Admin Secret (Cookie authorization)
-    const adminSecret = process.env.ADMIN_SECRET_KEY;
-    if (adminSecret) {
-        const cookieStore = await cookies();
-        if (cookieStore.get('admin_session')?.value === adminSecret) {
-            return true;
-        }
+    // 1. Проверка cookie-сессии (веб-доступ через пароль)
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('admin_session')?.value;
+    if (sessionCookie && verifySessionToken(sessionCookie)) {
+        return true;
     }
 
+    // 2. Проверка Telegram initData (доступ через Telegram WebApp)
     const initData = request.headers.get('x-telegram-init-data');
     if (!initData) return false;
 
@@ -20,14 +20,14 @@ export async function verifyAdmin(request: Request, prisma: PrismaClient) {
 
     const telegramId = user.id.toString();
 
-    // 1. Check ENV white list
-    const adminIds = process.env.ADMIN_TELEGRAM_IDS?.split(',') || [];
+    // 2a. Проверка по списку из ENV
+    const adminIds = process.env.ADMIN_TELEGRAM_IDS?.split(',').map(id => id.trim()) || [];
     if (adminIds.includes(telegramId)) return true;
 
-    // 2. Check DB Role
+    // 2b. Проверка роли в БД
     const dbUser = await prisma.user.findUnique({
         where: { telegramId },
-        select: { role: true }
+        select: { role: true },
     });
 
     return dbUser?.role === 'admin';

@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, Save, Trash2, ChevronRight, UploadCloud, Video, Fil
 export default function AdminNewsEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const isNew = unwrappedParams.id === "new";
-  const { initData } = useTelegram();
+  const { initData, isReady } = useTelegram();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
@@ -21,7 +21,7 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
   });
 
   useEffect(() => {
-    if (!initData || isNew) return;
+    if (!isReady || isNew) return;
     async function loadNews() {
       try {
         const res = await fetch(`/api/admin/news/${unwrappedParams.id}`, {
@@ -43,7 +43,7 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
       }
     }
     loadNews();
-  }, [initData, isNew, unwrappedParams.id]);
+  }, [initData, isReady, isNew, unwrappedParams.id]);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -96,14 +96,6 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen pb-24">
       {/* TopNavBar */}
@@ -117,12 +109,12 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
             <span className="text-sm text-slate-400 font-label">Медиа</span>
             <ChevronRight className="w-4 h-4 text-slate-300" />
             <span className="text-lg font-bold text-slate-900 font-headline truncate max-w-[300px]">
-              {isNew ? "Новый материал" : formData.title}
+              {isNew ? "Новый материал" : formData.title || "Загрузка..."}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {!isNew && (
+          {!isNew && !isLoading && (
              <button 
                 onClick={handleDelete}
                 className="text-slate-400 hover:text-red-500 p-2 transition-colors"
@@ -133,7 +125,7 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
           )}
           <button 
             onClick={handleSave} 
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-headline text-sm font-bold shadow-lg shadow-orange-500/10 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
@@ -153,7 +145,12 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
           </p>
         </div>
 
-        <form className="grid grid-cols-1 xl:grid-cols-12 gap-8" onSubmit={handleSave}>
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <form className="grid grid-cols-1 xl:grid-cols-12 gap-8" onSubmit={handleSave}>
           {/* Left Column: Text & Meta Content */}
           <div className="col-span-1 xl:col-span-7 flex flex-col gap-8">
             <div className="bg-surface-container-lowest rounded-3xl p-6 md:p-10 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
@@ -225,8 +222,9 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
                   <p className="text-[10px] text-muted-foreground mt-2 font-medium">Если ссылка указана, карточка будет открываться как видео-плеер.</p>
                </div>
              </div>
-          </div>
-        </form>
+           </div>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, Save, Trash2, ImagePlus, ChevronRight } from "lucid
 export default function AdminCaseEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const isNew = unwrappedParams.id === "new";
-  const { initData } = useTelegram();
+  const { initData, isReady } = useTelegram();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,7 +25,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
   });
 
   useEffect(() => {
-    if (!initData || isNew) return;
+    if (!isReady || isNew) return;
     async function loadCase() {
       try {
         const res = await fetch(`/api/admin/cases/${unwrappedParams.id}`, {
@@ -50,7 +50,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
       }
     }
     loadCase();
-  }, [initData, isNew, unwrappedParams.id]);
+  }, [initData, isReady, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -93,13 +93,6 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">
@@ -119,7 +112,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {!isNew && (
+          {!isNew && !isLoading && (
              <button 
                 onClick={handleDelete}
                 className="text-slate-400 hover:text-red-500 p-2 transition-colors"
@@ -130,7 +123,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
           )}
           <button 
             onClick={handleSave} 
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-headline text-sm font-bold shadow-lg shadow-orange-500/10 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
@@ -150,6 +143,11 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
           </p>
         </div>
 
+        {isLoading ? (
+          <div className="flex h-[60vh] items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
           <div className="col-span-1 xl:col-span-7 flex flex-col gap-8">
@@ -264,6 +262,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
           </div>
 
         </div>
+        )}
       </div>
     </div>
   );

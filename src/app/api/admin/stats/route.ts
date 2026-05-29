@@ -36,6 +36,6 @@ export async function GET(request: Request) {
         });
     } catch (error) {
         console.error('Error fetching admin stats:', error);
-        return NextResponse.json({ error: 'Internal Server Error', details: String(error) }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

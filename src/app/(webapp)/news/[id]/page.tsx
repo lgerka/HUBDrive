@@ -18,6 +18,12 @@ function formatDate(dateString: string) {
     }
 }
 
+const getYoutubeVideoId = (url: string) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+    return match ? match[1] : null;
+};
+
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const unwrappedParams = use(params);
     const router = useRouter();
@@ -137,6 +143,18 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                         prose-p:mb-6 prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                         prose-blockquote:border-l-[4px] prose-blockquote:border-primary prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:italic prose-blockquote:text-slate-600 dark:prose-blockquote:text-slate-400 prose-blockquote:bg-surface-container-lowest prose-blockquote:rounded-r-2xl
                         prose-img:rounded-[2rem] prose-img:shadow-sm">
+                        {article.videoUrl && getYoutubeVideoId(article.videoUrl) && (
+                            <div className="w-full aspect-video rounded-3xl overflow-hidden mb-8 shadow-sm bg-surface-container-low">
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${getYoutubeVideoId(article.videoUrl)}?rel=0`}
+                                    title="YouTube video player"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        )}
                         <div dangerouslySetInnerHTML={{ __html: article.body || '' }} />
                     </div>
                 </article>

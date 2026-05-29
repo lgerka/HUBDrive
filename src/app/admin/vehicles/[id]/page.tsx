@@ -3,13 +3,13 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Car, Info } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Car, Info, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminVehicleEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const isNew = unwrappedParams.id === "new";
-  const { initData } = useTelegram();
+  const { initData, isReady } = useTelegram();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
@@ -34,12 +34,13 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     deliveryEtaWeeks: 4,
     status: "in_stock",
     description: "",
-    media: [] as string[]
+    media: [] as string[],
+    videoUrl: ""
   });
   const [newImage, setNewImage] = useState("");
 
   useEffect(() => {
-    if (!initData || isNew) return;
+    if (!isReady || isNew) return;
     async function loadVehicle() {
       try {
         const res = await fetch(`/api/admin/vehicles/${unwrappedParams.id}`, {
@@ -58,7 +59,8 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
             generation: data.generation || "",
             exteriorColor: data.exteriorColor || "",
             interiorColor: data.interiorColor || "",
-            description: data.description || ""
+            description: data.description || "",
+            videoUrl: data.videoUrl || ""
           });
         }
       } catch (err) {
@@ -68,7 +70,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
       }
     }
     loadVehicle();
-  }, [initData, isNew, unwrappedParams.id]);
+  }, [initData, isReady, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -103,13 +105,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     setFormData(prev => ({ ...prev, media: prev.media.filter((_, i) => i !== index) }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen">
@@ -131,7 +127,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
         <div className="flex items-center gap-4">
           <button 
             onClick={handleSave} 
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-headline text-sm font-bold shadow-lg shadow-orange-500/10 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
@@ -151,6 +147,11 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
           </p>
         </div>
 
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
           {/* Main Form Area */}
@@ -359,6 +360,20 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                     <span className="font-body text-xs mt-1 text-slate-400 px-6 text-center">Изображения 16:9 или 4:3. Избегайте использования сторонних обложек.</span>
                   </div>
                 )}
+                
+                <div className="mt-8 pt-6 border-t border-slate-100">
+                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2 block">
+                      <Video className="w-3.5 h-3.5" /> Ссылка на Видеообзор (YouTube)
+                   </label>
+                   <input 
+                     type="text"
+                     placeholder="https://youtu.be/..." 
+                     className="w-full bg-surface-container-low/50 border-none rounded-2xl py-4 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans font-medium outline-none" 
+                     value={formData.videoUrl} 
+                     onChange={e => setFormData({...formData, videoUrl: e.target.value})} 
+                   />
+                   <p className="text-[10px] text-muted-foreground mt-2 font-medium">Если указано, в карточке автомобиля появится плеер.</p>
+                </div>
               </div>
             </div>
 
@@ -445,6 +460,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
           </div>
 
         </div>
+        )}
       </div>
     </div>
   );

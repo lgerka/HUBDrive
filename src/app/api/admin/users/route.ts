@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
-
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 export async function GET(request: Request) {
     try {
@@ -16,11 +9,25 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const users = await prisma.user.findMany({
-            orderBy: { createdAt: 'desc' }
-        });
+        // LOW-04: Пагинация — защита от перегрузки БД
+        const { searchParams } = new URL(request.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+        const skip = (page - 1) * limit;
 
-        return NextResponse.json(users);
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip,
+            }),
+            prisma.user.count(),
+        ]);
+
+        return NextResponse.json({
+            data: users,
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+        });
     } catch (error) {
         console.error('Error fetching users:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

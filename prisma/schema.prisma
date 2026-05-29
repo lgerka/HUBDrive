@@ -164,6 +164,7 @@ model Vehicle {
 
   status      VehicleStatus @default(in_stock)
   media       Json?
+  videoUrl    String?
   description String        @default("")
 
   createdAt DateTime @default(now())

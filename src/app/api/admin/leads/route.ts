@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const allUsers = await prisma.user.findMany({
@@ -56,10 +56,23 @@ export async function PATCH(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         
         const body = await request.json();
+
+        // HIGH-03: Валидация enum leadStatus
+        const VALID_STATUSES = ['new', 'in_progress', 'converted', 'rejected'] as const;
+        if (!body.id || typeof body.id !== 'string') {
+            return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+        }
+        if (!VALID_STATUSES.includes(body.leadStatus)) {
+            return NextResponse.json(
+                { error: `Invalid leadStatus. Allowed: ${VALID_STATUSES.join(', ')}` },
+                { status: 400 }
+            );
+        }
+
         const updated = await prisma.user.update({
             where: { id: body.id },
             data: { leadStatus: body.leadStatus }
@@ -75,7 +88,7 @@ export async function DELETE(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         
         const { searchParams } = new URL(request.url);

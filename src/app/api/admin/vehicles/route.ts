@@ -1,14 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { prisma } from '@/lib/server/prisma';
 import { notifyUsersAboutMatch } from '@/lib/server/telegram/notifier';
 import { verifyAdmin } from '@/lib/server/admin';
-
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 export async function GET(request: Request) {
     try {
@@ -17,11 +10,25 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const vehicles = await prisma.vehicle.findMany({
-            orderBy: { createdAt: 'desc' }
-        });
+        // LOW-04: Пагинация
+        const { searchParams } = new URL(request.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+        const skip = (page - 1) * limit;
 
-        return NextResponse.json(vehicles);
+        const [vehicles, total] = await Promise.all([
+            prisma.vehicle.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip,
+            }),
+            prisma.vehicle.count(),
+        ]);
+
+        return NextResponse.json({
+            data: vehicles,
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+        });
     } catch (error) {
         console.error('Error fetching admin vehicles:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -56,7 +63,8 @@ export async function POST(request: Request) {
                 drivetrain: body.drivetrain || 'AwD',
                 exteriorColor: body.exteriorColor || '',
                 interiorColor: body.interiorColor || '',
-                media: body.media || []
+                media: body.media || [],
+                videoUrl: body.videoUrl || null
             }
         });
 

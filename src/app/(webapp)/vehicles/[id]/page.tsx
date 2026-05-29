@@ -183,7 +183,7 @@ export default function VehicleDetailPage() {
             </header>
 
             <main className="pt-16 max-w-4xl mx-auto w-full">
-                <VehicleGallery media={vehicle.media as string[]} altText={`${vehicle.brand} ${vehicle.model}`} />
+                <VehicleGallery media={vehicle.media as string[]} videoUrl={vehicle.videoUrl} altText={`${vehicle.brand} ${vehicle.model}`} />
 
                 {/* Basic Info Section */}
                 <section className="px-6 py-8 bg-surface">
