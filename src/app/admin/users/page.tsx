@@ -38,11 +38,12 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     try {
-      const res = await fetch("/api/admin/users", {
-        headers: { "x-telegram-init-data": initData },
-      });
+      const headers: Record<string, string> = {};
+      if (initData) headers["x-telegram-init-data"] = initData;
+      const res = await fetch("/api/admin/users", { headers });
       if (res.ok) {
-        setUsers(await res.json());
+        const json = await res.json();
+        setUsers(Array.isArray(json) ? json : (json.data ?? []));
       }
     } catch (e) {
       console.error(e);

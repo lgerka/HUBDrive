@@ -38,12 +38,13 @@ export default function AdminVehiclesPage() {
   useEffect(() => {
     async function loadVehicles() {
       try {
-        const res = await fetch("/api/admin/vehicles", {
-          headers: { "x-telegram-init-data": initData },
-        });
+        const headers: Record<string, string> = {};
+        if (initData) headers["x-telegram-init-data"] = initData;
+        const res = await fetch("/api/admin/vehicles", { headers });
         if (res.ok) {
-          const data = await res.json();
-          setVehicles(data);
+          const json = await res.json();
+          // API возвращает { data: [], pagination: {} } после фикса пагинации
+          setVehicles(Array.isArray(json) ? json : (json.data ?? []));
         }
       } catch (err) {
         console.error(err);

@@ -26,12 +26,12 @@ export default function AdminCasesPage() {
   useEffect(() => {
     async function loadCases() {
       try {
-        const res = await fetch("/api/admin/cases", {
-          headers: { "x-telegram-init-data": initData },
-        });
+        const headers: Record<string, string> = {};
+        if (initData) headers["x-telegram-init-data"] = initData;
+        const res = await fetch("/api/admin/cases", { headers });
         if (res.ok) {
-          const data = await res.json();
-          setCases(data);
+          const json = await res.json();
+          setCases(Array.isArray(json) ? json : (json.data ?? []));
         }
       } catch (err) {
         console.error(err);

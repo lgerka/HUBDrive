@@ -40,12 +40,12 @@ export default function LeadsPage() {
     useEffect(() => {
         async function loadLeads() {
             try {
-                const res = await fetch("/api/admin/leads", {
-                    headers: { "x-telegram-init-data": initData },
-                });
+                const headers: Record<string, string> = {};
+                if (initData) headers["x-telegram-init-data"] = initData;
+                const res = await fetch("/api/admin/leads", { headers });
                 if (res.ok) {
-                    const data = await res.json();
-                    setLeads(data);
+                    const json = await res.json();
+                    setLeads(Array.isArray(json) ? json : (json.data ?? []));
                 }
             } catch (err) {
                 console.error(err);
