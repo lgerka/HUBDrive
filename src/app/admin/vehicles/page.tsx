@@ -4,7 +4,9 @@ import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2, TrendingUp, Search, Bell, Filter, Download as DownloadIcon, Edit, Trash2, Car } from "lucide-react";
-import { VehicleStatus } from "@prisma/client";
+
+// Локальный тип вместо импорта из @prisma/client (серверная lib)
+type VehicleStatus = 'in_stock' | 'in_transit' | 'reserved' | 'sold' | 'hidden';
 
 interface AdminVehicle {
   id: string;

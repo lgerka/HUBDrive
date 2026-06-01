@@ -4,7 +4,8 @@ import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
 import { Loader2, Search, Bell, Image as ImageIcon, Video, FileText, Plus, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ContentStatus } from "@prisma/client";
+// Локальный тип вместо @prisma/client (серверная lib)
+type ContentStatus = 'published' | 'draft' | 'archived';
 
 interface AdminNews {
   id: string;
@@ -40,12 +41,12 @@ export default function AdminNewsPage() {
   useEffect(() => {
     async function loadNews() {
       try {
-        const res = await fetch("/api/admin/news", {
-          headers: { "x-telegram-init-data": initData },
-        });
+        const headers: Record<string, string> = {};
+        if (initData) headers["x-telegram-init-data"] = initData;
+        const res = await fetch("/api/admin/news", { headers });
         if (res.ok) {
-          const data = await res.json();
-          setNews(data);
+          const json = await res.json();
+          setNews(Array.isArray(json) ? json : (json.data ?? []));
         }
       } catch (err) {
         console.error(err);
