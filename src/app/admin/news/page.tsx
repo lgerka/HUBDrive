@@ -24,7 +24,7 @@ export default function AdminNewsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   async function handleDeleteNews(id: string) {
-    if (!initData || !confirm("Удалить публикацию?")) return;
+    if (!confirm("Удалить публикацию?")) return;
     try {
       const res = await fetch(`/api/admin/news/${id}`, {
          method: 'DELETE',

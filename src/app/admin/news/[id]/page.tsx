@@ -1,9 +1,9 @@
 "use client";
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Save, Trash2, ChevronRight, UploadCloud, Video, FileText, Image as ImageIcon } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Trash2, ChevronRight, UploadCloud, Video, FileText, X } from "lucide-react";
 
 export default function AdminNewsEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -12,38 +12,61 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Храним initData в ref, чтобы избежать гонки состояний в useEffect
+  const initDataRef = useRef(initData);
 
   const [formData, setFormData] = useState({
     title: "",
     content: "",
     videoUrl: "",
+    coverImage: "",
     status: "draft"
   });
 
+  // Обновляем ref при каждом изменении initData
+  useEffect(() => {
+    initDataRef.current = initData;
+  }, [initData]);
+
+  const loadNews = useCallback(async () => {
+    if (isNew) return;
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const headers: Record<string, string> = {};
+      if (initDataRef.current) {
+        headers["x-telegram-init-data"] = initDataRef.current;
+      }
+      const res = await fetch(`/api/admin/news/${unwrappedParams.id}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setFormData({
+          title: data.title || "",
+          content: data.body || "",
+          videoUrl: data.videoUrl || "",
+          coverImage: data.coverImage || "",
+          status: data.status || "draft"
+        });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setLoadError(errData.error || `Ошибка загрузки (${res.status})`);
+      }
+    } catch (err) {
+      console.error(err);
+      setLoadError("Не удалось загрузить данные. Проверьте соединение.");
+    } finally {
+      setIsLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNew, unwrappedParams.id]);
+
   useEffect(() => {
     if (!isReady || isNew) return;
-    async function loadNews() {
-      try {
-        const res = await fetch(`/api/admin/news/${unwrappedParams.id}`, {
-          headers: { "x-telegram-init-data": initData },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setFormData({
-            title: data.title || "",
-            content: data.body || "",
-            videoUrl: data.videoUrl || "",
-            status: data.status || "draft"
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
     loadNews();
-  }, [initData, isReady, isNew, unwrappedParams.id]);
+  }, [isReady, isNew, loadNews]);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -56,6 +79,7 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
           title: formData.title,
           content: formData.content,
           videoUrl: formData.videoUrl || null,
+          coverImage: formData.coverImage || null,
           status: formData.status
       };
 
@@ -78,7 +102,7 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
   };
 
   const handleDelete = async () => {
-    if (!initData || isNew) return;
+    if (isNew) return;
     if (!confirm("Вы уверены, что хотите удалить этот материал?")) return;
     setIsSaving(true);
     try {
@@ -93,6 +117,37 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
       console.error(err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { "x-telegram-init-data": initData },
+        body: data,
+      });
+
+      if (res.ok) {
+        const { url } = await res.json();
+        setFormData(prev => ({ ...prev, coverImage: url }));
+      } else {
+        const err = await res.json();
+        alert(err.error || "Ошибка при загрузке файла");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка при загрузке файла");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -149,6 +204,16 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
+        ) : loadError ? (
+          <div className="flex flex-col h-64 items-center justify-center gap-4 text-center">
+            <p className="text-red-500 font-bold text-lg">{loadError}</p>
+            <button
+              onClick={() => loadNews()}
+              className="px-6 py-2.5 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-bold text-sm"
+            >
+              Повторить
+            </button>
+          </div>
         ) : (
           <form className="grid grid-cols-1 xl:grid-cols-12 gap-8" onSubmit={handleSave}>
           {/* Left Column: Text & Meta Content */}
@@ -199,15 +264,62 @@ export default function AdminNewsEditor({ params }: { params: Promise<{ id: stri
           <div className="col-span-1 xl:col-span-5 space-y-8">
              <div className="bg-surface-container-lowest rounded-3xl p-6 md:p-10 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Визуальные материалы</label>
-                  <div className="w-full bg-slate-50/50 border-2 border-dashed border-border/60 hover:border-primary/50 transition-colors rounded-3xl p-10 flex flex-col items-center justify-center text-center cursor-pointer group">
-                     <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-105 transition-transform border border-slate-100">
-                        <UploadCloud className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                   <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Визуальные материалы</label>
+
+                   {/* Hidden file input */}
+                   <input
+                     ref={fileInputRef}
+                     type="file"
+                     accept="image/jpeg,image/png,image/webp"
+                     className="hidden"
+                     onChange={handleFileChange}
+                   />
+
+                   {formData.coverImage ? (
+                     /* Image preview */
+                     <div className="relative rounded-3xl overflow-hidden group">
+                       <img
+                         src={formData.coverImage}
+                         alt="Обложка"
+                         className="w-full h-48 object-cover"
+                       />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                         <button
+                           type="button"
+                           onClick={() => fileInputRef.current?.click()}
+                           className="px-4 py-2 bg-white/90 text-slate-800 rounded-xl text-sm font-bold hover:bg-white transition-colors"
+                         >
+                           Заменить
+                         </button>
+                         <button
+                           type="button"
+                           onClick={() => setFormData(prev => ({ ...prev, coverImage: "" }))}
+                           className="p-2 bg-red-500/90 text-white rounded-xl hover:bg-red-500 transition-colors"
+                         >
+                           <X className="w-4 h-4" />
+                         </button>
+                       </div>
                      </div>
-                     <p className="font-sans font-bold text-base mb-1">Загрузите обложку</p>
-                     <p className="text-xs text-muted-foreground">PNG, JPG, или WEBP до 5 MB</p>
-                  </div>
-               </div>
+                   ) : (
+                     /* Upload zone */
+                     <button
+                       type="button"
+                       disabled={isUploading}
+                       onClick={() => fileInputRef.current?.click()}
+                       className="w-full bg-slate-50/50 border-2 border-dashed border-border/60 hover:border-primary/50 transition-colors rounded-3xl p-10 flex flex-col items-center justify-center text-center cursor-pointer group disabled:opacity-70 disabled:cursor-wait"
+                     >
+                       <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-105 transition-transform border border-slate-100">
+                         {isUploading
+                           ? <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                           : <UploadCloud className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />}
+                       </div>
+                       <p className="font-sans font-bold text-base mb-1">
+                         {isUploading ? "Загрузка..." : "Загрузите обложку"}
+                       </p>
+                       <p className="text-xs text-muted-foreground">PNG, JPG, или WEBP до 5 MB</p>
+                     </button>
+                   )}
+                </div>
 
                <div className="mt-8">
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">

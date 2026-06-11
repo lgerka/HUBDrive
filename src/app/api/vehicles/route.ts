@@ -1,13 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+import { prisma } from '@/lib/server/prisma';
 
 export async function GET(request: Request) {
     try {
@@ -18,7 +10,9 @@ export async function GET(request: Request) {
         const sort = searchParams.get('sort');
 
         const where: any = {};
-        if (status && status !== 'all') where.status = status;
+        // PRD §18: hidden — технический статус, в публичном каталоге не показывается
+        if (status && status !== 'all' && status !== 'hidden') where.status = status;
+        else where.status = { not: 'hidden' };
         if (brand && brand !== 'all') where.brand = brand;
         if (q) {
             where.OR = [

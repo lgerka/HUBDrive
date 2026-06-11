@@ -1,9 +1,9 @@
 "use client";
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Car, Info, Video } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Info, Video, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminVehicleEditor({ params }: { params: Promise<{ id: string }> }) {
@@ -13,6 +13,8 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -31,6 +33,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     interiorColor: "",
     priceKeyTurnKZT: 0,
     priceChina: 0,
+    pricePort: 0,
     deliveryEtaWeeks: 4,
     status: "in_stock",
     description: "",
@@ -55,6 +58,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
             powerHp: data.powerHp || 0,
             mileage: data.mileage || 0,
             priceChina: data.priceChina || 0,
+            pricePort: data.pricePort || 0,
             deliveryEtaWeeks: data.deliveryEtaWeeks || 0,
             generation: data.generation || "",
             exteriorColor: data.exteriorColor || "",
@@ -95,8 +99,9 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   };
 
   const addImage = () => {
-    if (newImage) {
-      setFormData(prev => ({ ...prev, media: [...prev.media, newImage] }));
+    const trimmed = newImage.trim();
+    if (trimmed) {
+      setFormData(prev => ({ ...prev, media: [...prev.media, trimmed] }));
       setNewImage("");
     }
   };
@@ -105,6 +110,38 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     setFormData(prev => ({ ...prev, media: prev.media.filter((_, i) => i !== index) }));
   };
 
+  const handleGalleryFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    try {
+      const uploads = Array.from(files).map(async (file) => {
+        const data = new FormData();
+        data.append("file", file);
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          headers: { "x-telegram-init-data": initData },
+          body: data,
+        });
+        if (res.ok) {
+          const { url } = await res.json();
+          return url as string;
+        }
+        return null;
+      });
+      const urls = await Promise.all(uploads);
+      const validUrls = urls.filter(Boolean) as string[];
+      if (validUrls.length > 0) {
+        setFormData(prev => ({ ...prev, media: [...prev.media, ...validUrls] }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка при загрузке файла");
+    } finally {
+      setIsUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
 
 
   return (
@@ -315,7 +352,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 <span className="text-[10px] font-label uppercase tracking-widest text-slate-400">{formData.media.length} Фото</span>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input 
                     className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-300" 
@@ -327,11 +364,33 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                   <button 
                     type="button" 
                     onClick={addImage}
-                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 font-headline text-sm font-bold shadow-sm hover:bg-slate-100 transition-colors shrink-0"
+                    disabled={!newImage.trim()}
+                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 font-headline text-sm font-bold shadow-sm hover:bg-slate-100 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-50"
                   >
-                    <Plus className="w-4 h-4" /> Добавить
+                    <Plus className="w-4 h-4" /> Добавить URL
                   </button>
                 </div>
+
+                {/* File Upload */}
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleGalleryFileChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-primary/40 bg-slate-50/50 text-slate-500 font-headline text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {isUploading
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <UploadCloud className="w-4 h-4" />}
+                  {isUploading ? "Загрузка..." : "Загрузить с устройства"}
+                </button>
 
                 {formData.media.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 pt-4">
@@ -401,6 +460,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                       <option value="in_transit">В пути</option>
                       <option value="reserved">Бронь</option>
                       <option value="sold">Продано</option>
+                      <option value="delivered">Передано клиенту</option>
                       <option value="hidden">Скрыто (Черновик)</option>
                     </select>
                     <ChevronRight className="w-4 h-4 text-primary absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
@@ -426,20 +486,29 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Прайс Китай (¥)</label>
-                    <input 
-                      type="number" 
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all" 
-                      value={formData.priceChina || ""} 
-                      onChange={e => setFormData({...formData, priceChina: Number(e.target.value)})} 
+                    <input
+                      type="number"
+                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
+                      value={formData.priceChina || ""}
+                      onChange={e => setFormData({...formData, priceChina: Number(e.target.value)})}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">До порта (₸)</label>
+                    <input
+                      type="number"
+                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
+                      value={formData.pricePort || ""}
+                      onChange={e => setFormData({...formData, pricePort: Number(e.target.value)})}
                     />
                   </div>
                   <div className="space-y-3">
                     <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Доставка (Недели)</label>
-                    <input 
-                      type="number" 
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all" 
-                      value={formData.deliveryEtaWeeks} 
-                      onChange={e => setFormData({...formData, deliveryEtaWeeks: Number(e.target.value)})} 
+                    <input
+                      type="number"
+                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
+                      value={formData.deliveryEtaWeeks}
+                      onChange={e => setFormData({...formData, deliveryEtaWeeks: Number(e.target.value)})}
                     />
                   </div>
                 </div>

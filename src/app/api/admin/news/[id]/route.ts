@@ -1,13 +1,29 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const isAdmin = await verifyAdmin(request, prisma);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const news = await prisma.news.findUnique({
+            where: { id }
+        });
+
+        if (!news) {
+            return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(news);
+    } catch (error) {
+        console.error('Error fetching news:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -25,7 +41,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 title: body.title,
                 body: body.content,
                 excerpt: body.content ? body.content.substring(0, 100) + '...' : undefined,
-                status: body.status
+                status: body.status,
+                ...(body.videoUrl !== undefined && { videoUrl: body.videoUrl || null }),
+                ...(body.coverImage !== undefined && { coverImage: body.coverImage || null }),
             }
         });
 

@@ -9,13 +9,13 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const news = await prisma.news.findMany({
-            orderBy: { date: 'desc' }
+        const banners = await prisma.banner.findMany({
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         });
 
-        return NextResponse.json(news);
+        return NextResponse.json(banners);
     } catch (error) {
-        console.error('Error fetching admin news:', error);
+        console.error('Error fetching banners:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -28,25 +28,24 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        if (!body.title || !body.content) {
-            return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+        if (!body.title || !body.imageUrl) {
+            return NextResponse.json({ error: 'Title and imageUrl are required' }, { status: 400 });
         }
-        const content: string = String(body.content);
-        const news = await prisma.news.create({
+
+        const banner = await prisma.banner.create({
             data: {
-                title: body.title,
-                body: content,
-                excerpt: content.length > 100 ? content.substring(0, 100) + '...' : content,
-                coverImage: body.coverImage || null,
-                videoUrl: body.videoUrl || null,
-                status: body.status || 'draft',
-                date: new Date(),
-            }
+                title: String(body.title).trim(),
+                subtitle: body.subtitle ? String(body.subtitle).trim() : null,
+                imageUrl: String(body.imageUrl).trim(),
+                linkUrl: body.linkUrl ? String(body.linkUrl).trim() : null,
+                sortOrder: Number(body.sortOrder) || 0,
+                isActive: body.isActive ?? true,
+            },
         });
 
-        return NextResponse.json(news);
+        return NextResponse.json(banner);
     } catch (error) {
-        console.error('Error creating news:', error);
+        console.error('Error creating banner:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

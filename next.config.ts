@@ -23,7 +23,7 @@ const securityHeaders = [
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://vercel.live https://*.vercel.live",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob: https://images.unsplash.com https://placehold.co https://lh3.googleusercontent.com https://*.vercel.live",
+            "img-src 'self' data: blob: https://images.unsplash.com https://placehold.co https://lh3.googleusercontent.com https://*.supabase.co https://*.vercel.live",
             "connect-src 'self' https://api.telegram.org https://vercel.live https://*.vercel.live wss://*.vercel.live",
             "frame-src 'self' https://vercel.live",
             "frame-ancestors 'none'",
@@ -46,6 +46,10 @@ const nextConfig: NextConfig = {
             {
                 protocol: 'https',
                 hostname: 'lh3.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.supabase.co',
             },
         ],
     },

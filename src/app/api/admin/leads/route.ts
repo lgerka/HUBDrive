@@ -13,6 +13,7 @@ export async function GET(request: Request) {
         const allUsers = await prisma.user.findMany({
             include: {
                 filters: true,
+                assignedManager: { select: { id: true, name: true } },
                 events: {
                     orderBy: {
                         createdAt: 'desc'
@@ -39,6 +40,8 @@ export async function GET(request: Request) {
                 reasons: scoring.reasons,
                 createdAt: u.createdAt,
                 filtersCount: u.filters.length,
+                assignedManagerId: u.assignedManagerId,
+                assignedManagerName: u.assignedManager?.name ?? null,
             };
         });
 
@@ -62,20 +65,35 @@ export async function PATCH(request: Request) {
         const body = await request.json();
 
         // HIGH-03: Валидация enum leadStatus
-        const VALID_STATUSES = ['new', 'in_progress', 'converted', 'rejected'] as const;
+        const VALID_STATUSES = ['new', 'in_progress', 'awaiting_reply', 'qualified', 'converted', 'closed_lost', 'rejected'] as const;
         if (!body.id || typeof body.id !== 'string') {
             return NextResponse.json({ error: "Invalid id" }, { status: 400 });
         }
-        if (!VALID_STATUSES.includes(body.leadStatus)) {
-            return NextResponse.json(
-                { error: `Invalid leadStatus. Allowed: ${VALID_STATUSES.join(', ')}` },
-                { status: 400 }
-            );
+
+        const data: Record<string, unknown> = {};
+
+        if (body.leadStatus !== undefined) {
+            if (!VALID_STATUSES.includes(body.leadStatus)) {
+                return NextResponse.json(
+                    { error: `Invalid leadStatus. Allowed: ${VALID_STATUSES.join(', ')}` },
+                    { status: 400 }
+                );
+            }
+            data.leadStatus = body.leadStatus;
+        }
+
+        // Назначение менеджера (PRD §19.3); null — снять назначение
+        if (body.assignedManagerId !== undefined) {
+            data.assignedManagerId = body.assignedManagerId || null;
+        }
+
+        if (Object.keys(data).length === 0) {
+            return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
         }
 
         const updated = await prisma.user.update({
             where: { id: body.id },
-            data: { leadStatus: body.leadStatus }
+            data
         });
         
         return NextResponse.json(updated);

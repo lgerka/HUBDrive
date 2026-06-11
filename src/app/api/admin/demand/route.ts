@@ -59,7 +59,33 @@ export async function GET(request: Request) {
             else budgetRanges['Более 30 млн']++;
         });
 
-        // 5. Geography (Cities)
+        // 5. Top Body Types (PRD §19.2) — bodyTypes хранится как Json-массив
+        const bodyTypeCounts: Record<string, number> = {};
+        filters.forEach(f => {
+            const types = Array.isArray(f.bodyTypes) ? f.bodyTypes : [];
+            types.forEach((t: unknown) => {
+                if (typeof t === 'string' && t) bodyTypeCounts[t] = (bodyTypeCounts[t] || 0) + 1;
+            });
+        });
+        const topBodyTypes = Object.entries(bodyTypeCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        // 6. Top Engine Types (PRD §19.2)
+        const engineTypeCounts: Record<string, number> = {};
+        filters.forEach(f => {
+            const types = Array.isArray(f.engineTypes) ? f.engineTypes : [];
+            types.forEach((t: unknown) => {
+                if (typeof t === 'string' && t) engineTypeCounts[t] = (engineTypeCounts[t] || 0) + 1;
+            });
+        });
+        const topEngineTypes = Object.entries(engineTypeCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        // 7. Geography (Cities)
         const cityCounts: Record<string, number> = {};
         filters.forEach(f => {
             const city = f.user?.city || 'Не указан';
@@ -76,6 +102,8 @@ export async function GET(request: Request) {
             topModels,
             avgBudget,
             budgetDistribution: Object.entries(budgetRanges).map(([name, count]) => ({ name, count })),
+            topBodyTypes,
+            topEngineTypes,
             topCities
         });
 

@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, LeadStatus } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { LeadStatus } from '@prisma/client';
+import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { calculateLeadScore } from '@/lib/services/leadScoring';
-
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
     try {
@@ -24,6 +18,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         const data: any = {};
         if (body.leadStatus) data.leadStatus = body.leadStatus as LeadStatus;
         if (body.managerComment !== undefined) data.managerComment = body.managerComment;
+        if (body.assignedManagerId !== undefined) data.assignedManagerId = body.assignedManagerId || null;
 
         const updatedLead = await prisma.user.update({
             where: { id },
@@ -52,6 +47,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
             where: { id },
             include: {
                 filters: true,
+                assignedManager: { select: { id: true, name: true } },
                 events: {
                     orderBy: {
                         createdAt: 'desc'
