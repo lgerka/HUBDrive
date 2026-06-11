@@ -51,6 +51,8 @@ export async function POST(request: Request) {
         const uploadRes = await fetch(uploadUrl, {
             method: 'POST',
             headers: {
+                // apikey — для новых ключей sb_secret_*, Authorization — для legacy service_role JWT
+                'apikey': SUPABASE_SERVICE_ROLE_KEY,
                 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
                 'Content-Type': file.type,
                 'x-upsert': 'true',
