@@ -17,6 +17,9 @@ export function OnboardingStories({ onComplete }: OnboardingStoriesProps) {
     const totalStories = 4;
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const lastUpdateTimeRef = useRef<number>(Date.now());
+    // Прогресс держим в ref: вызывать handleNext (а с ним onComplete/router.push)
+    // изнутри апдейтера setProgress нельзя — React исполняет его во время рендера
+    const progressRef = useRef(0);
 
     useEffect(() => {
         if (isPaused) {
@@ -30,14 +33,15 @@ export function OnboardingStories({ onComplete }: OnboardingStoriesProps) {
             const dt = now - lastUpdateTimeRef.current;
             lastUpdateTimeRef.current = now;
 
-            setProgress((prev) => {
-                const newProgress = prev + (dt / STORY_DURATION) * 100;
-                if (newProgress >= 100) {
-                    handleNext();
-                    return 0;
-                }
-                return newProgress;
-            });
+            const newProgress = progressRef.current + (dt / STORY_DURATION) * 100;
+            if (newProgress >= 100) {
+                progressRef.current = 0;
+                setProgress(0);
+                handleNext();
+            } else {
+                progressRef.current = newProgress;
+                setProgress(newProgress);
+            }
         }, 30);
 
         return () => {
@@ -48,6 +52,7 @@ export function OnboardingStories({ onComplete }: OnboardingStoriesProps) {
     const handleNext = () => {
         if (currentIndex < totalStories - 1) {
             setCurrentIndex(prev => prev + 1);
+            progressRef.current = 0;
             setProgress(0);
         } else {
             onComplete();
@@ -57,6 +62,7 @@ export function OnboardingStories({ onComplete }: OnboardingStoriesProps) {
     const handlePrev = () => {
         if (currentIndex > 0) {
             setCurrentIndex(prev => prev - 1);
+            progressRef.current = 0;
             setProgress(0);
         }
     };
