@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Share, Play, Calendar } from "lucide-react";
 import Image from "next/image";
+import { trackEvent } from "@/lib/api/track";
 
 function formatDate(dateString: string) {
     try {
@@ -41,6 +42,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 }
                 const data = await res.json();
                 setArticle(data);
+                trackEvent('news_opened', { meta: { newsId: data.id, title: data.title } }); // PRD §21
             } catch (err: any) {
                 setError(err.message);
             } finally {

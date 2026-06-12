@@ -133,9 +133,12 @@ export default function AboutPage() {
                     </div>
                   </div>
                   
-                  <button className="w-full py-4 mt-2 rounded-[1.25rem] bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-sans font-bold text-sm shadow-md active:scale-95 transition-all">
+                  <Link
+                    href="/support"
+                    className="block text-center w-full py-4 mt-2 rounded-[1.25rem] bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-sans font-bold text-sm shadow-md active:scale-95 transition-all"
+                  >
                     Связаться с нами
-                  </button>
+                  </Link>
                 </div>
               </div>
           </article>

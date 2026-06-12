@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getTelegramWebApp, ITelegramUser, IWebApp } from '@/lib/telegram/webapp';
 import { AlertCircle } from 'lucide-react';
+import { trackEvent } from '@/lib/api/track';
 
 interface ITelegramContext {
     webApp: IWebApp | null;
@@ -34,6 +35,13 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
             setWebApp(app);
             setIsReady(true);
             setIsInTelegram(true);
+            // PRD §21: открытие WebApp — один раз за сессию
+            try {
+                if (!sessionStorage.getItem('webapp_opened_logged')) {
+                    sessionStorage.setItem('webapp_opened_logged', '1');
+                    trackEvent('webapp_opened');
+                }
+            } catch { /* sessionStorage недоступен — пропускаем */ }
         } else {
             setIsInTelegram(false);
             setIsReady(true); // Always ready, even outside Telegram

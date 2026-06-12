@@ -79,6 +79,9 @@ enum EventType {
   vehicle_created
   vehicle_updated
   vehicle_status_changed
+  support_opened
+  filter_deleted
+  webapp_opened
 }
 
 model User {

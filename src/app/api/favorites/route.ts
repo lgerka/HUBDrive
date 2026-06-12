@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { usersRepo } from '@/server/repo/users';
 import { favoritesRepo } from '@/server/repo/favorites';
+import { resolveWebUser } from '@/lib/server/webUser';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        // Resolve dev user for MVP
-        const user = await usersRepo.getOrCreateDevUser();
+        const user = await resolveWebUser(request);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        // Fetch favorites
         const vehicleIds = await favoritesRepo.list(user.id);
 
         return NextResponse.json({ ok: true, vehicleIds });

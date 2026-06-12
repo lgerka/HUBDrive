@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
+import { trackEvent } from '@/lib/api/track';
+import { SUPPORT_PHONE } from '@/constants/contacts';
 
 import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
 import { VehicleSpecsGrid } from '@/components/hubdrive/vehicles/vehicle-specs-grid';
@@ -50,6 +52,11 @@ export default function VehicleDetailPage() {
                 }
                 const data = await res.json();
                 setVehicle(data);
+                // PRD §21: просмотр карточки авто (учитывается в lead scoring)
+                trackEvent('vehicle_opened', {
+                    vehicleId: data.id,
+                    meta: { brand: data.brand, model: data.model },
+                });
             } catch (err) {
                 console.error(err);
                 setError('Не удалось загрузить данные автомобиля');
@@ -225,6 +232,34 @@ export default function VehicleDetailPage() {
                         </p>
                     </div>
 
+                    {/* Цены и логистика (PRD §10.1: Китай / до порта / под ключ, срок поставки) */}
+                    {(vehicle.priceChina || vehicle.pricePort || vehicle.deliveryEtaWeeks) && (
+                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest divide-y divide-surface-container-highest">
+                            {vehicle.priceChina ? (
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-on-surface-variant">Цена в Китае</span>
+                                    <span className="text-sm font-bold text-on-surface">¥ {new Intl.NumberFormat('ru-RU').format(vehicle.priceChina)}</span>
+                                </div>
+                            ) : null}
+                            {vehicle.pricePort ? (
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-on-surface-variant">До порта отгрузки</span>
+                                    <span className="text-sm font-bold text-on-surface">{new Intl.NumberFormat('ru-RU').format(vehicle.pricePort)} ₸</span>
+                                </div>
+                            ) : null}
+                            <div className="flex items-center justify-between px-4 py-3">
+                                <span className="text-sm text-on-surface-variant">Под ключ в Казахстане</span>
+                                <span className="text-sm font-black text-primary">{formatPrice(vehicle.priceKeyTurnKZT)}</span>
+                            </div>
+                            {vehicle.deliveryEtaWeeks ? (
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-on-surface-variant">Срок поставки</span>
+                                    <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
+
                     {/* Spec Strip */}
                     <div className="mt-6 flex items-center space-x-4 overflow-x-auto hide-scrollbar pb-2">
                         <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
@@ -245,12 +280,28 @@ export default function VehicleDetailPage() {
                 <VehicleInfoBlocks description={vehicle.description} />
 
                 <VehicleSpecsGrid vehicle={vehicle} />
+
+                {/* PRD §10: CTA «Заказать похожую машину» — создаёт фильтр с предзаполнением */}
+                <section className="px-6 pb-8">
+                    <button
+                        onClick={() => router.push(`/filters/new?brand=${encodeURIComponent(vehicle.brand)}&model=${encodeURIComponent(vehicle.model)}`)}
+                        className="w-full py-4 rounded-2xl border-2 border-primary/30 text-primary font-bold text-sm hover:bg-primary/5 active:scale-[0.98] transition-all"
+                    >
+                        Заказать похожую машину
+                    </button>
+                    <p className="text-xs text-on-surface-variant text-center mt-2">
+                        Создадим фильтр с параметрами этого авто — пришлём похожие предложения
+                    </p>
+                </section>
             </main>
 
             <VehicleCtaBar
                 onContact={handleContact}
                 isContactLoading={isSending}
-                onCall={() => window.location.href = 'tel:+77000000000'}
+                onCall={() => {
+                    trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });
+                    window.location.href = `tel:${SUPPORT_PHONE}`;
+                }}
                 onFavorite={handleFavorite}
                 isFavorite={isFavorite(vehicle.id)}
             />
