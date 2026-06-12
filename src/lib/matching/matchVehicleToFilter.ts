@@ -73,23 +73,19 @@ export function matchVehicleToFilter(vehicle: Vehicle, filter: Filter): MatchRes
         };
     }
 
-    // --- Soft Scoring (PRD 15.2 Weights) ---
-    // Марка: 30
-    // Модель: 30
-    // Бюджет: 20
-    // Кузов: 10
-    // Двигатель: 5
-    // Привод: 3
-    // Цвет: 2
+    // --- Soft Scoring (упрощено по решению владельца продукта) ---
+    // Главное в подборе: марка, бюджет, модель и год. Кузов/двигатель/привод/цвета
+    // не участвуют — марка и модель определяют комплектацию сами.
+    // Марка: 40 | Модель: 30 | Бюджет: 20 | Год: 10
+    // Незаполненный критерий = совпадение (пользователю он не важен).
 
     if (!brandIsAny) {
         if (filter.brand.toLowerCase() === vehicle.brand.toLowerCase()) {
-            score += 30;
+            score += 40;
             reasons.push('Марка');
         }
     } else {
-        // If they didn't specify a brand ("all"), they get free points because any brand fits their lack of preference
-        score += 30;
+        score += 40;
     }
 
     if (filter.model && filter.model.toLowerCase() !== 'all') {
@@ -103,53 +99,17 @@ export function matchVehicleToFilter(vehicle: Vehicle, filter: Filter): MatchRes
 
     if (filter.budgetMax > 0 && vehicle.priceKeyTurnKZT <= filter.budgetMax) {
         score += 20;
+        reasons.push('Бюджет');
     } else if (!filter.budgetMax || filter.budgetMax === 0) {
         score += 20;
     }
 
-    if (filter.bodyTypes && Array.isArray(filter.bodyTypes) && filter.bodyTypes.length > 0) {
-        if (filter.bodyTypes.includes(vehicle.bodyType)) {
-            score += 10;
-            reasons.push('Кузов');
-        }
-    } else {
+    const yearOk =
+        (!filter.yearFrom || vehicle.year >= filter.yearFrom) &&
+        (!filter.yearTo || vehicle.year <= filter.yearTo);
+    if (yearOk) {
         score += 10;
-    }
-
-    if (filter.engineTypes && Array.isArray(filter.engineTypes) && filter.engineTypes.length > 0) {
-        if (filter.engineTypes.includes(vehicle.engineType)) {
-            score += 5;
-            reasons.push('Двигатель');
-        }
-    } else {
-        score += 5;
-    }
-
-    if (filter.drivetrain && Array.isArray(filter.drivetrain) && filter.drivetrain.length > 0) {
-        if (filter.drivetrain.includes(vehicle.drivetrain)) {
-            score += 3;
-            reasons.push('Привод');
-        }
-    } else {
-        score += 3;
-    }
-
-    let colorScoreGiven = false;
-    if (filter.exteriorColors && Array.isArray(filter.exteriorColors) && filter.exteriorColors.length > 0) {
-        if (vehicle.exteriorColor && filter.exteriorColors.includes(vehicle.exteriorColor)) {
-            score += 2;
-            colorScoreGiven = true;
-            reasons.push('Цвет');
-        }
-    }
-    if (!colorScoreGiven && filter.interiorColors && Array.isArray(filter.interiorColors) && filter.interiorColors.length > 0) {
-         if (vehicle.interiorColor && filter.interiorColors.includes(vehicle.interiorColor)) {
-            score += 2;
-            reasons.push('Цвет салона');
-        }
-    }
-    if (!filter.exteriorColors?.length && !filter.interiorColors?.length) {
-        score += 2;
+        if (filter.yearFrom || filter.yearTo) reasons.push('Год');
     }
 
     score = Math.max(0, Math.min(100, score));

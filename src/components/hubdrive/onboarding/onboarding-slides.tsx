@@ -242,8 +242,24 @@ function SlideQuiz({ intent, onSelect }: { intent: OnboardingIntent | null; onSe
 /* 6. Финал: на главный экран телефона + CTA в воронку */
 function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; onFinish: (to: 'filters' | 'home') => void }) {
     const [homeScreenDone, setHomeScreenDone] = useState(false);
+    const [homeStatus, setHomeStatus] = useState<string>('unknown');
     const tg = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined;
-    const canAddToHome = typeof tg?.addToHomeScreen === 'function';
+
+    // Нативный Telegram API (Bot API 8.0+): ярлык мини-аппа на рабочий стол телефона,
+    // без Safari — Telegram сам показывает системный диалог.
+    React.useEffect(() => {
+        if (typeof tg?.checkHomeScreenStatus === 'function') {
+            try {
+                tg.checkHomeScreenStatus((status: string) => setHomeStatus(status || 'unknown'));
+            } catch { /* старый клиент */ }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const canAddToHome =
+        typeof tg?.addToHomeScreen === 'function' &&
+        homeStatus !== 'unsupported' &&
+        homeStatus !== 'added';
 
     const handleAddToHome = () => {
         try {

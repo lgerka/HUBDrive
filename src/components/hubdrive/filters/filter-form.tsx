@@ -116,6 +116,9 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     }, []);
 
+    // Минимальный фильтр: марка, модель, бюджет, год, пробег и степень готовности.
+    // Кузов/двигатель/привод/КПП/цвета убраны: марка+модель определяют их сами,
+    // а «только новые» не нужно — авто старше 6 месяцев нельзя продать по законам КНР.
     const [formData, setFormData] = useState<Partial<Filter>>({
         title: initialData?.title || '',
         brand: initialData?.brand || '',
@@ -125,15 +128,6 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         yearFrom: initialData?.yearFrom || undefined,
         yearTo: initialData?.yearTo || undefined,
         mileageMax: initialData?.mileageMax || undefined,
-        onlyNew: initialData?.onlyNew ?? false,
-        bodyTypes: initialData?.bodyTypes || [],
-        engineTypes: initialData?.engineTypes || [],
-        engineVolumeFrom: initialData?.engineVolumeFrom || undefined,
-        engineVolumeTo: initialData?.engineVolumeTo || undefined,
-        drivetrain: initialData?.drivetrain || [],
-        transmission: initialData?.transmission || [],
-        exteriorColors: initialData?.exteriorColors || [],
-        interiorColors: initialData?.interiorColors || [],
         purchasePlan: initialData?.purchasePlan || 'three_months',
         notificationsEnabled: initialData?.notificationsEnabled ?? true,
     });
@@ -143,15 +137,6 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
             setFormData(prev => ({ ...prev, [field]: value, model: '' }));
         } else {
             setFormData(prev => ({ ...prev, [field]: value }));
-        }
-    };
-
-    const handleArrayChange = (field: 'bodyTypes' | 'engineTypes' | 'drivetrain' | 'transmission' | 'exteriorColors' | 'interiorColors', value: string) => {
-        const current = formData[field] || [];
-        if (current.includes(value)) {
-            handleChange(field, current.filter(t => t !== value));
-        } else {
-            handleChange(field, [...current, value]);
         }
     };
 
@@ -165,38 +150,7 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     };
 
-    const BODY_TYPES = ['Седан', 'Внедорожник', 'Кроссовер', 'Минивэн', 'Купе'];
-    const FUEL_TYPES = ['Электро', 'Гибрид', 'Бензин', 'Дизель'];
-    const DRIVETRAINS = ['Полный', 'Передний', 'Задний'];
-    const TRANSMISSIONS = ['Автомат', 'Робот', 'Механика', 'Редуктор'];
-    const EXTERIOR_COLORS = ['Белый', 'Чёрный', 'Серый', 'Серебристый', 'Синий', 'Красный', 'Зелёный'];
-    const INTERIOR_COLORS = ['Чёрный', 'Бежевый', 'Коричневый', 'Серый', 'Белый'];
     const brandModels = formData.brand ? CAR_MODELS[formData.brand as string] || [] : [];
-    // PRD §8.2: объём двигателя применяется только для ДВС
-    const hasICE = !formData.engineTypes?.length || formData.engineTypes.some(t => t !== 'Электро');
-
-    const ChipGroup = ({ field, options }: { field: 'bodyTypes' | 'engineTypes' | 'drivetrain' | 'transmission' | 'exteriorColors' | 'interiorColors'; options: string[] }) => (
-        <div className="flex flex-wrap gap-2">
-            {options.map(type => {
-                const isSelected = formData[field]?.includes(type);
-                return (
-                    <button
-                        key={type}
-                        type="button"
-                        onClick={() => handleArrayChange(field, type)}
-                        className={cn(
-                            "px-5 py-2.5 rounded-full font-medium text-sm transition-all active:scale-95",
-                            isSelected
-                                ? "bg-primary-container text-white font-semibold shadow-md"
-                                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                        )}
-                    >
-                        {type}
-                    </button>
-                );
-            })}
-        </div>
-    );
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col min-h-full">
@@ -291,96 +245,17 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                     </div>
                 </section>
 
-                {/* Condition Section */}
+                {/* Mileage Section */}
                 <section className="space-y-3">
                     <label className="block font-headline text-on-surface-variant text-sm font-semibold tracking-wide uppercase ml-1">Пробег</label>
-                    <div className={cn("bg-surface-container-low rounded-2xl px-5 py-4 flex items-center transition-opacity", formData.onlyNew && "opacity-40")}>
+                    <div className="bg-surface-container-low rounded-2xl px-5 py-4 flex items-center">
                         <input
                             className="bg-transparent border-none w-full focus:ring-0 text-on-surface placeholder:text-on-surface/40 font-medium outline-none"
                             placeholder="Максимум, напр. 50 000 км"
                             type="number"
-                            disabled={!!formData.onlyNew}
                             value={formData.mileageMax || ''}
                             onChange={(e) => handleChange('mileageMax', Number(e.target.value) || undefined)}
                         />
-                    </div>
-                    {/* PRD §8.2: режим «только новые» */}
-                    <label className="flex items-center justify-between p-5 rounded-2xl bg-surface-container-lowest border border-transparent cursor-pointer shadow-sm">
-                        <div className="flex flex-col">
-                            <span className="font-headline font-bold text-on-surface">Только новые авто</span>
-                            <span className="text-xs text-on-surface-variant">Б/у варианты не будут попадать в уведомления</span>
-                        </div>
-                        <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={!!formData.onlyNew}
-                            onChange={(e) => handleChange('onlyNew', e.target.checked)}
-                        />
-                        <div className={cn("w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors", formData.onlyNew ? "bg-primary-container border-primary-container" : "border-surface-variant")}>
-                            <Check className={cn("w-4 h-4 text-white transition-opacity", formData.onlyNew ? "opacity-100" : "opacity-0")} />
-                        </div>
-                    </label>
-                </section>
-
-                {/* Characteristics Section */}
-                <section className="space-y-6">
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Тип двигателя</h2>
-                        <ChipGroup field="engineTypes" options={FUEL_TYPES} />
-                    </div>
-
-                    {/* PRD §8.2: объём двигателя — только для ДВС */}
-                    {hasICE && (
-                        <div className="space-y-3">
-                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Объём двигателя, л</label>
-                            <div className="flex gap-2 max-w-xs">
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="От"
-                                        type="number"
-                                        step="0.1"
-                                        value={formData.engineVolumeFrom || ''}
-                                        onChange={(e) => handleChange('engineVolumeFrom', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="До"
-                                        type="number"
-                                        step="0.1"
-                                        value={formData.engineVolumeTo || ''}
-                                        onChange={(e) => handleChange('engineVolumeTo', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Кузов</h2>
-                        <ChipGroup field="bodyTypes" options={BODY_TYPES} />
-                    </div>
-
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Привод</h2>
-                        <ChipGroup field="drivetrain" options={DRIVETRAINS} />
-                    </div>
-
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Коробка передач</h2>
-                        <ChipGroup field="transmission" options={TRANSMISSIONS} />
-                    </div>
-
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Цвет кузова</h2>
-                        <ChipGroup field="exteriorColors" options={EXTERIOR_COLORS} />
-                    </div>
-
-                    <div className="space-y-3">
-                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Цвет салона</h2>
-                        <ChipGroup field="interiorColors" options={INTERIOR_COLORS} />
                     </div>
                 </section>
 
