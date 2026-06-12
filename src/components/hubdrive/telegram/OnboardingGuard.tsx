@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTelegram } from './TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
 import { useFiltersStore } from '@/lib/state/filters.store';
 import { SplashScreen } from '@/components/hubdrive/ui/splash-screen';
-import { OnboardingStories } from '@/components/hubdrive/onboarding/onboarding-stories';
+import { OnboardingSlides, OnboardingIntent } from '@/components/hubdrive/onboarding/onboarding-slides';
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
     const { initData, isReady } = useTelegram();
     const { profile, fetchProfile } = useUserStore();
     const { fetchFilters } = useFiltersStore();
@@ -52,14 +54,19 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         return () => { mounted = false; };
     }, [isReady, initData, profile, fetchProfile, fetchFilters]);
 
-    const handleCompleteOnboarding = () => {
+    const handleCompleteOnboarding = (opts?: { intent?: OnboardingIntent; finishTo?: 'filters' | 'home' }) => {
         localStorage.setItem('onboardingCompleted', 'true');
+        // Квалификация из квиза (PRD §8.4) — предзаполнит степень готовности в фильтре
+        if (opts?.intent) localStorage.setItem('onboardingIntent', opts.intent);
         setShowOnboarding(false);
         setIsChecked(true);
+        if (opts?.finishTo === 'filters') {
+            router.push('/filters/new');
+        }
     };
 
     if (showOnboarding) {
-        return <OnboardingStories onComplete={handleCompleteOnboarding} />;
+        return <OnboardingSlides onComplete={handleCompleteOnboarding} />;
     }
 
     if (!isChecked || (!isReady && initData)) {

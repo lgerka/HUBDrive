@@ -1,16 +1,17 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { OnboardingStories } from '@/components/hubdrive/onboarding/onboarding-stories';
+import { OnboardingSlides, OnboardingIntent } from '@/components/hubdrive/onboarding/onboarding-slides';
 
 // Повторный просмотр онбординга — открывается с баннера «НАЧАЛО» на главной (PRD §7)
 export default function StoriesPage() {
     const router = useRouter();
 
-    const handleComplete = () => {
+    const handleComplete = (opts?: { intent?: OnboardingIntent; finishTo?: 'filters' | 'home' }) => {
         localStorage.setItem('onboardingCompleted', 'true');
-        router.push('/');
+        if (opts?.intent) localStorage.setItem('onboardingIntent', opts.intent);
+        router.push(opts?.finishTo === 'filters' ? '/filters/new' : '/');
     };
 
-    return <OnboardingStories onComplete={handleComplete} />;
+    return <OnboardingSlides onComplete={handleComplete} />;
 }
