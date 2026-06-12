@@ -261,6 +261,10 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
         homeStatus !== 'unsupported' &&
         homeStatus !== 'added';
 
+    // iOS не даёт добавить ярлык напрямую: Telegram откроет Safari со своей подсказкой,
+    // которая не совпадает с новым дизайном Safari — даём пользователю точные шаги.
+    const isIOS = tg?.platform === 'ios';
+
     const handleAddToHome = () => {
         try {
             tg.addToHomeScreen();
@@ -288,14 +292,21 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
 
             <div className="space-y-3 max-w-sm mx-auto w-full">
                 {canAddToHome && (
-                    <button
-                        onClick={handleAddToHome}
-                        disabled={homeScreenDone}
-                        className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
-                    >
-                        <Home className="w-5 h-5 text-primary" />
-                        {homeScreenDone ? 'Готово — HUBDrive на экране Домой' : 'Добавить на экран Домой'}
-                    </button>
+                    <>
+                        <button
+                            onClick={handleAddToHome}
+                            disabled={homeScreenDone && !isIOS}
+                            className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
+                        >
+                            <Home className="w-5 h-5 text-primary" />
+                            {homeScreenDone && !isIOS ? 'Готово — HUBDrive на экране Домой' : 'Добавить на экран Домой'}
+                        </button>
+                        {isIOS && (
+                            <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
+                                Откроется Safari: нажмите «⋯» → «Поделиться» → «На экран „Домой“»
+                            </p>
+                        )}
+                    </>
                 )}
                 <button
                     onClick={() => onFinish(wantsCar ? 'filters' : 'home')}
