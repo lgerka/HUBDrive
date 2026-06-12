@@ -3,20 +3,38 @@ import { prisma } from '../prisma';
 import { Vehicle } from '@prisma/client';
 import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 
+const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
+
+function matchLevelLabel(level: string): string {
+    if (level === 'perfect') return 'Отличное';
+    if (level === 'close') return 'Хорошее';
+    return 'По вашим параметрам';
+}
+
+/**
+ * Пуш пользователям о новом авто (PRD §15.1, §16).
+ * Критерий — жёсткое совпадение (марка/модель/бюджет/год/«только новые»/пробег);
+ * мягкий рейтинг используется только для текста.
+ * Антиспам: не более одного уведомления на пару авто+пользователь (dedupKey).
+ */
 export async function notifyUsersAboutMatch(vehicle: Vehicle) {
     if (!process.env.TELEGRAM_BOT_TOKEN) {
         console.warn('TELEGRAM_BOT_TOKEN missing. Skipping push notifications.');
         return;
     }
 
+    // PRD §18: технические статусы не должны генерировать уведомления
+    if (vehicle.status === 'hidden') return;
+
     try {
-        // Fetch ALL active filters that could potentially match (pickBestMatch handles deep logic)
+        // Фильтры с этой маркой + фильтры без марки («Не выбрано» подходит под любую)
         const activeFilters = await prisma.filter.findMany({
             where: {
                 notificationsEnabled: true,
-                // Only basic constraints to avoid pulling the entire DB in production,
-                // though pickBestMatch handles detailed scoring
-                brand: vehicle.brand,
+                OR: [
+                    { brand: { equals: vehicle.brand, mode: 'insensitive' } },
+                    { brand: { in: ['Не выбрано', 'all', 'Любой', 'Любая'] } },
+                ],
             },
             include: { user: true }
         });
@@ -28,54 +46,74 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
             return acc;
         }, {} as Record<string, typeof activeFilters>);
 
-        for (const [userId, userFilters] of Object.entries(filtersByUser)) {
-            // Find the best match for this user among all their filters
+        for (const [, userFilters] of Object.entries(filtersByUser)) {
             const match = pickBestMatch(vehicle, userFilters as any);
 
-            // Only notify if it's a good or excellent match
-            if (match.bestLevel === 'perfect' || match.bestLevel === 'close') {
-                const user = userFilters[0].user;
-                if (!user?.telegramId) continue;
+            // PRD §15.1: для уведомления достаточно жёсткого совпадения
+            if (!match.hardPass) continue;
 
-                const text = `🔥 Появился новый автомобиль по вашему запросу!\n\n` +
-                             `*${vehicle.brand} ${vehicle.model} (${vehicle.year})*\n` +
-                             `Цена: ${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸\n\n` +
-                             `Совпадение: ${match.bestLevel === 'perfect' ? 'Отличное' : 'Хорошее'}\n` +
-                             `Посмотрите статус и комплектацию в приложении.`;
+            const user = userFilters[0].user;
+            // dev-пользователь локальной разработки — некому слать
+            if (!user?.telegramId || user.telegramId === 'dev') continue;
 
-                try {
-                    // Anti-spam: Check if this exact notification was already sent
-                    const dedupKey = `match_${vehicle.id}_${user.id}`;
-                    const existing = await prisma.notification.findUnique({ where: { dedupKey } });
-                    if (existing) continue;
+            const text = `🔥 Появился новый автомобиль по вашему запросу!\n\n` +
+                `*${vehicle.brand} ${vehicle.model} (${vehicle.year})*\n` +
+                `Цена: ${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸\n\n` +
+                `Совпадение: ${matchLevelLabel(match.bestLevel)}\n` +
+                `Посмотрите статус и комплектацию в приложении.`;
 
-                    await bot.api.sendMessage(user.telegramId, text, { parse_mode: 'Markdown' });
-                    console.log(`Notification sent to ${user.telegramId}`);
+            // Anti-spam (PRD §16): одно уведомление на пару авто+пользователь
+            const dedupKey = `match_${vehicle.id}_${user.id}`;
+            const existing = await prisma.notification.findUnique({ where: { dedupKey } });
+            if (existing) continue;
 
-                    await prisma.notification.create({
-                        data: {
-                            dedupKey,
-                            channel: 'user',
-                            type: 'match_found',
-                            userId: user.id,
-                            vehicleId: vehicle.id,
-                            text: text,
-                            deliveryStatus: 'sent'
-                        }
-                    });
+            try {
+                await bot.api.sendMessage(user.telegramId, text, { parse_mode: 'Markdown' });
 
-                    // Add an Event record for Lead Scoring to notice this interaction
-                    await prisma.event.create({
-                        data: {
-                            userId: user.id,
-                            type: 'notification_sent_user',
-                            meta: { type: 'match_found', vehicleId: vehicle.id }
-                        }
-                    });
+                await prisma.notification.create({
+                    data: {
+                        dedupKey,
+                        channel: 'user',
+                        type: 'match_found',
+                        userId: user.id,
+                        vehicleId: vehicle.id,
+                        filterId: match.bestFilterId,
+                        text,
+                        deliveryStatus: 'sent'
+                    }
+                });
 
-                } catch (err) {
-                    console.error(`Failed to notify user ${user.telegramId}:`, err);
+                await prisma.event.create({
+                    data: {
+                        userId: user.id,
+                        type: 'notification_sent_user',
+                        vehicleId: vehicle.id,
+                        meta: { type: 'match_found', level: match.bestLevel, score: match.bestScore }
+                    }
+                });
+
+                // PRD §16.1: hot-пользователь получил новое предложение → сигнал менеджерам
+                const isHot = userFilters.some(f => f.purchasePlan === 'ready_now');
+                if (isHot) {
+                    await notifyManagerAboutHotMatch(user, vehicle, match.bestScore).catch(err =>
+                        console.error('Failed to notify manager about hot match:', err)
+                    );
                 }
+            } catch (err) {
+                console.error(`Failed to notify user ${user.telegramId}:`, err);
+                // Фиксируем неудачную доставку — попадёт в аналитику и не будет ретраиться (dedupKey)
+                await prisma.notification.create({
+                    data: {
+                        dedupKey,
+                        channel: 'user',
+                        type: 'match_found',
+                        userId: user.id,
+                        vehicleId: vehicle.id,
+                        text,
+                        deliveryStatus: 'failed',
+                        error: err instanceof Error ? err.message.slice(0, 500) : String(err).slice(0, 500),
+                    }
+                }).catch(e => console.error('Failed to record failed notification:', e));
             }
         }
     } catch (e) {
@@ -83,6 +121,46 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
     }
 }
 
+/** PRD §16.1: «Hot-пользователь получил новое предложение» — служебное сообщение менеджерам */
+async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, score: number) {
+    if (!process.env.ADMIN_TELEGRAM_IDS) return;
+    const adminIds = process.env.ADMIN_TELEGRAM_IDS.split(',').map(id => id.trim()).filter(Boolean);
+
+    const dedupKey = `hot_match_${vehicle.id}_${user.id}`;
+    const existing = await prisma.notification.findUnique({ where: { dedupKey } });
+    if (existing) return;
+
+    const text = `🎯 *Горячий лид получил предложение*\n\n` +
+        `Клиент: ${user.name || user.username || user.telegramId}\n` +
+        `Телефон: ${user.phone || 'Не указан'}\n` +
+        `Авто: ${vehicle.brand} ${vehicle.model} (${vehicle.year}) — ${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸\n` +
+        `Совпадение: ${score}%\n\n` +
+        `Самое время связаться: ${WEBAPP_URL}/admin/leads/${user.id}`;
+
+    let sentAtLeastOnce = false;
+    for (const adminId of adminIds) {
+        try {
+            await bot.api.sendMessage(adminId, text, { parse_mode: 'Markdown' });
+            sentAtLeastOnce = true;
+        } catch (err) {
+            console.error(`Failed to notify admin ${adminId}:`, err);
+        }
+    }
+
+    await prisma.notification.create({
+        data: {
+            dedupKey,
+            channel: 'manager',
+            type: 'hot_match',
+            userId: user.id,
+            vehicleId: vehicle.id,
+            text,
+            deliveryStatus: sentAtLeastOnce ? 'sent' : 'failed',
+        }
+    });
+}
+
+/** PRD §16.1: «Создан новый hot-фильтр» — служебное сообщение менеджерам */
 export async function notifyManagerAboutHotLead(user: any, filterTitle?: string) {
     if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.ADMIN_TELEGRAM_IDS) return;
 
@@ -92,12 +170,11 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
                  `Клиент: ${user.name || user.username || user.telegramId}\n` +
                  `Телефон: ${user.phone || 'Не указан'}\n` +
                  `Запрос: ${filterTitle || 'Автомобиль'}\n\n` +
-                 `Статус: Готов купить сейчас.\nПроверьте очередь лидов в админ-панели!`;
+                 `Статус: Готов купить сейчас.\nПроверьте очередь лидов: ${WEBAPP_URL}/admin/leads/${user.id}`;
 
     for (const adminId of adminIds) {
         try {
-            // Anti-spam
-            const dedupKey = `hot_${user.id}_${Date.now()}`;
+            const dedupKey = `hot_${user.id}_${Date.now()}_${adminId}`;
             await bot.api.sendMessage(adminId, text, { parse_mode: 'Markdown' });
 
             await prisma.notification.create({

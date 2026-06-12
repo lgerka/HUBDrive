@@ -8,6 +8,8 @@ export interface BestMatchResult {
     bestScore: number;
     bestLevel: MatchLevel;
     bestReasons: string[];
+    /** Прошёл ли хотя бы один фильтр жёсткое совпадение (PRD §15.1 — критерий для уведомлений) */
+    hardPass: boolean;
 }
 
 export function pickBestMatch(vehicle: Vehicle, filters: Filter[]): BestMatchResult {
@@ -37,6 +39,7 @@ export function pickBestMatch(vehicle: Vehicle, filters: Filter[]): BestMatchRes
             bestScore: match.score,
             bestLevel: match.level,
             bestReasons: match.reasons,
+            hardPass: true,
         };
     }
 
@@ -45,5 +48,6 @@ export function pickBestMatch(vehicle: Vehicle, filters: Filter[]): BestMatchRes
         bestScore: 0,
         bestLevel: 'none',
         bestReasons: [],
+        hardPass: false,
     };
 }

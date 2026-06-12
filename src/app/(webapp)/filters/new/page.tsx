@@ -19,11 +19,14 @@ function NewFilterContent() {
 
     const isFirstFilter = filters.length === 0;
 
-    // Предзаполнение из «Заказать похожую машину» (PRD §10)
+    // Предзаполнение из «Заказать похожую машину» (PRD §10) и квиза онбординга (PRD §8.4)
+    const onboardingIntent = typeof window !== 'undefined' ? localStorage.getItem('onboardingIntent') : null;
     const prefill = {
         brand: searchParams.get('brand') || '',
         model: searchParams.get('model') || '',
+        ...(onboardingIntent ? { purchasePlan: onboardingIntent as 'viewing' | 'three_months' | 'ready_now' } : {}),
     };
+    const hasPrefill = !!prefill.brand || !!onboardingIntent;
 
     const handleSubmit = async (data: any) => {
         if (!profile?.phone) {
@@ -80,7 +83,7 @@ function NewFilterContent() {
                 )}
                 <div className={isFirstFilter ? "pt-4" : ""}>
                     <FilterForm
-                        initialData={prefill.brand ? prefill : undefined}
+                        initialData={hasPrefill ? prefill : undefined}
                         onSubmit={handleSubmit}
                         onCancel={isFirstFilter ? undefined : () => router.back()}
                     />
