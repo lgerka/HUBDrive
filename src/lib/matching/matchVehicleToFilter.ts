@@ -22,7 +22,9 @@ export function matchVehicleToFilter(vehicle: Vehicle, filter: Filter): MatchRes
     // Filter.brand is required in the type, assuming it's always set or empty string means "all"? 
     // Usually filter brand is specific or "All". Let's assume if it's not "All" or empty, it must match.
     // Looking at Filter type, brand is string.
-    if (filter.brand && filter.brand.toLowerCase() !== 'all' && filter.brand.toLowerCase() !== vehicle.brand.toLowerCase()) {
+    // «Не выбрано» — фильтр без марки, подходит любая (PRD §15.1: марка обязана совпадать, ЕСЛИ указана)
+    const brandIsAny = !filter.brand || ['all', 'не выбрано', 'любой', 'любая'].includes(filter.brand.toLowerCase());
+    if (!brandIsAny && filter.brand.toLowerCase() !== vehicle.brand.toLowerCase()) {
         hardFailReasons.push(`Brand mismatch: wanted ${filter.brand}, got ${vehicle.brand}`);
     }
 
@@ -80,7 +82,7 @@ export function matchVehicleToFilter(vehicle: Vehicle, filter: Filter): MatchRes
     // Привод: 3
     // Цвет: 2
 
-    if (filter.brand && filter.brand.toLowerCase() !== 'all') {
+    if (!brandIsAny) {
         if (filter.brand.toLowerCase() === vehicle.brand.toLowerCase()) {
             score += 30;
             reasons.push('Марка');
