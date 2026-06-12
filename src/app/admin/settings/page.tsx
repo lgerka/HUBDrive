@@ -2,13 +2,22 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive } from "lucide-react";
+import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive, UsersRound, Plus, Trash2 } from "lucide-react";
 
 interface AppSettings {
   companyName: string;
   contactEmail: string;
   baseCurrency: string;
   analyticsToken: string;
+}
+
+interface Manager {
+  id: string;
+  name: string;
+  telegramUsername: string | null;
+  role: string;
+  isActive: boolean;
+  _count?: { assignedLeads: number };
 }
 
 export default function AdminSettingsPage() {
@@ -21,21 +30,31 @@ export default function AdminSettingsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [managers, setManagers] = useState<Manager[]>([]);
+  const [newManagerName, setNewManagerName] = useState("");
+  const [newManagerUsername, setNewManagerUsername] = useState("");
+  const [isAddingManager, setIsAddingManager] = useState(false);
 
   useEffect(() => {
     async function loadSettings() {
       try {
-        const res = await fetch("/api/admin/settings", {
-          headers: { "x-telegram-init-data": initData }
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const headers = { "x-telegram-init-data": initData };
+        const [settingsRes, managersRes] = await Promise.all([
+          fetch("/api/admin/settings", { headers }),
+          fetch("/api/admin/managers", { headers }),
+        ]);
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
           setSettings({
             companyName: data.companyName || '',
             contactEmail: data.contactEmail || '',
             baseCurrency: data.baseCurrency || 'KZT',
             analyticsToken: data.analyticsToken || ''
           });
+        }
+        if (managersRes.ok) {
+          const data = await managersRes.json();
+          setManagers(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error(err);
@@ -45,6 +64,55 @@ export default function AdminSettingsPage() {
     }
     loadSettings();
   }, [initData]);
+
+  async function handleAddManager() {
+    const name = newManagerName.trim();
+    if (!name) return;
+    setIsAddingManager(true);
+    try {
+      const res = await fetch("/api/admin/managers", {
+        method: "POST",
+        headers: { "x-telegram-init-data": initData, "Content-Type": "application/json" },
+        body: JSON.stringify({ name, telegramUsername: newManagerUsername.trim() || null })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setManagers(prev => [...prev, created]);
+        setNewManagerName("");
+        setNewManagerUsername("");
+      } else {
+        alert("Ошибка при добавлении менеджера");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAddingManager(false);
+    }
+  }
+
+  async function handleToggleManager(m: Manager) {
+    const res = await fetch(`/api/admin/managers/${m.id}`, {
+      method: "PATCH",
+      headers: { "x-telegram-init-data": initData, "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !m.isActive })
+    });
+    if (res.ok) {
+      setManagers(prev => prev.map(x => x.id === m.id ? { ...x, isActive: !m.isActive } : x));
+    }
+  }
+
+  async function handleDeleteManager(m: Manager) {
+    if (!confirm(`Удалить менеджера «${m.name}»? Назначенные на него лиды останутся без менеджера.`)) return;
+    const res = await fetch(`/api/admin/managers/${m.id}`, {
+      method: "DELETE",
+      headers: { "x-telegram-init-data": initData }
+    });
+    if (res.ok) {
+      setManagers(prev => prev.filter(x => x.id !== m.id));
+    } else {
+      alert("Ошибка при удалении менеджера");
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -153,6 +221,78 @@ export default function AdminSettingsPage() {
                       <option value="CNY">CNY ¥ (Юань)</option>
                     </select>
                  </div>
+               </div>
+            </div>
+
+            {/* Managers Block */}
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
+                      <UsersRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-sans font-extrabold">Менеджеры</h3>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Назначаются на лидов в очереди</p>
+                  </div>
+               </div>
+
+               <div className="space-y-3">
+                  {managers.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Менеджеры пока не добавлены.</p>
+                  )}
+                  {managers.map(m => (
+                    <div key={m.id} className="bg-surface-container-low p-4 rounded-2xl flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className={`font-extrabold text-sm truncate ${m.isActive ? '' : 'text-muted-foreground line-through'}`}>{m.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {m.telegramUsername ? `@${m.telegramUsername}` : 'без Telegram'}
+                          {m._count ? ` · лидов: ${m._count.assignedLeads}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleManager(m)}
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors ${m.isActive ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+                        >
+                          {m.isActive ? 'Активен' : 'Выключен'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteManager(m)}
+                          className="p-2 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-3">
+                    <input
+                      placeholder="Имя менеджера"
+                      className="flex-1 bg-surface-container-low border-none rounded-xl py-3.5 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans outline-none"
+                      value={newManagerName}
+                      onChange={e => setNewManagerName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddManager(); } }}
+                    />
+                    <input
+                      placeholder="@username (опц.)"
+                      className="sm:w-48 bg-surface-container-low border-none rounded-xl py-3.5 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans outline-none"
+                      value={newManagerUsername}
+                      onChange={e => setNewManagerUsername(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddManager(); } }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddManager}
+                      disabled={isAddingManager || !newManagerName.trim()}
+                      className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest font-bold text-sm transition-colors disabled:opacity-40"
+                    >
+                      {isAddingManager ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      Добавить
+                    </button>
+                  </div>
                </div>
             </div>
 

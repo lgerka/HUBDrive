@@ -24,6 +24,7 @@ const statusLabels: Record<VehicleStatus, string> = {
     in_transit: 'В пути',
     reserved: 'В резерве',
     sold: 'Продано',
+    delivered: 'Передано клиенту',
     hidden: 'Скрыто',
 };
 

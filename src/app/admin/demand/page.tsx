@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, TrendingUp, Users, MapPin, Search } from "lucide-react";
+import { Loader2, TrendingUp, MapPin, Search, CarFront, Fuel } from "lucide-react";
 
 interface DemandData {
   totalFilters: number;
@@ -10,6 +10,8 @@ interface DemandData {
   topBrands: { name: string; count: number }[];
   topModels: { name: string; count: number }[];
   budgetDistribution: { name: string; count: number }[];
+  topBodyTypes: { name: string; count: number }[];
+  topEngineTypes: { name: string; count: number }[];
   topCities: { name: string; count: number }[];
 }
 
@@ -127,6 +129,44 @@ export default function AdminDemandPage() {
               </div>
             ))}
             {data.topModels.length === 0 && <p className="text-slate-400 text-sm font-medium py-4 text-center">Нет данных</p>}
+          </div>
+        </div>
+
+        {/* Top Body Types (PRD §19.2) */}
+        <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
+          <h3 className="font-headline font-extrabold text-xl tracking-tight mb-6">Топ Кузовов</h3>
+          <div className="space-y-4">
+            {(data.topBodyTypes || []).map((bt) => (
+              <div key={bt.name} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
+                    <CarFront className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-headline font-bold text-sm text-on-surface">{bt.name}</span>
+                </div>
+                <span className="text-sm font-bold bg-white px-3 py-1 rounded-lg border border-slate-200 text-slate-600 shadow-sm">{bt.count}</span>
+              </div>
+            ))}
+            {(!data.topBodyTypes || data.topBodyTypes.length === 0) && <p className="text-slate-400 text-sm font-medium py-4 text-center">Пользователи пока не указывали кузов в фильтрах</p>}
+          </div>
+        </div>
+
+        {/* Top Engine Types (PRD §19.2) */}
+        <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
+          <h3 className="font-headline font-extrabold text-xl tracking-tight mb-6">Топ Типов Двигателей</h3>
+          <div className="space-y-4">
+            {(data.topEngineTypes || []).map((et) => (
+              <div key={et.name} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
+                    <Fuel className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-headline font-bold text-sm text-on-surface">{et.name}</span>
+                </div>
+                <span className="text-sm font-bold bg-white px-3 py-1 rounded-lg border border-slate-200 text-slate-600 shadow-sm">{et.count}</span>
+              </div>
+            ))}
+            {(!data.topEngineTypes || data.topEngineTypes.length === 0) && <p className="text-slate-400 text-sm font-medium py-4 text-center">Пользователи пока не указывали двигатель в фильтрах</p>}
           </div>
         </div>
 

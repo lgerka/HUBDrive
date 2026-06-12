@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Loader2, TrendingUp, Search, Bell, Filter, Download as DownloadIcon, Edit, Trash2, Car } from "lucide-react";
 
 // Локальный тип вместо импорта из @prisma/client (серверная lib)
-type VehicleStatus = 'in_stock' | 'in_transit' | 'reserved' | 'sold' | 'hidden';
+type VehicleStatus = 'in_stock' | 'in_transit' | 'reserved' | 'sold' | 'delivered' | 'hidden';
 
 interface AdminVehicle {
   id: string;
@@ -22,6 +22,7 @@ const statusMap: Record<string, { label: string; colorClass: string }> = {
   in_transit: { label: "В пути", colorClass: "bg-blue-50 text-blue-600" },
   reserved: { label: "Бронь", colorClass: "bg-emerald-50 text-emerald-600" },
   sold: { label: "Продано", colorClass: "bg-slate-100 text-slate-500" },
+  delivered: { label: "Передано клиенту", colorClass: "bg-purple-50 text-purple-600" },
   hidden: { label: "Скрыто", colorClass: "bg-red-50 text-red-600" },
 };
 
@@ -32,9 +33,20 @@ export default function AdminVehiclesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   async function handleDelete(id: string) {
-      if(!confirm("Удалить этот автомобиль?")) return;
-      // Note: Ideally we'd call an API DELETE endpoint here.
-      alert("Удаление в разработке. Используйте редактирование и Статус 'Скрыто' для деактивации.");
+      if(!confirm("Удалить этот автомобиль? Это действие необратимо.")) return;
+      try {
+          const headers: Record<string, string> = {};
+          if (initData) headers["x-telegram-init-data"] = initData;
+          const res = await fetch(`/api/admin/vehicles/${id}`, { method: "DELETE", headers });
+          if (res.ok) {
+              setVehicles(prev => prev.filter(v => v.id !== id));
+          } else {
+              alert("Ошибка при удалении автомобиля");
+          }
+      } catch (err) {
+          console.error(err);
+          alert("Ошибка при удалении автомобиля");
+      }
   }
 
   useEffect(() => {

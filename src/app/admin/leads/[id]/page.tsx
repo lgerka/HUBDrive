@@ -12,16 +12,23 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [lead, setLead] = useState<any>(null);
+  const [managers, setManagers] = useState<{ id: string; name: string; isActive: boolean }[]>([]);
 
   useEffect(() => {
     async function loadLead() {
       try {
-        const res = await fetch(`/api/admin/leads/${unwrappedParams.id}`, {
-          headers: { "x-telegram-init-data": initData },
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const headers = { "x-telegram-init-data": initData };
+        const [leadRes, managersRes] = await Promise.all([
+          fetch(`/api/admin/leads/${unwrappedParams.id}`, { headers }),
+          fetch(`/api/admin/managers`, { headers }),
+        ]);
+        if (leadRes.ok) {
+          const data = await leadRes.json();
           setLead(data);
+        }
+        if (managersRes.ok) {
+          const data = await managersRes.json();
+          setManagers(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error(err);
@@ -156,10 +163,34 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
                          });
                      }}
                   >
-                     <option value="new">НОВЫЙ</option>
-                     <option value="in_progress">В РАБОТЕ</option>
-                     <option value="converted">СДЕЛКА</option>
-                     <option value="rejected">ОТКАЗ</option>
+                     <option value="new">НОВАЯ</option>
+                     <option value="in_progress">В ОБРАБОТКЕ</option>
+                     <option value="awaiting_reply">ОЖИДАЕТ ОТВЕТА</option>
+                     <option value="qualified">КВАЛИФИЦИРОВАНА</option>
+                     <option value="converted">ЗАКРЫТА УСПЕШНО</option>
+                     <option value="closed_lost">ЗАКРЫТА БЕЗ РЕЗУЛЬТАТА</option>
+                     <option value="rejected">ОТМЕНЕНО</option>
+                  </select>
+                </div>
+                <div className="bg-surface-container-low px-4 py-2 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Менеджер</p>
+                  <select
+                     className="bg-transparent border-none p-0 outline-none font-bold text-on-surface tracking-wider text-xs md:text-sm cursor-pointer max-w-[180px]"
+                     value={lead.assignedManagerId || ""}
+                     onChange={async (e) => {
+                         const newManagerId = e.target.value || null;
+                         setLead({...lead, assignedManagerId: newManagerId});
+                         await fetch(`/api/admin/leads/${lead.id}`, {
+                             method: 'PATCH',
+                             headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': initData || '' },
+                             body: JSON.stringify({ assignedManagerId: newManagerId })
+                         });
+                     }}
+                  >
+                     <option value="">Не назначен</option>
+                     {managers.filter(m => m.isActive || m.id === lead.assignedManagerId).map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                     ))}
                   </select>
                 </div>
               </div>

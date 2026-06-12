@@ -3,7 +3,7 @@
 import { TelegramProvider, useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Loader2, LayoutDashboard, Users, CarFront, Newspaper, FolderCheck, BarChart3, Info } from "lucide-react";
+import { Loader2, LayoutDashboard, Users, CarFront, Newspaper, FolderCheck, BarChart3, Info, UserCog, Settings, GalleryHorizontalEnd } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -105,8 +105,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         { label: "Автомобили", href: "/admin/vehicles", icon: CarFront },
         { label: "Новости", href: "/admin/news", icon: Newspaper },
         { label: "Кейсы", href: "/admin/cases", icon: FolderCheck },
+        { label: "Баннеры", href: "/admin/banners", icon: GalleryHorizontalEnd },
         { label: "Спрос", href: "/admin/demand", icon: BarChart3 },
-        { label: "О компании", href: "/admin/about", icon: Info }
+        { label: "Пользователи", href: "/admin/users", icon: UserCog },
+        { label: "О компании", href: "/admin/about", icon: Info },
+        { label: "Настройки", href: "/admin/settings", icon: Settings }
     ];
 
     return (

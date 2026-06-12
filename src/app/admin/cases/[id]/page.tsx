@@ -1,9 +1,9 @@
 "use client";
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Save, Trash2, ImagePlus, ChevronRight } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Trash2, ImagePlus, ChevronRight, UploadCloud, X } from "lucide-react";
 
 export default function AdminCaseEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -12,6 +12,10 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State matching Prisma 'Case' model
   const [formData, setFormData] = useState({
@@ -52,6 +56,50 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
     loadCase();
   }, [initData, isReady, isNew, unwrappedParams.id]);
 
+  const handleFileUpload = useCallback(async (file: File) => {
+    if (!file) return;
+    setUploadError(null);
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Недопустимый формат. Разрешены: JPG, PNG, WEBP, GIF');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Файл слишком большой. Максимум 5 МБ');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-telegram-init-data': initData },
+        body: fd,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFormData(prev => ({ ...prev, imageUrl: data.url }));
+      } else {
+        const err = await res.json();
+        setUploadError(err.error || 'Ошибка загрузки');
+      }
+    } catch {
+      setUploadError('Ошибка сети при загрузке');
+    } finally {
+      setIsUploading(false);
+    }
+  }, [initData]);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  }, [handleFileUpload]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -75,7 +123,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
   };
 
   const handleDelete = async () => {
-    if (!initData || isNew) return;
+    if (isNew) return;
     if (!confirm('Вы уверены, что хотите удалить этот кейс?')) return;
     setIsSaving(true);
     try {
@@ -243,19 +291,62 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
                    </div>
                 ) : (
                     <div className="w-full">
-                       <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400 mb-2 block">URL Фотографии</label>
-                       <input 
-                          className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-300" 
-                          placeholder="https://..."
-                          value={formData.imageUrl} 
-                          onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                       {/* Hidden file input */}
+                       <input
+                         ref={fileInputRef}
+                         type="file"
+                         accept="image/jpeg,image/png,image/webp,image/gif"
+                         className="hidden"
+                         onChange={e => {
+                           const file = e.target.files?.[0];
+                           if (file) handleFileUpload(file);
+                           e.target.value = '';
+                         }}
                        />
-                       <div className="mt-4 w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 bg-slate-50/50">
-                          <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">
-                             <ImagePlus className="w-8 h-8 text-slate-300" />
-                          </div>
-                          <span className="font-headline font-bold text-sm tracking-wide">Вставьте URL фото для предпросмотра</span>
+
+                       {/* Drop zone */}
+                       <div
+                         onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                         onDragLeave={() => setIsDragging(false)}
+                         onDrop={handleDrop}
+                         onClick={() => !isUploading && fileInputRef.current?.click()}
+                         className={`w-full aspect-[4/3] rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition-all cursor-pointer select-none
+                           ${
+                             isDragging
+                               ? 'border-primary bg-primary/5 scale-[1.01]'
+                               : 'border-slate-200 bg-slate-50/50 hover:border-primary/40 hover:bg-primary/[0.02]'
+                           }`}
+                       >
+                         {isUploading ? (
+                           <>
+                             <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">
+                               <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                             </div>
+                             <span className="font-headline font-bold text-sm tracking-wide text-slate-400">Загрузка...</span>
+                           </>
+                         ) : (
+                           <>
+                             <div className={`w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border transition-colors ${
+                               isDragging ? 'border-primary/30' : 'border-slate-100'
+                             }`}>
+                               <UploadCloud className={`w-8 h-8 transition-colors ${ isDragging ? 'text-primary' : 'text-slate-300' }`} />
+                             </div>
+                             <div className="text-center px-4">
+                               <span className="font-headline font-bold text-sm tracking-wide text-slate-500 block">
+                                 {isDragging ? 'Отпустите для загрузки' : 'Нажмите или перетащите фото'}
+                               </span>
+                               <span className="text-xs text-slate-400 mt-1 block">JPG, PNG, WEBP, GIF — до 5 МБ</span>
+                             </div>
+                           </>
+                         )}
                        </div>
+
+                       {uploadError && (
+                         <div className="mt-3 flex items-center gap-2 text-red-500 text-sm font-medium">
+                           <X className="w-4 h-4 shrink-0" />
+                           <span>{uploadError}</span>
+                         </div>
+                       )}
                     </div>
                 )}
              </div>

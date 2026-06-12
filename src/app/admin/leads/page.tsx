@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { useRouter } from "next/navigation";
 
-type LeadStatus = "new" | "in_progress" | "converted" | "rejected";
+type LeadStatus = "new" | "in_progress" | "awaiting_reply" | "qualified" | "converted" | "closed_lost" | "rejected";
 type ScoreLevel = "HOT" | "WARM" | "COLD";
 
 interface UserLead {
@@ -24,10 +24,13 @@ interface UserLead {
 }
 
 const statusMap: Record<LeadStatus, { label: string; bg: string; text: string }> = {
-    new: { label: "Новый", bg: "bg-blue-100", text: "text-blue-700" },
-    in_progress: { label: "В работе", bg: "bg-amber-100", text: "text-amber-700" },
-    converted: { label: "Сделка", bg: "bg-green-100", text: "text-green-700" },
-    rejected: { label: "Отказ", bg: "bg-slate-100", text: "text-slate-600" },
+    new: { label: "Новая", bg: "bg-blue-100", text: "text-blue-700" },
+    in_progress: { label: "В обработке", bg: "bg-amber-100", text: "text-amber-700" },
+    awaiting_reply: { label: "Ожидает ответа", bg: "bg-purple-100", text: "text-purple-700" },
+    qualified: { label: "Квалифицирована", bg: "bg-cyan-100", text: "text-cyan-700" },
+    converted: { label: "Закрыта успешно", bg: "bg-green-100", text: "text-green-700" },
+    closed_lost: { label: "Закрыта без результата", bg: "bg-slate-100", text: "text-slate-600" },
+    rejected: { label: "Отменено", bg: "bg-red-100", text: "text-red-600" },
 };
 
 export default function LeadsPage() {
@@ -207,10 +210,9 @@ export default function LeadsPage() {
                                                 });
                                             }}
                                         >
-                                            <option value="new">Новый</option>
-                                            <option value="in_progress">В работе</option>
-                                            <option value="converted">Сделка</option>
-                                            <option value="rejected">Отказ</option>
+                                            {Object.entries(statusMap).map(([value, { label }]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
                                         </select>
                                     </td>
                                     <td className="px-6 py-5 align-top mb-auto text-right">

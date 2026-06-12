@@ -11,6 +11,7 @@ enum VehicleStatus {
   in_transit
   reserved
   sold
+  delivered
   hidden
 }
 
@@ -22,7 +23,10 @@ enum Role {
 enum LeadStatus {
   new
   in_progress
+  awaiting_reply
+  qualified
   converted
+  closed_lost
   rejected
 }
 
@@ -93,12 +97,42 @@ model User {
   leadStatus     LeadStatus @default(new)
   managerComment String?
 
+  assignedManagerId String?
+  assignedManager   Manager? @relation(fields: [assignedManagerId], references: [id], onDelete: SetNull)
+
   filters       Filter[]
   favorites     Favorite[]
   notifications Notification[]
   events        Event[]
 
   @@index([createdAt])
+  @@index([assignedManagerId])
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  linkUrl   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model Manager {
+  id               String   @id @default(cuid())
+  name             String
+  telegramUsername String?
+  role             String   @default("manager")
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  assignedLeads User[]
 }
 
 model Filter {
@@ -159,6 +193,7 @@ model Vehicle {
   trimOptions      Json?
   priceKeyTurnKZT  Int
   priceChina       Int?
+  pricePort        Int?
   deliveryEtaWeeks Int?
   paymentOptions   Json?
 
