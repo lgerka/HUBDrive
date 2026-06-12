@@ -1,15 +1,104 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Filter } from '@/lib/state/filters.store';
-import { ChevronDown, Search, Car, Check, Save, Loader2 } from 'lucide-react';
+import { Search, Car, Check, Save, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAR_MODELS } from '@/constants/models';
+import { BRANDS_DATA } from '@/constants/brands';
 
 interface FilterFormProps {
     initialData?: Partial<Filter>;
     onSubmit: (data: Partial<Filter>) => void | Promise<void>;
     onCancel?: () => void;
+}
+
+// Плоский справочник марок (китайские + европейские) для instant search (PRD §8.3)
+const ALL_BRANDS: string[] = BRANDS_DATA.flatMap(group => group.brands.map(b => b.name));
+
+/** Инпут с мгновенным поиском по справочнику: ввёл букву — список сократился (PRD §8.3) */
+function InstantSearchInput({
+    value,
+    onSelect,
+    options,
+    placeholder,
+    icon: Icon,
+    disabled,
+}: {
+    value: string;
+    onSelect: (value: string) => void;
+    options: string[];
+    placeholder: string;
+    icon: typeof Search;
+    disabled?: boolean;
+}) {
+    const [query, setQuery] = useState(value);
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => { setQuery(value); }, [value]);
+
+    useEffect(() => {
+        const onClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+                setQuery(value); // откат к выбранному значению
+            }
+        };
+        document.addEventListener('mousedown', onClickOutside);
+        return () => document.removeEventListener('mousedown', onClickOutside);
+    }, [value]);
+
+    const matches = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return options;
+        return options.filter(o => o.toLowerCase().includes(q));
+    }, [query, options]);
+
+    return (
+        <div ref={containerRef} className="relative">
+            <div className={cn(
+                "group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center gap-3 transition-colors",
+                disabled ? "opacity-50" : "hover:bg-surface-container"
+            )}>
+                <Icon className="text-on-surface/40 w-5 h-5 shrink-0" />
+                <input
+                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none placeholder:text-on-surface/40"
+                    placeholder={placeholder}
+                    value={query}
+                    disabled={disabled}
+                    onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+                    onFocus={() => setIsOpen(true)}
+                />
+                {value && !disabled && (
+                    <button
+                        type="button"
+                        onClick={() => { onSelect(''); setQuery(''); setIsOpen(false); }}
+                        className="text-on-surface/30 hover:text-on-surface/60 shrink-0"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+            {isOpen && !disabled && matches.length > 0 && (
+                <div className="absolute z-30 mt-2 w-full max-h-60 overflow-y-auto bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container divide-y divide-surface-container-low">
+                    {matches.slice(0, 30).map(option => (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => { onSelect(option); setQuery(option); setIsOpen(false); }}
+                            className={cn(
+                                "w-full text-left px-5 py-3 text-sm font-medium hover:bg-surface-container-low transition-colors",
+                                option === value && "text-primary font-bold"
+                            )}
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
 
 export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
@@ -32,9 +121,19 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         brand: initialData?.brand || '',
         model: initialData?.model || '',
         budgetMax: initialData?.budgetMax || undefined,
+        budgetMin: initialData?.budgetMin || undefined,
         yearFrom: initialData?.yearFrom || undefined,
+        yearTo: initialData?.yearTo || undefined,
+        mileageMax: initialData?.mileageMax || undefined,
+        onlyNew: initialData?.onlyNew ?? false,
         bodyTypes: initialData?.bodyTypes || [],
         engineTypes: initialData?.engineTypes || [],
+        engineVolumeFrom: initialData?.engineVolumeFrom || undefined,
+        engineVolumeTo: initialData?.engineVolumeTo || undefined,
+        drivetrain: initialData?.drivetrain || [],
+        transmission: initialData?.transmission || [],
+        exteriorColors: initialData?.exteriorColors || [],
+        interiorColors: initialData?.interiorColors || [],
         purchasePlan: initialData?.purchasePlan || 'three_months',
         notificationsEnabled: initialData?.notificationsEnabled ?? true,
     });
@@ -47,7 +146,7 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     };
 
-    const handleArrayChange = (field: 'bodyTypes' | 'engineTypes', value: string) => {
+    const handleArrayChange = (field: 'bodyTypes' | 'engineTypes' | 'drivetrain' | 'transmission' | 'exteriorColors' | 'interiorColors', value: string) => {
         const current = formData[field] || [];
         if (current.includes(value)) {
             handleChange(field, current.filter(t => t !== value));
@@ -66,20 +165,50 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     };
 
-    const BODY_TYPES = ['Седан', 'Внедорожник', 'Минивэн', 'Купе'];
-    const FUEL_TYPES = ['Электро', 'Гибрид', 'Бензин'];
+    const BODY_TYPES = ['Седан', 'Внедорожник', 'Кроссовер', 'Минивэн', 'Купе'];
+    const FUEL_TYPES = ['Электро', 'Гибрид', 'Бензин', 'Дизель'];
+    const DRIVETRAINS = ['Полный', 'Передний', 'Задний'];
+    const TRANSMISSIONS = ['Автомат', 'Робот', 'Механика', 'Редуктор'];
+    const EXTERIOR_COLORS = ['Белый', 'Чёрный', 'Серый', 'Серебристый', 'Синий', 'Красный', 'Зелёный'];
+    const INTERIOR_COLORS = ['Чёрный', 'Бежевый', 'Коричневый', 'Серый', 'Белый'];
+    const brandModels = formData.brand ? CAR_MODELS[formData.brand as string] || [] : [];
+    // PRD §8.2: объём двигателя применяется только для ДВС
+    const hasICE = !formData.engineTypes?.length || formData.engineTypes.some(t => t !== 'Электро');
+
+    const ChipGroup = ({ field, options }: { field: 'bodyTypes' | 'engineTypes' | 'drivetrain' | 'transmission' | 'exteriorColors' | 'interiorColors'; options: string[] }) => (
+        <div className="flex flex-wrap gap-2">
+            {options.map(type => {
+                const isSelected = formData[field]?.includes(type);
+                return (
+                    <button
+                        key={type}
+                        type="button"
+                        onClick={() => handleArrayChange(field, type)}
+                        className={cn(
+                            "px-5 py-2.5 rounded-full font-medium text-sm transition-all active:scale-95",
+                            isSelected
+                                ? "bg-primary-container text-white font-semibold shadow-md"
+                                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+                        )}
+                    >
+                        {type}
+                    </button>
+                );
+            })}
+        </div>
+    );
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col min-h-full">
             <main className="px-6 max-w-2xl mx-auto space-y-10 pb-32 pt-4 w-full">
-                
+
                 {/* Filter Name Section */}
                 <section className="space-y-3">
                     <label className="block font-headline text-on-surface-variant text-sm font-semibold tracking-wide uppercase ml-1">Название фильтра</label>
                     <div className="bg-surface-container-low rounded-2xl px-5 py-4 flex items-center shadow-sm">
-                        <input 
-                            className="bg-transparent border-none w-full focus:ring-0 text-on-surface placeholder:text-surface-variant font-medium outline-none" 
-                            placeholder="Название фильтра" 
+                        <input
+                            className="bg-transparent border-none w-full focus:ring-0 text-on-surface placeholder:text-surface-variant font-medium outline-none"
+                            placeholder="Необязательно — заполним сами"
                             type="text"
                             value={formData.title}
                             onChange={(e) => handleChange('title', e.target.value)}
@@ -87,112 +216,48 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                     </div>
                 </section>
 
-                {/* Make and Model Section */}
+                {/* Make and Model Section: instant search по справочнику (PRD §8.3) */}
                 <section className="space-y-4">
                     <h2 className="font-headline text-xl font-extrabold tracking-tight">Марка и модель</h2>
                     <div className="space-y-3">
-                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer border-b border-transparent">
-                            <div className="flex items-center gap-3 w-full">
-                                <Search className="text-on-surface/40 w-5 h-5" />
-                                <select 
-                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none appearance-none"
-                                    value={formData.brand}
-                                    onChange={(e) => handleChange('brand', e.target.value)}
-                                >
-                                    <option value="" disabled>Выберите марку</option>
-                                    <optgroup label="Китайские бренды">
-                                        <option value="Avatr">Avatr</option>
-                                        <option value="BYD">BYD</option>
-                                        <option value="Changan">Changan</option>
-                                        <option value="Chery">Chery</option>
-                                        <option value="Dongfeng">Dongfeng</option>
-                                        <option value="Exeed">Exeed</option>
-                                        <option value="FAW">FAW</option>
-                                        <option value="GAC">GAC</option>
-                                        <option value="Geely">Geely</option>
-                                        <option value="Great Wall">Great Wall</option>
-                                        <option value="Haval">Haval</option>
-                                        <option value="Hongqi">Hongqi</option>
-                                        <option value="Jetour">Jetour</option>
-                                        <option value="Li Auto">Li Auto</option>
-                                        <option value="Lynk & Co">Lynk & Co</option>
-                                        <option value="Nio">Nio</option>
-                                        <option value="Omoda">Omoda</option>
-                                        <option value="Tank">Tank</option>
-                                        <option value="Voyah">Voyah</option>
-                                        <option value="Xpeng">Xpeng</option>
-                                        <option value="Zeekr">Zeekr</option>
-                                    </optgroup>
-                                    <optgroup label="Европейские бренды">
-                                        <option value="Alfa Romeo">Alfa Romeo</option>
-                                        <option value="Aston Martin">Aston Martin</option>
-                                        <option value="Audi">Audi</option>
-                                        <option value="Bentley">Bentley</option>
-                                        <option value="BMW">BMW</option>
-                                        <option value="Citroën">Citroën</option>
-                                        <option value="Dacia">Dacia</option>
-                                        <option value="Ferrari">Ferrari</option>
-                                        <option value="Fiat">Fiat</option>
-                                        <option value="Jaguar">Jaguar</option>
-                                        <option value="Lamborghini">Lamborghini</option>
-                                        <option value="Land Rover">Land Rover</option>
-                                        <option value="Maserati">Maserati</option>
-                                        <option value="Mercedes-Benz">Mercedes-Benz</option>
-                                        <option value="Mini">Mini</option>
-                                        <option value="Opel">Opel</option>
-                                        <option value="Peugeot">Peugeot</option>
-                                        <option value="Porsche">Porsche</option>
-                                        <option value="Renault">Renault</option>
-                                        <option value="Rolls-Royce">Rolls-Royce</option>
-                                        <option value="Seat">Seat</option>
-                                        <option value="Skoda">Skoda</option>
-                                        <option value="Volkswagen">Volkswagen</option>
-                                        <option value="Volvo">Volvo</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <ChevronDown className="text-on-surface/30 w-5 h-5" />
-                        </div>
-                        <div className="group bg-surface-container-low rounded-2xl px-5 py-4 flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer border-b border-transparent">
-                            <div className="flex items-center gap-3 w-full">
-                                <Car className="text-on-surface/40 w-5 h-5" />
-                                <select 
-                                    className="bg-transparent border-none w-full focus:ring-0 text-on-surface font-medium outline-none appearance-none disabled:opacity-50"
-                                    value={formData.model || ''}
-                                    onChange={(e) => handleChange('model', e.target.value)}
-                                    disabled={!formData.brand || !CAR_MODELS[formData.brand as string]}
-                                >
-                                    <option value="" disabled>
-                                        {!formData.brand ? "Сначала выберите марку" : "Выберите модель (опционально)"}
-                                    </option>
-                                    {formData.brand && CAR_MODELS[formData.brand as string]?.map((model) => (
-                                        <option key={model} value={model}>{model}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <ChevronDown className="text-on-surface/30 w-5 h-5" />
-                        </div>
+                        <InstantSearchInput
+                            value={formData.brand || ''}
+                            onSelect={(v) => handleChange('brand', v)}
+                            options={ALL_BRANDS}
+                            placeholder="Начните вводить марку..."
+                            icon={Search}
+                        />
+                        <InstantSearchInput
+                            value={formData.model || ''}
+                            onSelect={(v) => handleChange('model', v)}
+                            options={brandModels}
+                            placeholder={!formData.brand ? "Сначала выберите марку" : brandModels.length ? "Модель (опционально)" : "Модель (свободный ввод)"}
+                            icon={Car}
+                            disabled={!formData.brand}
+                        />
                     </div>
                 </section>
 
                 {/* Body Parameters Section */}
                 <section className="space-y-4">
-                    <h2 className="font-headline text-xl font-extrabold tracking-tight">Параметры кузова</h2>
+                    <h2 className="font-headline text-xl font-extrabold tracking-tight">Бюджет и год</h2>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Бюджет, ₸</label>
                             <div className="flex gap-2">
                                 <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input 
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none" 
-                                        placeholder="От" 
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="От"
                                         type="number"
+                                        value={formData.budgetMin || ''}
+                                        onChange={(e) => handleChange('budgetMin', Number(e.target.value) || undefined)}
                                     />
                                 </div>
                                 <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input 
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none" 
-                                        placeholder="До" 
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="До"
                                         type="number"
                                         value={formData.budgetMax || ''}
                                         onChange={(e) => handleChange('budgetMax', Number(e.target.value) || undefined)}
@@ -204,19 +269,21 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                             <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Год выпуска</label>
                             <div className="flex gap-2">
                                 <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input 
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none" 
-                                        placeholder="От" 
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="От"
                                         type="number"
                                         value={formData.yearFrom || ''}
                                         onChange={(e) => handleChange('yearFrom', Number(e.target.value) || undefined)}
                                     />
                                 </div>
                                 <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input 
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none" 
-                                        placeholder="До" 
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="До"
                                         type="number"
+                                        value={formData.yearTo || ''}
+                                        onChange={(e) => handleChange('yearTo', Number(e.target.value) || undefined)}
                                     />
                                 </div>
                             </div>
@@ -226,60 +293,94 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
 
                 {/* Condition Section */}
                 <section className="space-y-3">
-                    <label className="block font-headline text-on-surface-variant text-sm font-semibold tracking-wide uppercase ml-1">Максимальный пробег, км</label>
-                    <div className="bg-surface-container-low rounded-2xl px-5 py-4 flex items-center">
-                        <input className="bg-transparent border-none w-full focus:ring-0 text-on-surface placeholder:text-on-surface/40 font-medium outline-none" placeholder="Напр. 50 000" type="number"/>
+                    <label className="block font-headline text-on-surface-variant text-sm font-semibold tracking-wide uppercase ml-1">Пробег</label>
+                    <div className={cn("bg-surface-container-low rounded-2xl px-5 py-4 flex items-center transition-opacity", formData.onlyNew && "opacity-40")}>
+                        <input
+                            className="bg-transparent border-none w-full focus:ring-0 text-on-surface placeholder:text-on-surface/40 font-medium outline-none"
+                            placeholder="Максимум, напр. 50 000 км"
+                            type="number"
+                            disabled={!!formData.onlyNew}
+                            value={formData.mileageMax || ''}
+                            onChange={(e) => handleChange('mileageMax', Number(e.target.value) || undefined)}
+                        />
                     </div>
+                    {/* PRD §8.2: режим «только новые» */}
+                    <label className="flex items-center justify-between p-5 rounded-2xl bg-surface-container-lowest border border-transparent cursor-pointer shadow-sm">
+                        <div className="flex flex-col">
+                            <span className="font-headline font-bold text-on-surface">Только новые авто</span>
+                            <span className="text-xs text-on-surface-variant">Б/у варианты не будут попадать в уведомления</span>
+                        </div>
+                        <input
+                            type="checkbox"
+                            className="hidden"
+                            checked={!!formData.onlyNew}
+                            onChange={(e) => handleChange('onlyNew', e.target.checked)}
+                        />
+                        <div className={cn("w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors", formData.onlyNew ? "bg-primary-container border-primary-container" : "border-surface-variant")}>
+                            <Check className={cn("w-4 h-4 text-white transition-opacity", formData.onlyNew ? "opacity-100" : "opacity-0")} />
+                        </div>
+                    </label>
                 </section>
 
                 {/* Characteristics Section */}
                 <section className="space-y-6">
                     <div className="space-y-3">
                         <h2 className="font-headline text-xl font-extrabold tracking-tight">Тип двигателя</h2>
-                        <div className="flex flex-wrap gap-2">
-                            {FUEL_TYPES.map(type => {
-                                const isSelected = formData.engineTypes?.includes(type);
-                                return (
-                                    <button 
-                                        key={type}
-                                        type="button"
-                                        onClick={() => handleArrayChange('engineTypes', type)}
-                                        className={cn(
-                                            "px-5 py-2.5 rounded-full font-medium text-sm transition-all active:scale-95",
-                                            isSelected 
-                                                ? "bg-primary-container text-white font-semibold shadow-md" 
-                                                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                                        )}
-                                    >
-                                        {type}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <ChipGroup field="engineTypes" options={FUEL_TYPES} />
                     </div>
-                    
+
+                    {/* PRD §8.2: объём двигателя — только для ДВС */}
+                    {hasICE && (
+                        <div className="space-y-3">
+                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Объём двигателя, л</label>
+                            <div className="flex gap-2 max-w-xs">
+                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="От"
+                                        type="number"
+                                        step="0.1"
+                                        value={formData.engineVolumeFrom || ''}
+                                        onChange={(e) => handleChange('engineVolumeFrom', Number(e.target.value) || undefined)}
+                                    />
+                                </div>
+                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
+                                    <input
+                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                        placeholder="До"
+                                        type="number"
+                                        step="0.1"
+                                        value={formData.engineVolumeTo || ''}
+                                        onChange={(e) => handleChange('engineVolumeTo', Number(e.target.value) || undefined)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-3">
                         <h2 className="font-headline text-xl font-extrabold tracking-tight">Кузов</h2>
-                        <div className="flex flex-wrap gap-2">
-                            {BODY_TYPES.map(type => {
-                                const isSelected = formData.bodyTypes?.includes(type);
-                                return (
-                                    <button 
-                                        key={type}
-                                        type="button"
-                                        onClick={() => handleArrayChange('bodyTypes', type)}
-                                        className={cn(
-                                            "px-5 py-2.5 rounded-full font-medium text-sm transition-all active:scale-95",
-                                            isSelected 
-                                                ? "bg-primary-container text-white font-semibold shadow-md" 
-                                                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                                        )}
-                                    >
-                                        {type}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <ChipGroup field="bodyTypes" options={BODY_TYPES} />
+                    </div>
+
+                    <div className="space-y-3">
+                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Привод</h2>
+                        <ChipGroup field="drivetrain" options={DRIVETRAINS} />
+                    </div>
+
+                    <div className="space-y-3">
+                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Коробка передач</h2>
+                        <ChipGroup field="transmission" options={TRANSMISSIONS} />
+                    </div>
+
+                    <div className="space-y-3">
+                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Цвет кузова</h2>
+                        <ChipGroup field="exteriorColors" options={EXTERIOR_COLORS} />
+                    </div>
+
+                    <div className="space-y-3">
+                        <h2 className="font-headline text-xl font-extrabold tracking-tight">Цвет салона</h2>
+                        <ChipGroup field="interiorColors" options={INTERIOR_COLORS} />
                     </div>
                 </section>
 
@@ -287,13 +388,13 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                 <section className="space-y-4">
                     <h2 className="font-headline text-xl font-extrabold tracking-tight">Готовность к покупке</h2>
                     <div className="space-y-3">
-                        
+
                         <label className="flex items-center justify-between p-5 rounded-2xl bg-surface-container-lowest border cursor-pointer transition-all duration-300 shadow-sm data-[state=checked]:border-primary-container/30 data-[state=checked]:bg-white border-transparent" data-state={formData.purchasePlan === 'viewing' ? 'checked' : 'unchecked'}>
                             <span className="font-headline font-bold text-on-surface">Просто смотрю</span>
-                            <input 
-                                type="radio" 
-                                name="readiness" 
-                                className="hidden" 
+                            <input
+                                type="radio"
+                                name="readiness"
+                                className="hidden"
                                 checked={formData.purchasePlan === 'viewing'}
                                 onChange={() => handleChange('purchasePlan', 'viewing')}
                             />
@@ -304,10 +405,10 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
 
                         <label className="flex items-center justify-between p-5 rounded-2xl bg-surface-container-lowest border cursor-pointer transition-all duration-300 shadow-sm data-[state=checked]:border-primary-container/30 data-[state=checked]:bg-white border-transparent" data-state={formData.purchasePlan === 'three_months' ? 'checked' : 'unchecked'}>
                             <span className="font-headline font-bold text-on-surface">Планирую покупку</span>
-                            <input 
-                                type="radio" 
-                                name="readiness" 
-                                className="hidden" 
+                            <input
+                                type="radio"
+                                name="readiness"
+                                className="hidden"
                                 checked={formData.purchasePlan === 'three_months'}
                                 onChange={() => handleChange('purchasePlan', 'three_months')}
                             />
@@ -321,10 +422,10 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                                 <span className="font-headline font-bold text-on-surface">Готов купить сейчас</span>
                                 <span className="text-xs text-primary-container font-medium">Приоритетная выдача</span>
                             </div>
-                            <input 
-                                type="radio" 
-                                name="readiness" 
-                                className="hidden" 
+                            <input
+                                type="radio"
+                                name="readiness"
+                                className="hidden"
                                 checked={formData.purchasePlan === 'ready_now'}
                                 onChange={() => handleChange('purchasePlan', 'ready_now')}
                             />
@@ -343,7 +444,7 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                 isKeyboardOpen ? "translate-y-[200%]" : "translate-y-0"
             )}>
                 <div className="max-w-2xl mx-auto">
-                    <button 
+                    <button
                         type="submit"
                         disabled={isSubmitting}
                         className="w-full h-16 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-extrabold text-lg rounded-full shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 disabled:active:scale-100"

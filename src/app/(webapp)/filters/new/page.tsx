@@ -1,19 +1,29 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterForm } from '@/components/hubdrive/filters/filter-form';
 import { useFiltersStore } from '@/lib/state/filters.store';
 import { useUserStore } from '@/lib/state/user.store';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
+import { useToast } from '@/hooks/use-toast';
 
-export default function NewFilterPage() {
+function NewFilterContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
     const { initData } = useTelegram();
     const { addFilterAsync, filters } = useFiltersStore();
     const { profile } = useUserStore();
 
     const isFirstFilter = filters.length === 0;
+
+    // Предзаполнение из «Заказать похожую машину» (PRD §10)
+    const prefill = {
+        brand: searchParams.get('brand') || '',
+        model: searchParams.get('model') || '',
+    };
 
     const handleSubmit = async (data: any) => {
         if (!profile?.phone) {
@@ -23,10 +33,19 @@ export default function NewFilterPage() {
             return;
         }
 
-        if (initData) {
-            await addFilterAsync(data, initData);
+        try {
+            if (initData) {
+                await addFilterAsync(data, initData);
+            }
+            router.push('/filters');
+        } catch (err) {
+            // PRD §8.1: например, превышен лимит в 2 фильтра
+            toast({
+                variant: 'destructive',
+                title: 'Не удалось сохранить фильтр',
+                description: err instanceof Error ? err.message : 'Попробуйте позже',
+            });
         }
-        router.push('/filters');
     };
 
     return (
@@ -61,11 +80,24 @@ export default function NewFilterPage() {
                 )}
                 <div className={isFirstFilter ? "pt-4" : ""}>
                     <FilterForm
+                        initialData={prefill.brand ? prefill : undefined}
                         onSubmit={handleSubmit}
                         onCancel={isFirstFilter ? undefined : () => router.back()}
                     />
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function NewFilterPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center items-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        }>
+            <NewFilterContent />
+        </Suspense>
     );
 }

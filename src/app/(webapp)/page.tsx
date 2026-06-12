@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/hubdrive/home/hero-section";
 import { QuickActions } from "@/components/hubdrive/home/quick-actions";
 import { NewsSlider } from "@/components/hubdrive/home/news-slider";
 import { RecommendedSection } from "@/components/hubdrive/home/recommended-section";
+import { NewArrivalsSection } from "@/components/hubdrive/home/new-arrivals-section";
 import { AchievementsSection } from "@/components/hubdrive/home/achievements-section";
 
 export default function WebAppRoot() {
@@ -14,6 +15,7 @@ export default function WebAppRoot() {
                 <HeroSection />
                 <QuickActions />
                 <NewsSlider />
+                <NewArrivalsSection />
                 <RecommendedSection />
                 <AchievementsSection />
             </main>

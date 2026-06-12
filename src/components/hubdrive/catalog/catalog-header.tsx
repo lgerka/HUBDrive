@@ -56,16 +56,18 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
 
             {/* Filter / Sort Row */}
             <div className="px-6 max-w-5xl mx-auto w-full flex justify-between items-center mb-4">
-                <button 
+                <button
                     onClick={() => {
-                        if (sort === 'newest') setSort('price_asc');
+                        // PRD §9: по дате → по популярности → по цене (дешевле/дороже) → по дате
+                        if (sort === 'newest') setSort('popular');
+                        else if (sort === 'popular') setSort('price_asc');
                         else if (sort === 'price_asc') setSort('price_desc');
                         else setSort('newest');
                     }}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95 duration-200 rounded-full"
                 >
                     <span className="text-on-surface-variant font-medium text-xs uppercase tracking-wider">
-                        Сортировка: {sort === 'price_asc' ? 'Дешевле' : sort === 'price_desc' ? 'Дороже' : 'По дате'}
+                        Сортировка: {sort === 'popular' ? 'Популярные' : sort === 'price_asc' ? 'Дешевле' : sort === 'price_desc' ? 'Дороже' : 'По дате'}
                     </span>
                 </button>
                 

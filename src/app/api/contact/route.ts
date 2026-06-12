@@ -68,6 +68,31 @@ export async function POST(request: Request) {
 <a href="https://hub-drive-psi.vercel.app/vehicles/${vehicle.id}">Открыть в приложении</a>
         `.trim();
 
+        // PRD §21: логируем «Связаться» как событие (учитывается в lead scoring +30)
+        try {
+            const dbUser = await prisma.user.upsert({
+                where: { telegramId: String(userUser.id) },
+                create: {
+                    telegramId: String(userUser.id),
+                    firstName: userUser.first_name,
+                    lastName: userUser.last_name,
+                    username: userUser.username,
+                    name,
+                },
+                update: { lastActiveAt: new Date() },
+            });
+            await prisma.event.create({
+                data: {
+                    type: 'contact_clicked',
+                    userId: dbUser.id,
+                    vehicleId: vehicle.id,
+                    meta: { brand: vehicle.brand, model: vehicle.model },
+                },
+            });
+        } catch (err) {
+            console.error('[API] Failed to log contact_clicked event:', err);
+        }
+
         // Send via Telegram Bot API to all admins
         for (const adminId of adminIds) {
             try {

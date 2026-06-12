@@ -9,14 +9,19 @@ export interface Filter {
     brand: string;
     model?: string;
     budgetMax: number;
+    budgetMin?: number;
     yearFrom?: number;
     yearTo?: number;
     bodyTypes?: string[];
     engineTypes?: string[];
+    engineVolumeFrom?: number;
+    engineVolumeTo?: number;
     drivetrain?: string[];
     transmission?: string[];
     exteriorColors?: string[];
     interiorColors?: string[];
+    mileageMax?: number;
+    onlyNew?: boolean;
     purchasePlan: PurchasePlan;
     notificationsEnabled: boolean;
     createdAt: number | string;
@@ -74,7 +79,7 @@ export const useFiltersStore = create<FiltersState>()((set, get) => ({
             });
             if (!res.ok) {
                 const errData = await res.json();
-                throw new Error(errData.details || 'Failed to create filter');
+                throw new Error(errData.error || errData.details || 'Failed to create filter');
             }
             const data = await res.json();
             set((state) => ({ ...state, filters: [data, ...state.filters] }));

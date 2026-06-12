@@ -48,6 +48,16 @@ export function matchVehicleToFilter(vehicle: Vehicle, filter: Filter): MatchRes
         hardFailReasons.push(`Year too new: ${vehicle.year} > ${filter.yearTo}`);
     }
 
+    // 5. PRD §15.1: режим «только новые» — б/у не должны проходить жёсткое совпадение
+    if (filter.onlyNew && (vehicle.mileage ?? 0) > 0) {
+        hardFailReasons.push(`Used vehicle excluded by onlyNew: mileage ${vehicle.mileage}`);
+    }
+
+    // 6. Максимальный пробег, если задан
+    if (filter.mileageMax && (vehicle.mileage ?? 0) > filter.mileageMax) {
+        hardFailReasons.push(`Mileage exceeds limit: ${vehicle.mileage} > ${filter.mileageMax}`);
+    }
+
     // Determine Hard Pass
     const hardPass = hardFailReasons.length === 0;
 

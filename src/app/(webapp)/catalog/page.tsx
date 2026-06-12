@@ -11,6 +11,7 @@ import { useFiltersStore } from '@/lib/state/filters.store';
 import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { CatalogHeader } from '@/components/hubdrive/catalog/catalog-header';
 import { RecommendationsSection } from '@/components/hubdrive/catalog/recommendations-section';
+import { trackEvent } from '@/lib/api/track';
 
 function CatalogContent() {
     const { q, status, brand, sort, setQuery, resetFilters, activeFiltersCount } = useCatalogQuery();
@@ -20,6 +21,7 @@ function CatalogContent() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [visibleCount, setVisibleCount] = useState(10);
 
     // Fetch filters
     useEffect(() => {
@@ -45,6 +47,7 @@ function CatalogContent() {
             }
         }
         fetchVehicles();
+        trackEvent('catalog_opened'); // PRD §21
     }, []);
 
     // Debounce search input
@@ -85,6 +88,8 @@ function CatalogContent() {
             if (sort === 'price_asc') return a.priceKeyTurnKZT - b.priceKeyTurnKZT;
             if (sort === 'price_desc') return b.priceKeyTurnKZT - a.priceKeyTurnKZT;
             if (sort === 'year_desc') return b.year - a.year;
+            // PRD §9: по популярности (просмотры + избранное, считает API)
+            if (sort === 'popular') return ((b as any).popularity ?? 0) - ((a as any).popularity ?? 0);
             return 0;
         });
     }, [q, status, brand, sort, vehicles]);
@@ -127,7 +132,7 @@ function CatalogContent() {
                         </div>
                     ) : filteredVehicles.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredVehicles.map((vehicle) => {
+                            {filteredVehicles.slice(0, visibleCount).map((vehicle) => {
                                 const bestMatch = filters.length > 0 ? pickBestMatch(vehicle as any, filters) : undefined;
                                 return (
                                     <VehicleCard
@@ -149,10 +154,13 @@ function CatalogContent() {
                         />
                     )}
 
-                    {filteredVehicles.length > 0 && !isLoading && (
+                    {filteredVehicles.length > visibleCount && !isLoading && (
                         <div className="flex justify-center pt-6 pb-8">
-                            <button className="group flex items-center gap-3 bg-surface-container-low text-on-surface-variant font-bold px-10 py-4 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
-                                <span>Показать еще</span>
+                            <button
+                                onClick={() => setVisibleCount(c => c + 10)}
+                                className="group flex items-center gap-3 bg-surface-container-low text-on-surface-variant font-bold px-10 py-4 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200"
+                            >
+                                <span>Показать еще ({filteredVehicles.length - visibleCount})</span>
                             </button>
                         </div>
                     )}

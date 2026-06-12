@@ -38,15 +38,20 @@ export async function GET(request: Request) {
                 engineType: true,
                 transmission: true,
                 drivetrain: true,
+                mileage: true,
                 priceKeyTurnKZT: true,
                 status: true,
                 media: true,
+                createdAt: true,
+                // PRD §9: популярность = просмотры карточки + избранное
+                _count: { select: { events: true, favorites: true } },
             }
         });
 
-        const dtos = vehicles.map(v => ({
+        const dtos = vehicles.map(({ _count, ...v }) => ({
             ...v,
-            coverPhotoUrl: Array.isArray(v.media) && v.media[0] ? v.media[0] : null
+            coverPhotoUrl: Array.isArray(v.media) && v.media[0] ? v.media[0] : null,
+            popularity: _count.events + _count.favorites,
         }));
 
         return NextResponse.json(dtos);

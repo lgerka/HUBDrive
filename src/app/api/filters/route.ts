@@ -69,14 +69,37 @@ export async function POST(request: Request) {
             });
         }
 
+        // PRD §8.1: у пользователя может быть не больше двух активных фильтров
+        const existingCount = await prisma.filter.count({ where: { userId: dbUser.id } });
+        if (existingCount >= 2) {
+            return NextResponse.json(
+                { error: 'Можно создать не больше 2 фильтров. Удалите или измените один из существующих.' },
+                { status: 400 }
+            );
+        }
+
         const newFilter = await prisma.filter.create({
             data: {
-                ...body,
-                budgetMax: body.budgetMax ? Number(body.budgetMax) : 0, 
-                brand: body.brand || 'Не выбрано',
                 userId: dbUser.id,
-                // Make sure id isn't part of body
-                id: undefined, 
+                title: body.title || null,
+                brand: body.brand || 'Не выбрано',
+                model: body.model || null,
+                bodyTypes: body.bodyTypes ?? undefined,
+                yearFrom: body.yearFrom ? Number(body.yearFrom) : null,
+                yearTo: body.yearTo ? Number(body.yearTo) : null,
+                budgetMax: body.budgetMax ? Number(body.budgetMax) : 0,
+                budgetMin: body.budgetMin ? Number(body.budgetMin) : null,
+                engineTypes: body.engineTypes ?? undefined,
+                engineVolumeFrom: body.engineVolumeFrom ? Number(body.engineVolumeFrom) : null,
+                engineVolumeTo: body.engineVolumeTo ? Number(body.engineVolumeTo) : null,
+                drivetrain: body.drivetrain ?? undefined,
+                transmission: body.transmission ?? undefined,
+                exteriorColors: body.exteriorColors ?? undefined,
+                interiorColors: body.interiorColors ?? undefined,
+                mileageMax: body.mileageMax ? Number(body.mileageMax) : null,
+                onlyNew: body.onlyNew ?? null,
+                purchasePlan: body.purchasePlan || 'viewing',
+                notificationsEnabled: body.notificationsEnabled ?? true,
             }
         });
 

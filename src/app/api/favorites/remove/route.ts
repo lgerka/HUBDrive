@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { usersRepo } from '@/server/repo/users';
 import { favoritesRepo } from '@/server/repo/favorites';
+import { resolveWebUser } from '@/lib/server/webUser';
+import { prisma } from '@/lib/server/prisma';
 
 export async function POST(request: Request) {
     try {
@@ -11,11 +12,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Vehicle ID required' }, { status: 400 });
         }
 
-        // Resolve dev user for MVP
-        const user = await usersRepo.getOrCreateDevUser();
+        const user = await resolveWebUser(request);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        // Remove from DB favorites
         await favoritesRepo.remove(user.id, vehicleId);
+
+        // PRD §11, §21: фиксируем и удаление из избранного
+        prisma.event.create({
+            data: { type: 'favorite_removed', userId: user.id, vehicleId },
+        }).catch(err => console.error('Error logging favorite_removed:', err));
 
         return NextResponse.json({ ok: true });
     } catch (error) {
