@@ -48,6 +48,7 @@ export async function POST(request: Request) {
                 brand: body.brand,
                 model: body.model,
                 generation: body.generation || undefined,
+                vin: body.vin || null,
                 year: Number(body.year),
                 priceKeyTurnKZT: Number(body.priceKeyTurnKZT),
                 priceChina: Number(body.priceChina) || null,

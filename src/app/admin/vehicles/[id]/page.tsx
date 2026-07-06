@@ -6,6 +6,18 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Info, Video, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Деньги: только цифры в состоянии, разделители на экране; объём: цифры и одна точка
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
+const fmtMoney = (n: number | string) => {
+  const num = typeof n === "string" ? Number(n) : n;
+  return num ? num.toLocaleString("ru-RU") : "";
+};
+const sanitizeVolume = (s: string) => {
+  const norm = s.replace(",", ".").replace(/[^\d.]/g, "");
+  const parts = norm.split(".");
+  return parts.length > 1 ? `${parts[0]}.${parts.slice(1).join("")}` : norm;
+};
+
 export default function AdminVehicleEditor({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const isNew = unwrappedParams.id === "new";
@@ -21,10 +33,11 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     brand: "",
     model: "",
     generation: "",
+    vin: "",
     year: new Date().getFullYear(),
     bodyType: "Кроссовер",
     engineType: "Бензин",
-    engineVolume: 2.0,
+    engineVolume: "" as string, // строка: иначе десятичный ввод «скачет»
     powerHp: 150,
     transmission: "Автомат",
     drivetrain: "Полный",
@@ -54,13 +67,14 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
           setFormData({
             ...data,
             media: data.media || [],
-            engineVolume: data.engineVolume || 0,
+            engineVolume: data.engineVolume ? String(data.engineVolume) : "",
             powerHp: data.powerHp || 0,
             mileage: data.mileage || 0,
             priceChina: data.priceChina || 0,
             pricePort: data.pricePort || 0,
             deliveryEtaWeeks: data.deliveryEtaWeeks || 0,
             generation: data.generation || "",
+            vin: data.vin || "",
             exteriorColor: data.exteriorColor || "",
             interiorColor: data.interiorColor || "",
             description: data.description || "",
@@ -77,6 +91,12 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   }, [initData, isReady, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
+    // Публикация без фото — только осознанно
+    if (formData.media.length === 0 && formData.status !== "hidden") {
+      if (!confirm("У автомобиля нет ни одного фото — в каталоге он будет без картинки. Сохранить с публичным статусом всё равно?\n\nНажмите «Отмена», чтобы добавить фото или выбрать статус «Скрыто».")) {
+        return;
+      }
+    }
     setIsSaving(true);
     try {
       const url = isNew ? "/api/admin/vehicles" : `/api/admin/vehicles/${unwrappedParams.id}`;
@@ -205,7 +225,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Марка *</label>
                   <input 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-300" 
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60" 
                     placeholder="Например, Zeekr"
                     value={formData.brand} 
                     onChange={e => setFormData({...formData, brand: e.target.value})} 
@@ -214,7 +234,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Модель *</label>
                   <input 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-300" 
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60" 
                     placeholder="Например, 001"
                     value={formData.model} 
                     onChange={e => setFormData({...formData, model: e.target.value})} 
@@ -230,10 +250,22 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                   />
                 </div>
 
+                <div className="space-y-3 md:col-span-2">
+                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">VIN</label>
+                  <input
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-mono font-medium uppercase tracking-wider outline-none transition-all placeholder:text-slate-500/60"
+                    placeholder="LB37795ND35N140693"
+                    maxLength={17}
+                    value={formData.vin}
+                    onChange={e => setFormData({ ...formData, vin: e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "") })}
+                  />
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Не попадает в публичный каталог — только для внутреннего учёта.</p>
+                </div>
+
                 <div className="space-y-3 md:col-span-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Подробное описание для клиента</label>
                   <textarea 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body leading-relaxed outline-none transition-all resize-y min-h-[120px] placeholder:text-slate-300" 
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body leading-relaxed outline-none transition-all resize-y min-h-[120px] placeholder:text-slate-500/60" 
                     rows={4} 
                     placeholder="Описание комплектации, особенностей и состояния автомобиля..."
                     value={formData.description} 
@@ -277,15 +309,20 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                     <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Объем (л)</label>
-                  <input 
-                    type="number" step="0.1" 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all" 
-                    value={formData.engineVolume} 
-                    onChange={e => setFormData({...formData, engineVolume: Number(e.target.value)})} 
-                  />
-                </div>
+                {/* Для электро объём ДВС скрываем, а не оставляем «мёртвым» полем */}
+                {formData.engineType !== "Электро" && (
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Объем (л)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="1.5"
+                      className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60"
+                      value={formData.engineVolume}
+                      onChange={e => setFormData({...formData, engineVolume: sanitizeVolume(e.target.value)})}
+                    />
+                  </div>
+                )}
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Мощность (л.с.)</label>
                   <input 
@@ -323,21 +360,29 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 </div>
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Цвет кузова</label>
-                  <input 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-300" 
+                  <input
+                    list="colors-exterior-edit"
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60"
                     placeholder="Например, Черный"
-                    value={formData.exteriorColor} 
-                    onChange={e => setFormData({...formData, exteriorColor: e.target.value})} 
+                    value={formData.exteriorColor}
+                    onChange={e => setFormData({...formData, exteriorColor: e.target.value})}
                   />
+                  <datalist id="colors-exterior-edit">
+                    <option>Белый</option><option>Черный</option><option>Серый</option><option>Серебристый</option><option>Синий</option><option>Красный</option><option>Зеленый</option><option>Бежевый</option><option>Коричневый</option><option>Оранжевый</option>
+                  </datalist>
                 </div>
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Цвет салона</label>
-                  <input 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-300" 
+                  <input
+                    list="colors-interior-edit"
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60"
                     placeholder="Темный"
-                    value={formData.interiorColor} 
-                    onChange={e => setFormData({...formData, interiorColor: e.target.value})} 
+                    value={formData.interiorColor}
+                    onChange={e => setFormData({...formData, interiorColor: e.target.value})}
                   />
+                  <datalist id="colors-interior-edit">
+                    <option>Черный</option><option>Темный</option><option>Бежевый</option><option>Коричневый</option><option>Серый</option><option>Белый</option><option>Рыжий</option>
+                  </datalist>
                 </div>
               </div>
             </div>
@@ -355,7 +400,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input 
-                    className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-300" 
+                    className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-500/60" 
                     placeholder="Вставьте прямую ссылку на изображение (https://...)" 
                     value={newImage} 
                     onChange={e => setNewImage(e.target.value)} 
@@ -472,11 +517,13 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Финальная цена (KZT)</label>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all" 
-                      value={formData.priceKeyTurnKZT || ""} 
-                      onChange={e => setFormData({...formData, priceKeyTurnKZT: Number(e.target.value)})} 
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="25 000 000"
+                      className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
+                      value={fmtMoney(formData.priceKeyTurnKZT)}
+                      onChange={e => setFormData({...formData, priceKeyTurnKZT: Number(onlyDigits(e.target.value))})}
                     />
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₸</span>
                   </div>
@@ -487,19 +534,23 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                   <div className="space-y-3">
                     <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Прайс Китай (¥)</label>
                     <input
-                      type="number"
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
-                      value={formData.priceChina || ""}
-                      onChange={e => setFormData({...formData, priceChina: Number(e.target.value)})}
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="280 000"
+                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all placeholder:text-slate-500/60"
+                      value={fmtMoney(formData.priceChina)}
+                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value))})}
                     />
                   </div>
                   <div className="space-y-3">
                     <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">До порта (₸)</label>
                     <input
-                      type="number"
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
-                      value={formData.pricePort || ""}
-                      onChange={e => setFormData({...formData, pricePort: Number(e.target.value)})}
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="18 000 000"
+                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all placeholder:text-slate-500/60"
+                      value={fmtMoney(formData.pricePort)}
+                      onChange={e => setFormData({...formData, pricePort: Number(onlyDigits(e.target.value))})}
                     />
                   </div>
                   <div className="space-y-3">

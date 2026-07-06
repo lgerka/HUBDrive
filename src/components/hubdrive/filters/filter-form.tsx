@@ -102,19 +102,17 @@ function InstantSearchInput({
 }
 
 export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
-    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined' && window.visualViewport) {
-            const handler = () => {
-                const isKeyboard = window.visualViewport!.height < window.innerHeight * 0.8;
-                setIsKeyboardOpen(isKeyboard);
-            };
-            window.visualViewport.addEventListener('resize', handler);
-            return () => window.visualViewport!.removeEventListener('resize', handler);
+    // Тап по фону (не по полю) сворачивает клавиатуру — иначе на iOS её трудно закрыть
+    const dismissKeyboard = (e: React.PointerEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, select, button, label')) return;
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+            active.blur();
         }
-    }, []);
+    };
 
     // Минимальный фильтр: марка, модель, бюджет, год, пробег и степень готовности.
     // Кузов/двигатель/привод/КПП/цвета убраны: марка+модель определяют их сами,
@@ -124,13 +122,21 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         brand: initialData?.brand || '',
         model: initialData?.model || '',
         budgetMax: initialData?.budgetMax || undefined,
-        budgetMin: initialData?.budgetMin || undefined,
         yearFrom: initialData?.yearFrom || undefined,
-        yearTo: initialData?.yearTo || undefined,
         mileageMax: initialData?.mileageMax || undefined,
         purchasePlan: initialData?.purchasePlan || 'three_months',
         notificationsEnabled: initialData?.notificationsEnabled ?? true,
     });
+
+    // Динамический справочник: марки/модели из реального каталога поверх статического.
+    // Новая марка, добавленная в админке, сразу доступна в фильтре.
+    const [dbCatalog, setDbCatalog] = useState<Record<string, string[]>>({});
+    useEffect(() => {
+        fetch('/api/brands')
+            .then(res => (res.ok ? res.json() : {}))
+            .then((data: Record<string, string[]>) => { if (data && typeof data === 'object' && !Array.isArray(data)) setDbCatalog(data); })
+            .catch(() => { });
+    }, []);
 
     const handleChange = (field: keyof Filter, value: any) => {
         if (field === 'brand') {
@@ -150,11 +156,23 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
         }
     };
 
-    const brandModels = formData.brand ? CAR_MODELS[formData.brand as string] || [] : [];
+    // Справочники: статический список + марки/модели из реального каталога (dbCatalog)
+    const allBrands = useMemo(() => {
+        const merged = new Set<string>(ALL_BRANDS);
+        Object.keys(dbCatalog).forEach(b => merged.add(b));
+        return [...merged].sort((a, b) => a.localeCompare(b, 'ru'));
+    }, [dbCatalog]);
+
+    const brandModels = useMemo(() => {
+        if (!formData.brand) return [];
+        const stat = CAR_MODELS[formData.brand as string] || [];
+        const dyn = dbCatalog[formData.brand as string] || [];
+        return [...new Set([...stat, ...dyn])];
+    }, [formData.brand, dbCatalog]);
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col min-h-full">
-            <main className="px-6 max-w-2xl mx-auto space-y-10 pb-32 pt-4 w-full">
+        <form onSubmit={handleSubmit} onPointerDown={dismissKeyboard} className="flex flex-col min-h-full">
+            <main className="px-6 max-w-2xl mx-auto space-y-10 pt-4 w-full">
 
                 {/* Filter Name Section */}
                 <section className="space-y-3">
@@ -177,7 +195,7 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                         <InstantSearchInput
                             value={formData.brand || ''}
                             onSelect={(v) => handleChange('brand', v)}
-                            options={ALL_BRANDS}
+                            options={allBrands}
                             placeholder="Начните вводить марку..."
                             icon={Search}
                         />
@@ -192,54 +210,34 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                     </div>
                 </section>
 
-                {/* Body Parameters Section */}
+                {/* Бюджет — только «до», год — только «от» (решение владельца) */}
                 <section className="space-y-4">
                     <h2 className="font-headline text-xl font-extrabold tracking-tight">Бюджет и год</h2>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Бюджет, ₸</label>
-                            <div className="flex gap-2">
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="От"
-                                        type="number"
-                                        value={formData.budgetMin || ''}
-                                        onChange={(e) => handleChange('budgetMin', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="До"
-                                        type="number"
-                                        value={formData.budgetMax || ''}
-                                        onChange={(e) => handleChange('budgetMax', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
+                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Бюджет до, ₸</label>
+                            <div className="bg-surface-container-low rounded-xl px-4 py-3.5">
+                                <input
+                                    className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                    placeholder="15 000 000"
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={formData.budgetMax || ''}
+                                    onChange={(e) => handleChange('budgetMax', Number(e.target.value) || undefined)}
+                                />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Год выпуска</label>
-                            <div className="flex gap-2">
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="От"
-                                        type="number"
-                                        value={formData.yearFrom || ''}
-                                        onChange={(e) => handleChange('yearFrom', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
-                                <div className="bg-surface-container-low rounded-xl px-4 py-3 flex-1">
-                                    <input
-                                        className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
-                                        placeholder="До"
-                                        type="number"
-                                        value={formData.yearTo || ''}
-                                        onChange={(e) => handleChange('yearTo', Number(e.target.value) || undefined)}
-                                    />
-                                </div>
+                            <label className="block text-xs font-bold text-on-surface/40 uppercase tracking-widest ml-1">Год от</label>
+                            <div className="bg-surface-container-low rounded-xl px-4 py-3.5">
+                                <input
+                                    className="bg-transparent border-none w-full focus:ring-0 text-sm font-semibold p-0 outline-none"
+                                    placeholder="2023"
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={formData.yearFrom || ''}
+                                    onChange={(e) => handleChange('yearFrom', Number(e.target.value) || undefined)}
+                                />
                             </div>
                         </div>
                     </div>
@@ -311,14 +309,10 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
 
                     </div>
                 </section>
-            </main>
 
-            {/* Sticky Footer */}
-            <footer className={cn(
-                "fixed bottom-[calc(76px+env(safe-area-inset-bottom))] left-0 w-full px-6 pb-4 pt-4 bg-gradient-to-t from-surface via-surface/95 to-transparent z-40 transition-transform duration-300",
-                isKeyboardOpen ? "translate-y-[200%]" : "translate-y-0"
-            )}>
-                <div className="max-w-2xl mx-auto">
+                {/* Кнопка в потоке страницы: не прыгает при открытии клавиатуры,
+                    контент просто скроллится (жалоба: «сохранить» скакала за клавиатурой) */}
+                <div className="pt-2 pb-[calc(96px+env(safe-area-inset-bottom))]">
                     <button
                         type="submit"
                         disabled={isSubmitting}
@@ -328,7 +322,7 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                         {isSubmitting ? 'Сохранение...' : 'Сохранить фильтр'}
                     </button>
                 </div>
-            </footer>
+            </main>
         </form>
     );
 }

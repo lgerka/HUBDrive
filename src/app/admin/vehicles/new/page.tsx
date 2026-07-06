@@ -16,8 +16,19 @@ const STEPS = [
   { id: 6, title: "Публикация", icon: Send },
 ] as const;
 
-const inputCls = "w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-300";
+// Плейсхолдеры темнее (slate-300 выглядел как «сломанное» поле), степперы у чисел скрыты
+const inputCls = "w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const labelCls = "text-[11px] font-label font-bold uppercase tracking-widest text-slate-400";
+
+// Денежные поля: только цифры в состоянии, разделители разрядов на экране
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
+const fmtMoney = (s: string) => (s ? Number(s).toLocaleString("ru-RU") : "");
+// Объём двигателя: цифры и одна точка (запятую приводим к точке)
+const sanitizeVolume = (s: string) => {
+  const norm = s.replace(",", ".").replace(/[^\d.]/g, "");
+  const parts = norm.split(".");
+  return parts.length > 1 ? `${parts[0]}.${parts.slice(1).join("")}` : norm;
+};
 
 export default function AdminNewVehiclePage() {
   const { initData } = useTelegram();
@@ -32,6 +43,7 @@ export default function AdminNewVehiclePage() {
     brand: "",
     model: "",
     generation: "",
+    vin: "",
     year: new Date().getFullYear().toString(),
     bodyType: "Кроссовер",
     engineType: "Бензин",
@@ -143,6 +155,13 @@ export default function AdminNewVehiclePage() {
         return;
       }
     }
+    // Публикация без фото — осознанное решение, а не случайность
+    if (formData.media.length === 0 && formData.status !== "hidden") {
+      if (!confirm("У автомобиля нет ни одного фото — в каталоге он будет без картинки. Опубликовать всё равно?\n\nНажмите «Отмена», чтобы вернуться и добавить фото (или выберите статус «Скрыто»).")) {
+        setStep(1);
+        return;
+      }
+    }
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/admin/vehicles", {
@@ -237,7 +256,7 @@ export default function AdminNewVehiclePage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
-                  className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-300"
+                  className="flex-1 bg-surface-container-low/50 border border-slate-100 rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body text-sm outline-none transition-all placeholder:text-slate-500/60"
                   placeholder="Вставьте прямую ссылку на изображение (https://...)"
                   value={newImage}
                   onChange={e => setNewImage(e.target.value)}
@@ -343,6 +362,18 @@ export default function AdminNewVehiclePage() {
                   <label className={labelCls}>Поколение</label>
                   <input name="generation" className={inputCls} placeholder="Рестайлинг" value={formData.generation} onChange={handleChange} />
                 </div>
+                <div className="space-y-3 md:col-span-2">
+                  <label className={labelCls}>VIN</label>
+                  <input
+                    name="vin"
+                    className={cn(inputCls, "font-mono uppercase tracking-wider")}
+                    placeholder="LB37795ND35N140693"
+                    maxLength={17}
+                    value={formData.vin}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "") }))}
+                  />
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Не попадает в публичный каталог — только для внутреннего учёта.</p>
+                </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Кузов</label>
                   <div className="relative">
@@ -361,10 +392,21 @@ export default function AdminNewVehiclePage() {
                     <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <label className={labelCls}>Объем (л)</label>
-                  <input type="number" step="0.1" name="engineVolume" className={inputCls} placeholder="2.0" value={formData.engineVolume} onChange={handleChange} />
-                </div>
+                {/* Для электро объём ДВС не существует — поле прячем, а не оставляем «мёртвым» */}
+                {formData.engineType !== "Электро" && (
+                  <div className="space-y-3">
+                    <label className={labelCls}>Объем (л)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      name="engineVolume"
+                      className={inputCls}
+                      placeholder="2.0"
+                      value={formData.engineVolume}
+                      onChange={(e) => setFormData(prev => ({ ...prev, engineVolume: sanitizeVolume(e.target.value) }))}
+                    />
+                  </div>
+                )}
                 <div className="space-y-3">
                   <label className={labelCls}>Мощность (л.с.)</label>
                   <input type="number" name="powerHp" className={inputCls} placeholder="150" value={formData.powerHp} onChange={handleChange} />
@@ -393,11 +435,17 @@ export default function AdminNewVehiclePage() {
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Цвет кузова</label>
-                  <input name="exteriorColor" className={inputCls} placeholder="Например, Черный" value={formData.exteriorColor} onChange={handleChange} />
+                  <input name="exteriorColor" list="colors-exterior" className={inputCls} placeholder="Например, Черный" value={formData.exteriorColor} onChange={handleChange} />
+                  <datalist id="colors-exterior">
+                    <option>Белый</option><option>Черный</option><option>Серый</option><option>Серебристый</option><option>Синий</option><option>Красный</option><option>Зеленый</option><option>Бежевый</option><option>Коричневый</option><option>Оранжевый</option>
+                  </datalist>
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Цвет салона</label>
-                  <input name="interiorColor" className={inputCls} placeholder="Например, Черный" value={formData.interiorColor} onChange={handleChange} />
+                  <input name="interiorColor" list="colors-interior" className={inputCls} placeholder="Например, Черный" value={formData.interiorColor} onChange={handleChange} />
+                  <datalist id="colors-interior">
+                    <option>Черный</option><option>Темный</option><option>Бежевый</option><option>Коричневый</option><option>Серый</option><option>Белый</option><option>Рыжий</option>
+                  </datalist>
                 </div>
               </div>
             </div>
@@ -411,25 +459,26 @@ export default function AdminNewVehiclePage() {
                 <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена под ключ (KZT) *</label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     name="priceKeyTurnKZT"
-                    className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all"
-                    placeholder="25000000"
-                    value={formData.priceKeyTurnKZT}
-                    onChange={handleChange}
+                    className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
+                    placeholder="25 000 000"
+                    value={fmtMoney(formData.priceKeyTurnKZT)}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priceKeyTurnKZT: onlyDigits(e.target.value) }))}
                   />
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₸</span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена — именно её увидит пользователь в каталоге (PRD §10.1).</p>
+                <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена — именно её увидит клиент в каталоге.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-3">
                   <label className={labelCls}>Цена в Китае (¥)</label>
-                  <input type="number" name="priceChina" className={inputCls} placeholder="280000" value={formData.priceChina} onChange={handleChange} />
+                  <input type="text" inputMode="numeric" name="priceChina" className={inputCls} placeholder="280 000" value={fmtMoney(formData.priceChina)} onChange={(e) => setFormData(prev => ({ ...prev, priceChina: onlyDigits(e.target.value) }))} />
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>До порта (₸)</label>
-                  <input type="number" name="pricePort" className={inputCls} placeholder="18000000" value={formData.pricePort} onChange={handleChange} />
+                  <input type="text" inputMode="numeric" name="pricePort" className={inputCls} placeholder="18 000 000" value={fmtMoney(formData.pricePort)} onChange={(e) => setFormData(prev => ({ ...prev, pricePort: onlyDigits(e.target.value) }))} />
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Доставка (недели)</label>
@@ -443,10 +492,10 @@ export default function AdminNewVehiclePage() {
           {step === 5 && (
             <div className="space-y-6">
               <h3 className="font-headline text-2xl font-bold tracking-tight">Описание для клиента</h3>
-              <p className="text-slate-500 font-body">2–4 абзаца: состояние, особенности, кому подходит, чем выгоден экземпляр (PRD §10).</p>
+              <p className="text-slate-500 font-body">2–4 абзаца: состояние, особенности, кому подходит, чем выгоден экземпляр.</p>
               <textarea
                 name="description"
-                className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body leading-relaxed outline-none transition-all resize-y min-h-[260px] placeholder:text-slate-300"
+                className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-body leading-relaxed outline-none transition-all resize-y min-h-[260px] placeholder:text-slate-500/60"
                 rows={10}
                 placeholder="Описание комплектации, особенностей и состояния автомобиля..."
                 value={formData.description}
@@ -505,8 +554,8 @@ export default function AdminNewVehiclePage() {
           <div className="mt-4 px-5 py-3 rounded-2xl bg-red-50 text-red-600 text-sm font-bold">{stepError}</div>
         )}
 
-        {/* Wizard nav */}
-        <div className="flex justify-between items-center mt-8">
+        {/* Wizard nav: кнопки рядом, а не по разным краям широкого экрана */}
+        <div className="flex justify-end items-center gap-3 mt-8">
           <button
             type="button"
             onClick={goBack}

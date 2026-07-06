@@ -122,7 +122,7 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
 }
 
 /** PRD §16.1: «Hot-пользователь получил новое предложение» — служебное сообщение менеджерам */
-async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, score: number) {
+export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, score: number) {
     if (!process.env.ADMIN_TELEGRAM_IDS) return;
     const adminIds = process.env.ADMIN_TELEGRAM_IDS.split(',').map(id => id.trim()).filter(Boolean);
 
