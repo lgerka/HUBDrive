@@ -45,3 +45,6 @@ next-env.d.ts
 
 # MCP config with API keys — do not commit
 .mcp.json
+
+# Видео с правками от владельца — не коммитим
+Правки/

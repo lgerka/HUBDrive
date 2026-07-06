@@ -182,6 +182,7 @@ model Vehicle {
   brand         String
   model         String
   generation    String?
+  vin           String?
   year          Int
   bodyType      String
   engineType    String

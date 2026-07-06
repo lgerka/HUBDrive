@@ -33,6 +33,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 brand: body.brand,
                 model: body.model,
                 generation: body.generation || null,
+                vin: body.vin || null,
                 year: Number(body.year),
                 priceKeyTurnKZT: Number(body.priceKeyTurnKZT),
                 priceChina: Number(body.priceChina) || null,
