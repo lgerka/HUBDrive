@@ -18,6 +18,9 @@ const getYoutubeVideoId = (url: string) => {
     return match ? match[1] : null;
 };
 
+// Прямые видеофайлы (Supabase Storage и т.п.) — рендерим нативным <video>
+const isDirectVideo = (url: string) => /\.(mp4|webm|mov)(\?.*)?$/i.test(url);
+
 export function VehicleGallery({ media, altText, videoUrl }: VehicleGalleryProps) {
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -25,10 +28,13 @@ export function VehicleGallery({ media, altText, videoUrl }: VehicleGalleryProps
 
     const hasImages = Array.isArray(media) && media.length > 0;
     const ytId = getYoutubeVideoId(videoUrl || "");
-    
-    const slides: { type: 'video' | 'image', id?: string, url?: string }[] = [];
+    const directVideo = !ytId && videoUrl && isDirectVideo(videoUrl) ? videoUrl : null;
+
+    const slides: { type: 'youtube' | 'file-video' | 'image', id?: string, url?: string }[] = [];
     if (ytId) {
-        slides.push({ type: 'video', id: ytId });
+        slides.push({ type: 'youtube', id: ytId });
+    } else if (directVideo) {
+        slides.push({ type: 'file-video', url: directVideo });
     }
     if (hasImages) {
         media!.forEach(m => slides.push({ type: 'image', url: m }));
@@ -71,7 +77,7 @@ export function VehicleGallery({ media, altText, videoUrl }: VehicleGalleryProps
             >
                 {slides.map((slide, i) => (
                     <div key={i} className="relative w-full h-full flex-shrink-0 snap-center">
-                        {slide.type === 'video' ? (
+                        {slide.type === 'youtube' ? (
                             <iframe
                                 className="w-full h-full object-cover pointer-events-auto"
                                 src={`https://www.youtube.com/embed/${slide.id}?rel=0`}
@@ -80,6 +86,14 @@ export function VehicleGallery({ media, altText, videoUrl }: VehicleGalleryProps
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
                             ></iframe>
+                        ) : slide.type === 'file-video' ? (
+                            <video
+                                className="w-full h-full object-cover"
+                                src={slide.url!}
+                                controls
+                                playsInline
+                                preload="metadata"
+                            />
                         ) : (
                             !imageErrors.has(i) ? (
                                 <Image
