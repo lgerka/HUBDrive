@@ -40,6 +40,7 @@ export async function GET(request: Request) {
                 drivetrain: true,
                 mileage: true,
                 priceKeyTurnKZT: true,
+                priceUSD: true,
                 status: true,
                 media: true,
                 createdAt: true,

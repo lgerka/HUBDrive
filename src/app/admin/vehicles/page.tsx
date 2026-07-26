@@ -15,6 +15,7 @@ interface AdminVehicle {
   year: number;
   status: VehicleStatus;
   priceKeyTurnKZT: number;
+  priceUSD?: number | null;
 }
 
 const statusMap: Record<string, { label: string; colorClass: string }> = {
@@ -187,7 +188,7 @@ export default function AdminVehiclesPage() {
                     </td>
                     <td className="px-6 py-5">
                       <span className="font-headline font-extrabold text-sm tracking-tight">
-                        {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(v.priceKeyTurnKZT)}
+                        {v.priceUSD ? `$ ${v.priceUSD.toLocaleString('ru-RU')}` : new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(v.priceKeyTurnKZT)}
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">

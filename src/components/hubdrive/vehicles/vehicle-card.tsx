@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Vehicle, VehicleStatus } from '@prisma/client';
+import { fmtUsd } from '@/lib/price';
 import { cn } from '@/lib/utils';
 import { ImageOff, Heart, MapPin, Calendar, Gauge } from 'lucide-react';
 import { ImagePlaceholder } from '@/components/hubdrive/common/image-placeholder';
@@ -33,12 +34,15 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
     const { initData } = useTelegram();
     const [imageError, setImageError] = useState(false);
 
-    const formatPrice = (price: number) => {
+    // Главная валюта каталога — доллары (красиво округлённые вверх); тенге — фолбэк для старых карточек
+    const displayPrice = () => {
+        const usd = (vehicle as Vehicle & { priceUSD?: number | null }).priceUSD;
+        if (usd && usd > 0) return fmtUsd(usd);
         return new Intl.NumberFormat('ru-KZ', {
             style: 'currency',
             currency: 'KZT',
             maximumFractionDigits: 0,
-        }).format(price).replace('₸', '₸');
+        }).format(vehicle.priceKeyTurnKZT);
     };
 
     if (isHorizontal) {
@@ -84,7 +88,7 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                     <div className="p-5 space-y-2">
                         <p className="font-headline font-bold text-lg leading-tight truncate text-on-surface">{vehicle.brand} {vehicle.model}</p>
                         <p className="text-on-surface-variant text-sm font-medium">{vehicle.year} • {vehicle.mileage ? vehicle.mileage.toLocaleString('ru-RU') : 0} км</p>
-                        <p className="font-headline font-extrabold text-xl pt-2 text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>
+                        <p className="font-headline font-extrabold text-xl pt-2 text-on-surface">{displayPrice()}</p>
                     </div>
                 </div>
              </Link>
@@ -160,7 +164,7 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
-                        <p className="font-headline font-extrabold text-2xl md:text-3xl tracking-tight text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>
+                        <p className="font-headline font-extrabold text-2xl md:text-3xl tracking-tight text-on-surface">{displayPrice()}</p>
                         <button className="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-3 rounded-full active:scale-95 transition-transform duration-200">
                             Подробнее
                         </button>

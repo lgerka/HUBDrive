@@ -44,6 +44,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     mileage: 0,
     exteriorColor: "",
     interiorColor: "",
+    priceUSD: 0,
     priceKeyTurnKZT: 0,
     priceChina: 0,
     pricePort: 0,
@@ -70,6 +71,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
             engineVolume: data.engineVolume ? String(data.engineVolume) : "",
             powerHp: data.powerHp || 0,
             mileage: data.mileage || 0,
+            priceUSD: data.priceUSD || 0,
             priceChina: data.priceChina || 0,
             pricePort: data.pricePort || 0,
             deliveryEtaWeeks: data.deliveryEtaWeeks || 0,
@@ -514,54 +516,21 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
 
                 <div className="w-full h-px bg-slate-100 my-2"></div>
 
+                {/* Только цена в $ — тенге пересчитается по курсу на сервере */}
                 <div className="space-y-3">
-                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Финальная цена (KZT)</label>
+                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена ($)</label>
                   <div className="relative">
                     <input
                       type="text"
                       inputMode="numeric"
-                      placeholder="25 000 000"
+                      placeholder="27 000"
                       className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                      value={fmtMoney(formData.priceKeyTurnKZT)}
-                      onChange={e => setFormData({...formData, priceKeyTurnKZT: Number(onlyDigits(e.target.value))})}
+                      value={fmtMoney(formData.priceUSD)}
+                      onChange={e => setFormData({...formData, priceUSD: Number(onlyDigits(e.target.value)), priceKeyTurnKZT: 0})}
                     />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₸</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Эта цена будет показана пользователю в каталоге.</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Прайс Китай (¥)</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="280 000"
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all placeholder:text-slate-500/60"
-                      value={fmtMoney(formData.priceChina)}
-                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value))})}
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">До порта (₸)</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="18 000 000"
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all placeholder:text-slate-500/60"
-                      value={fmtMoney(formData.pricePort)}
-                      onChange={e => setFormData({...formData, pricePort: Number(onlyDigits(e.target.value))})}
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Доставка (Недели)</label>
-                    <input
-                      type="number"
-                      className="w-full bg-surface-container-low/50 border-none rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold text-sm outline-none transition-all"
-                      value={formData.deliveryEtaWeeks}
-                      onChange={e => setFormData({...formData, deliveryEtaWeeks: Number(e.target.value)})}
-                    />
-                  </div>
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена в каталоге. Тенге для бюджетов фильтров посчитается по курсу дня автоматически.</p>
                 </div>
               </div>
             </div>

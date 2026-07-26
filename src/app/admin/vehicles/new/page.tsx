@@ -11,7 +11,7 @@ const STEPS = [
   { id: 1, title: "Фото", icon: Camera },
   { id: 2, title: "Видео", icon: Video },
   { id: 3, title: "Характеристики", icon: Settings2 },
-  { id: 4, title: "Цена и логистика", icon: Wallet },
+  { id: 4, title: "Цена", icon: Wallet },
   { id: 5, title: "Описание", icon: FileText },
   { id: 6, title: "Публикация", icon: Send },
 ] as const;
@@ -54,6 +54,7 @@ export default function AdminNewVehiclePage() {
     mileage: "",
     exteriorColor: "",
     interiorColor: "",
+    priceUSD: "",
     priceKeyTurnKZT: "",
     priceChina: "",
     pricePort: "",
@@ -126,7 +127,7 @@ export default function AdminNewVehiclePage() {
       if (!formData.model.trim()) return "Укажите модель автомобиля";
     }
     if (s === 4) {
-      if (!formData.priceKeyTurnKZT || Number(formData.priceKeyTurnKZT) <= 0) return "Укажите цену под ключ — её увидит пользователь";
+      if (!formData.priceUSD || Number(formData.priceUSD) <= 0) return "Укажите цену в долларах — её увидит клиент";
     }
     return null;
   };
@@ -451,39 +452,25 @@ export default function AdminNewVehiclePage() {
             </div>
           )}
 
-          {/* Шаг 4: Цена и логистика */}
+          {/* Шаг 4: Цена (решение владельца: только доллары, тенге считается по курсу автоматически) */}
           {step === 4 && (
             <div className="space-y-8 max-w-2xl">
-              <h3 className="font-headline text-2xl font-bold tracking-tight">Цена и логистика</h3>
+              <h3 className="font-headline text-2xl font-bold tracking-tight">Цена</h3>
               <div className="space-y-3">
-                <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена под ключ (KZT) *</label>
+                <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена ($) *</label>
                 <div className="relative">
                   <input
                     type="text"
                     inputMode="numeric"
-                    name="priceKeyTurnKZT"
+                    name="priceUSD"
                     className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                    placeholder="25 000 000"
-                    value={fmtMoney(formData.priceKeyTurnKZT)}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priceKeyTurnKZT: onlyDigits(e.target.value) }))}
+                    placeholder="27 000"
+                    value={fmtMoney(formData.priceUSD)}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priceUSD: onlyDigits(e.target.value) }))}
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₸</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена — именно её увидит клиент в каталоге.</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-3">
-                  <label className={labelCls}>Цена в Китае (¥)</label>
-                  <input type="text" inputMode="numeric" name="priceChina" className={inputCls} placeholder="280 000" value={fmtMoney(formData.priceChina)} onChange={(e) => setFormData(prev => ({ ...prev, priceChina: onlyDigits(e.target.value) }))} />
-                </div>
-                <div className="space-y-3">
-                  <label className={labelCls}>До порта (₸)</label>
-                  <input type="text" inputMode="numeric" name="pricePort" className={inputCls} placeholder="18 000 000" value={fmtMoney(formData.pricePort)} onChange={(e) => setFormData(prev => ({ ...prev, pricePort: onlyDigits(e.target.value) }))} />
-                </div>
-                <div className="space-y-3">
-                  <label className={labelCls}>Доставка (недели)</label>
-                  <input type="number" name="deliveryEtaWeeks" className={inputCls} placeholder="4" value={formData.deliveryEtaWeeks} onChange={handleChange} />
-                </div>
+                <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена. Тенге для бюджетов фильтров посчитается автоматически по курсу дня (Настройки → Курс валют).</p>
               </div>
             </div>
           )}
@@ -538,7 +525,7 @@ export default function AdminNewVehiclePage() {
                   <span className="text-slate-400">Кузов / Двигатель</span>
                   <span className="font-bold">{formData.bodyType} / {formData.engineType}</span>
                   <span className="text-slate-400">Цена под ключ</span>
-                  <span className="font-bold text-primary">{formData.priceKeyTurnKZT ? Number(formData.priceKeyTurnKZT).toLocaleString() + " ₸" : "—"}</span>
+                  <span className="font-bold text-primary">{formData.priceUSD ? "$ " + Number(formData.priceUSD).toLocaleString("ru-RU") : "—"}</span>
                   <span className="text-slate-400">Фото / Видео</span>
                   <span className="font-bold">{formData.media.length} фото{formData.videoUrl ? " + видео" : ""}</span>
                   <span className="text-slate-400">Описание</span>
