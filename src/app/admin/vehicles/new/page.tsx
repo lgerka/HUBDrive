@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Trash2, ImagePlus, Video, UploadCloud, ChevronRight, Check, Camera, Settings2, Wallet, FileText, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +39,15 @@ export default function AdminNewVehiclePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [stepError, setStepError] = useState<string | null>(null);
+  // Курс ¥ за $1 — для живого предпросмотра клиентской цены
+  const [usdRate, setUsdRate] = useState(0);
+  useEffect(() => {
+    fetch("/api/admin/exchange-rates", { headers: { "x-telegram-init-data": initData || "" } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(d => { if (d?.usdCny) setUsdRate(d.usdCny); })
+      .catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -127,7 +136,7 @@ export default function AdminNewVehiclePage() {
       if (!formData.model.trim()) return "Укажите модель автомобиля";
     }
     if (s === 4) {
-      if (!formData.priceUSD || Number(formData.priceUSD) <= 0) return "Укажите цену в долларах — её увидит клиент";
+      if (!formData.priceChina || Number(formData.priceChina) <= 0) return "Укажите цену в юанях — как она пришла из Китая";
     }
     return null;
   };
@@ -452,25 +461,34 @@ export default function AdminNewVehiclePage() {
             </div>
           )}
 
-          {/* Шаг 4: Цена (решение владельца: только доллары, тенге считается по курсу автоматически) */}
+          {/* Шаг 4: Цена — вводим юани (как в WeChat), клиент увидит доллары по курсу */}
           {step === 4 && (
             <div className="space-y-8 max-w-2xl">
               <h3 className="font-headline text-2xl font-bold tracking-tight">Цена</h3>
               <div className="space-y-3">
-                <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена ($) *</label>
+                <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена в Китае (¥) *</label>
                 <div className="relative">
                   <input
                     type="text"
                     inputMode="numeric"
-                    name="priceUSD"
+                    name="priceChina"
                     className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                    placeholder="27 000"
-                    value={fmtMoney(formData.priceUSD)}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priceUSD: onlyDigits(e.target.value) }))}
+                    placeholder="185 000"
+                    value={fmtMoney(formData.priceChina)}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priceChina: onlyDigits(e.target.value) }))}
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена. Тенге для бюджетов фильтров посчитается автоматически по курсу дня (Настройки → Курс валют).</p>
+                {Number(formData.priceChina) > 0 && usdRate > 0 && (
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+                    <span className="text-sm font-medium text-emerald-700">Клиент увидит:</span>
+                    <span className="font-headline font-extrabold text-emerald-700">
+                      $ {(Math.ceil(Number(formData.priceChina) / usdRate / 100) * 100).toLocaleString("ru-RU")}
+                    </span>
+                    <span className="text-[11px] text-emerald-600/70 ml-auto">курс ¥{usdRate} за $1</span>
+                  </div>
+                )}
+                <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Доллары для клиента и тенге для бюджетов фильтров посчитаются автоматически (Настройки → Курс валют).</p>
               </div>
             </div>
           )}
@@ -525,7 +543,11 @@ export default function AdminNewVehiclePage() {
                   <span className="text-slate-400">Кузов / Двигатель</span>
                   <span className="font-bold">{formData.bodyType} / {formData.engineType}</span>
                   <span className="text-slate-400">Цена под ключ</span>
-                  <span className="font-bold text-primary">{formData.priceUSD ? "$ " + Number(formData.priceUSD).toLocaleString("ru-RU") : "—"}</span>
+                  <span className="font-bold text-primary">
+                    {formData.priceChina
+                      ? `¥ ${Number(formData.priceChina).toLocaleString("ru-RU")}${usdRate > 0 ? ` → $ ${(Math.ceil(Number(formData.priceChina) / usdRate / 100) * 100).toLocaleString("ru-RU")}` : ""}`
+                      : "—"}
+                  </span>
                   <span className="text-slate-400">Фото / Видео</span>
                   <span className="font-bold">{formData.media.length} фото{formData.videoUrl ? " + видео" : ""}</span>
                   <span className="text-slate-400">Описание</span>

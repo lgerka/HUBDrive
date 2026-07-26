@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { notifyUsersAboutMatch } from '@/lib/server/telegram/notifier';
 import { verifyAdmin } from '@/lib/server/admin';
-import { getExchangeRates } from '@/lib/server/exchange';
+import { getExchangeRates, prettyUsd } from '@/lib/server/exchange';
 
 export async function GET(request: Request) {
     try {
@@ -45,13 +45,19 @@ export async function POST(request: Request) {
 
         const body = await request.json();
 
-        // Основная вводимая цена — в долларах; тенге считаем по актуальному курсу
-        // (нужен для бюджетов фильтров и обратной совместимости)
-        const priceUSD = Number(body.priceUSD) || null;
+        // Вводится закупочная цена в юанях (как приходит из WeChat).
+        // Доллары для клиента и тенге для бюджетов фильтров считаем по курсу дня.
+        const priceChina = Number(body.priceChina) || null;
+        let priceUSD = Number(body.priceUSD) || null;
         let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
-        if (priceUSD && !priceKeyTurnKZT) {
+        if ((priceChina && !priceUSD) || (priceUSD && !priceKeyTurnKZT)) {
             const rates = await getExchangeRates();
-            priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+            if (priceChina && !priceUSD) {
+                priceUSD = prettyUsd(priceChina / rates.usdCny); // сразу «красивая» цена вверх
+            }
+            if (priceUSD && !priceKeyTurnKZT) {
+                priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+            }
         }
 
         const vehicle = await prisma.vehicle.create({
@@ -63,7 +69,7 @@ export async function POST(request: Request) {
                 year: Number(body.year),
                 priceUSD,
                 priceKeyTurnKZT,
-                priceChina: Number(body.priceChina) || null,
+                priceChina,
                 pricePort: Number(body.pricePort) || null,
                 deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,
                 status: body.status,
