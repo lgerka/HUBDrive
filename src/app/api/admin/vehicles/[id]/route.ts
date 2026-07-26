@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
-import { getExchangeRates } from '@/lib/server/exchange';
+import { getExchangeRates, prettyUsd } from '@/lib/server/exchange';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -29,12 +29,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         const body = await request.json();
 
-        // Цена в $ первична; тенге пересчитываем по курсу, если явно не передана
-        const priceUSD = Number(body.priceUSD) || null;
+        // Ввод — юани; доллары для клиента и тенге для фильтров считаем по курсу
+        const priceChina = Number(body.priceChina) || null;
+        let priceUSD = Number(body.priceUSD) || null;
         let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
-        if (priceUSD && !priceKeyTurnKZT) {
+        if ((priceChina && !priceUSD) || (priceUSD && !priceKeyTurnKZT)) {
             const rates = await getExchangeRates();
-            priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+            if (priceChina && !priceUSD) {
+                priceUSD = prettyUsd(priceChina / rates.usdCny);
+            }
+            if (priceUSD && !priceKeyTurnKZT) {
+                priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+            }
         }
 
         const updated = await prisma.vehicle.update({
@@ -47,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 year: Number(body.year),
                 priceUSD,
                 priceKeyTurnKZT,
-                priceChina: Number(body.priceChina) || null,
+                priceChina,
                 pricePort: Number(body.pricePort) || null,
                 deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,
                 status: body.status,

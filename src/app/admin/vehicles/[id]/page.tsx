@@ -27,6 +27,15 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  // Курс ¥ за $1 — для предпросмотра клиентской цены
+  const [usdRate, setUsdRate] = useState(0);
+  useEffect(() => {
+    fetch("/api/admin/exchange-rates", { headers: { "x-telegram-init-data": initData || "" } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(d => { if (d?.usdCny) setUsdRate(d.usdCny); })
+      .catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -516,21 +525,30 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
 
                 <div className="w-full h-px bg-slate-100 my-2"></div>
 
-                {/* Только цена в $ — тенге пересчитается по курсу на сервере */}
+                {/* Ввод — юани (как из WeChat); $ для клиента и ₸ для фильтров считает сервер */}
                 <div className="space-y-3">
-                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена ($)</label>
+                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена в Китае (¥)</label>
                   <div className="relative">
                     <input
                       type="text"
                       inputMode="numeric"
-                      placeholder="27 000"
+                      placeholder="185 000"
                       className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                      value={fmtMoney(formData.priceUSD)}
-                      onChange={e => setFormData({...formData, priceUSD: Number(onlyDigits(e.target.value)), priceKeyTurnKZT: 0})}
+                      value={fmtMoney(formData.priceChina)}
+                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value)), priceUSD: 0, priceKeyTurnKZT: 0})}
                     />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Главная цена в каталоге. Тенге для бюджетов фильтров посчитается по курсу дня автоматически.</p>
+                  {formData.priceChina > 0 && usdRate > 0 && (
+                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+                      <span className="text-sm font-medium text-emerald-700">Клиент увидит:</span>
+                      <span className="font-headline font-extrabold text-emerald-700">
+                        $ {(Math.ceil(formData.priceChina / usdRate / 100) * 100).toLocaleString("ru-RU")}
+                      </span>
+                      <span className="text-[11px] text-emerald-600/70 ml-auto">курс ¥{usdRate} за $1</span>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Доллары и тенге посчитаются автоматически по курсу дня.</p>
                 </div>
               </div>
             </div>

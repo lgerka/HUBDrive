@@ -222,16 +222,10 @@ export default function VehicleDetailPage() {
                             </div>
                         </div>
                         <div className="text-right shrink-0">
-                            {vehicle.priceUSD && vehicle.priceUSD > 0 ? (
-                                <>
-                                    <p className="font-headline text-2xl font-black text-on-surface">{fmtUsd(vehicle.priceUSD)}</p>
-                                    {vehicle.priceKeyTurnKZT > 0 && (
-                                        <p className="text-xs text-on-surface-variant font-medium">≈ {formatPrice(vehicle.priceKeyTurnKZT)}</p>
-                                    )}
-                                </>
-                            ) : (
-                                <p className="font-headline text-2xl font-black text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>
-                            )}
+                            {/* Клиент видит цену только в долларах */}
+                            <p className="font-headline text-2xl font-black text-on-surface">
+                                {vehicle.priceUSD && vehicle.priceUSD > 0 ? fmtUsd(vehicle.priceUSD) : formatPrice(vehicle.priceKeyTurnKZT)}
+                            </p>
                         </div>
                     </div>
 
@@ -242,33 +236,15 @@ export default function VehicleDetailPage() {
                         </p>
                     </div>
 
-                    {/* Цены и логистика (PRD §10.1: Китай / до порта / под ключ, срок поставки) */}
-                    {(vehicle.priceChina || vehicle.pricePort || vehicle.deliveryEtaWeeks) && (
-                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest divide-y divide-surface-container-highest">
-                            {vehicle.priceChina ? (
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm text-on-surface-variant">Цена в Китае</span>
-                                    <span className="text-sm font-bold text-on-surface">¥ {new Intl.NumberFormat('ru-RU').format(vehicle.priceChina)}</span>
-                                </div>
-                            ) : null}
-                            {vehicle.pricePort ? (
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm text-on-surface-variant">До порта отгрузки</span>
-                                    <span className="text-sm font-bold text-on-surface">{new Intl.NumberFormat('ru-RU').format(vehicle.pricePort)} ₸</span>
-                                </div>
-                            ) : null}
+                    {/* Закупочные цены (¥/₸) клиенту не показываем — только срок поставки */}
+                    {vehicle.deliveryEtaWeeks ? (
+                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest">
                             <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-sm text-on-surface-variant">Под ключ в Казахстане</span>
-                                <span className="text-sm font-black text-primary">{formatPrice(vehicle.priceKeyTurnKZT)}</span>
+                                <span className="text-sm text-on-surface-variant">Срок поставки</span>
+                                <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
                             </div>
-                            {vehicle.deliveryEtaWeeks ? (
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm text-on-surface-variant">Срок поставки</span>
-                                    <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
-                                </div>
-                            ) : null}
                         </div>
-                    )}
+                    ) : null}
 
                     {/* Spec Strip */}
                     <div className="mt-6 flex items-center space-x-4 overflow-x-auto hide-scrollbar pb-2">

@@ -15,7 +15,13 @@ export async function GET(
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
 
-        return NextResponse.json(vehicle);
+        // Публичный эндпоинт: скрытые авто и закупочные цены (¥/до порта/VIN) не отдаём
+        if (vehicle.status === 'hidden') {
+            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+        }
+        const { priceChina, pricePort, vin, ...publicVehicle } = vehicle;
+
+        return NextResponse.json(publicVehicle);
     } catch (error) {
         console.error('Error fetching vehicle:', error);
         return NextResponse.json(
