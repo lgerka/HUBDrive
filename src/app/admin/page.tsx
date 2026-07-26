@@ -32,12 +32,13 @@ interface DashboardStats {
   latestLeads?: DashboardLead[];
 }
 
+// Палитра статусов едина со страницей «Лиды» (leads/page.tsx) — не менять в одном месте без другого
 const LEAD_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  new: { label: "Новая", color: "bg-orange-100 text-orange-600" },
-  in_progress: { label: "В обработке", color: "bg-blue-100 text-blue-600" },
-  awaiting_reply: { label: "Ожидает ответа", color: "bg-purple-100 text-purple-600" },
+  new: { label: "Новая", color: "bg-blue-100 text-blue-700" },
+  in_progress: { label: "В обработке", color: "bg-amber-100 text-amber-700" },
+  awaiting_reply: { label: "Ожидает ответа", color: "bg-purple-100 text-purple-700" },
   qualified: { label: "Квалифицирована", color: "bg-cyan-100 text-cyan-700" },
-  converted: { label: "Закрыта успешно", color: "bg-green-100 text-green-600" },
+  converted: { label: "Закрыта успешно", color: "bg-green-100 text-green-700" },
   closed_lost: { label: "Без результата", color: "bg-slate-100 text-slate-600" },
   rejected: { label: "Отменено", color: "bg-red-100 text-red-600" },
 };
@@ -132,25 +133,24 @@ export default function AdminDashboard() {
     : [];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 max-w-[1400px] w-full px-8 pt-8 pb-12">
       {/* Page Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Обзор HUBDrive</h2>
+          <h1 className="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Обзор HUBDrive</h1>
           <p className="text-on-surface-variant mt-1 text-lg">Сводная статистика платформы.</p>
         </div>
-        <div className="flex space-x-2">
-          <div className="flex items-center bg-surface-container-lowest px-4 py-2 rounded-xl shadow-sm">
-            <Calendar className="w-4 h-4 text-primary mr-2" />
-            <span className="text-sm font-medium">Последние 30 дней</span>
-          </div>
+        {/* Не контрол, а подпись периода — без теней и «кнопочного» вида */}
+        <div className="flex items-center text-slate-500">
+          <Calendar className="w-4 h-4 mr-2" />
+          <span className="text-sm font-medium">Последние 30 дней</span>
         </div>
       </section>
 
       {/* 1. Top Stats Row */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Stat Card 1: Users */}
-        <div className="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px] shadow-sm shadow-slate-200/50">
+        <div className="bg-surface-container-lowest p-8 rounded-xl shadow-sm shadow-slate-200/50">
           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Всего пользователей</p>
           <h3 className="text-4xl font-extrabold text-on-surface font-headline">{stats.users.toLocaleString()}</h3>
           <div className={`mt-4 flex items-center text-xs font-bold ${stats.weekGrowth >= 0 ? "text-green-600" : "text-red-500"}`}>
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stat Card 2: Filters */}
-        <div className="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px] shadow-sm shadow-slate-200/50">
+        <div className="bg-surface-container-lowest p-8 rounded-xl shadow-sm shadow-slate-200/50">
           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Фильтров создано</p>
           <h3 className="text-4xl font-extrabold text-on-surface font-headline">{stats.filters.toLocaleString()}</h3>
           <div className="mt-4 flex items-center text-primary text-xs font-bold">
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stat Card 3: Leads */}
-        <div className="bg-surface-container-lowest p-8 rounded-xl border-l-4 border-primary transition-all hover:translate-y-[-4px] shadow-sm shadow-slate-200/50">
+        <div className="bg-surface-container-lowest p-8 rounded-xl border-l-4 border-primary shadow-sm shadow-slate-200/50">
           <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2 font-label">Новых лидов</p>
           <h3 className="text-4xl font-extrabold text-on-surface font-headline">{stats.hotLeads.toLocaleString()}</h3>
           <div className="mt-4 flex items-center text-orange-600 text-xs font-bold">
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stat Card 4: Vehicles */}
-        <div className="bg-surface-container-lowest p-8 rounded-xl transition-all hover:translate-y-[-4px] shadow-sm shadow-slate-200/50">
+        <div className="bg-surface-container-lowest p-8 rounded-xl shadow-sm shadow-slate-200/50">
           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-label">Машин в наличии</p>
           <h3 className="text-4xl font-extrabold text-on-surface font-headline">{stats.vehiclesInStock.toLocaleString()}</h3>
           <div className="mt-4 flex items-center text-slate-500 text-xs font-bold">

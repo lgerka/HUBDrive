@@ -208,9 +208,15 @@ export default function VehicleDetailPage() {
                                         В пути
                                     </span>
                                 )}
-                                <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
-                                    Новинка
-                                </span>
+                                {vehicle.status === 'sold' ? (
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100/60 text-red-600 text-[10px] font-bold uppercase tracking-wider">
+                                        Продано
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                                        Новинка
+                                    </span>
+                                )}
                             </div>
                             <div className="flex items-center gap-3">
                                 <h2 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
@@ -229,15 +235,17 @@ export default function VehicleDetailPage() {
                         </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">
-                        <Eye className="text-primary w-5 h-5 shrink-0" />
-                        <p className="text-sm font-medium text-on-surface-variant">
-                            Сейчас этот автомобиль смотрят <span className="font-bold text-primary">{fakeViewCount} человек</span>
-                        </p>
-                    </div>
+                    {vehicle.status !== 'sold' && (
+                        <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">
+                            <Eye className="text-primary w-5 h-5 shrink-0" />
+                            <p className="text-sm font-medium text-on-surface-variant">
+                                Сейчас этот автомобиль смотрят <span className="font-bold text-primary">{fakeViewCount} человек</span>
+                            </p>
+                        </div>
+                    )}
 
                     {/* Закупочные цены (¥/₸) клиенту не показываем — только срок поставки */}
-                    {vehicle.deliveryEtaWeeks ? (
+                    {vehicle.deliveryEtaWeeks && vehicle.status !== 'sold' ? (
                         <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest">
                             <div className="flex items-center justify-between px-4 py-3">
                                 <span className="text-sm text-on-surface-variant">Срок поставки</span>
@@ -252,8 +260,8 @@ export default function VehicleDetailPage() {
                             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Год</p>
                             <p className="font-headline font-bold text-on-surface">{vehicle.year} г.</p>
                         </div>
-                        <div className="flex-shrink-0 bg-surface-container-lowest border border-primary/20 px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(249,115,22,0.05)]">
-                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Пробег</p>
+                        <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
+                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Пробег</p>
                             <p className="font-headline font-bold text-on-surface">{vehicle.mileage ? `${new Intl.NumberFormat('ru-RU').format(vehicle.mileage)} км` : 'Новый'}</p>
                         </div>
                         <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
@@ -282,7 +290,11 @@ export default function VehicleDetailPage() {
             </main>
 
             <VehicleCtaBar
-                onContact={handleContact}
+                // Проданное авто нельзя купить — главная кнопка ведёт на заказ похожего
+                onContact={vehicle.status === 'sold'
+                    ? () => router.push(`/filters/new?brand=${encodeURIComponent(vehicle.brand)}&model=${encodeURIComponent(vehicle.model)}`)
+                    : handleContact}
+                primaryLabel={vehicle.status === 'sold' ? 'Заказать похожую' : undefined}
                 isContactLoading={isSending}
                 onCall={() => {
                     trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });

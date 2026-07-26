@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 interface VehicleCtaBarProps {
     onContact?: () => void;
     isContactLoading?: boolean;
+    /** Текст главной кнопки (по умолчанию «Связаться») — для проданных авто «Заказать похожую» */
+    primaryLabel?: string;
     onCall?: () => void;
     onFavorite?: () => void;
     isFavorite?: boolean;
@@ -15,6 +17,7 @@ interface VehicleCtaBarProps {
 export function VehicleCtaBar({
     onContact,
     isContactLoading,
+    primaryLabel,
     onCall,
     onFavorite,
     isFavorite,
@@ -40,7 +43,7 @@ export function VehicleCtaBar({
                     disabled={isContactLoading}
                     className="flex-grow mx-2 bg-gradient-to-br from-primary to-orange-400 text-on-primary rounded-full px-8 py-4 flex items-center justify-center font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-75 disabled:scale-100"
                 >
-                    {isContactLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Связаться"}
+                    {isContactLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (primaryLabel ?? "Связаться")}
                 </button>
 
                 {onCall ? (

@@ -88,15 +88,11 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
           <button onClick={() => router.push('/admin/leads')} className="text-slate-400 hover:text-slate-900 transition-colors mr-2">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">Lead Profile</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900 hidden md:block">Профиль лида</span>
           <span className="h-4 w-px bg-slate-200 hidden md:block"></span>
           <span className="text-sm font-medium text-slate-500">ID: {lead.telegramId || lead.id.substring(0, 8)}</span>
         </div>
         <div className="flex items-center gap-4 md:gap-6">
-          <div className="flex gap-2">
-            <button className="hidden md:block px-5 py-2 border-2 border-slate-100 text-slate-600 rounded-full font-semibold text-sm hover:bg-slate-50 transition-all">Экспорт</button>
-            <button className="px-5 py-2 bg-primary-container text-white rounded-full font-semibold text-sm shadow-md hover:bg-primary transition-all">Заметка</button>
-          </div>
           {/* Avatar Placeholder */}
           <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white ring-2 ring-white flex items-center justify-center font-bold text-slate-500 font-headline">
              {lead.name ? lead.name.charAt(0).toUpperCase() : 'U'}
@@ -111,11 +107,11 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
           <section className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100 flex flex-col md:flex-row items-start md:items-center gap-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 md:p-8">
               <span className={cn("px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-full ring-4 shadow-sm",
-                  lead.level === 'HOT' ? "bg-[#ffdbca] text-[#9d4300] ring-[#fff6f2]" :
+                  lead.level === 'HOT' ? "bg-orange-100 text-orange-800 ring-orange-50" :
                   lead.level === 'WARM' ? "bg-amber-100 text-amber-800 ring-amber-50" :
                   "bg-slate-100 text-slate-600 ring-slate-50"
               )}>
-                {lead.level} LEAD
+                {lead.level === 'HOT' ? 'Горячий лид' : lead.level === 'WARM' ? 'Тёплый лид' : 'Холодный лид'}
               </span>
             </div>
             <div className="relative shrink-0">
@@ -151,7 +147,7 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
                 <div className="bg-surface-container-low px-4 py-2 rounded-2xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Текущий статус</p>
                   <select
-                     className="bg-transparent border-none p-0 outline-none font-bold text-on-surface uppercase tracking-wider text-xs md:text-sm cursor-pointer"
+                     className="bg-transparent border-none p-0 outline-none font-bold text-primary uppercase tracking-wider text-xs md:text-sm cursor-pointer hover:opacity-80"
                      value={lead.leadStatus}
                      onChange={async (e) => {
                          const newStatus = e.target.value;
@@ -201,10 +197,6 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
           <section className="bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold text-on-surface font-headline">История активности</h3>
-              <button className="text-sm font-bold text-primary flex items-center gap-1">
-                Фильтры
-                <SlidersHorizontal className="w-4 h-4" />
-              </button>
             </div>
             
             <div className="space-y-2">
@@ -218,11 +210,11 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
                   
                   return (
                     <div key={event.id} className="flex gap-4 group">
-                      <div className="flex flex-col items-center">
-                        <div className={cn("w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center border", color, border)}>
+                      <div className="flex flex-col items-center self-stretch">
+                        <div className={cn("w-10 h-10 shrink-0 rounded-full bg-white shadow-sm flex items-center justify-center border", color, border)}>
                           <EventIcon className="w-5 h-5" />
                         </div>
-                        {!isLast && <div className="w-0.5 h-10 bg-slate-100 my-1 group-hover:bg-slate-200 transition-colors"></div>}
+                        {!isLast && <div className="w-0.5 flex-1 bg-slate-100 my-1 group-hover:bg-slate-200 transition-colors"></div>}
                       </div>
                       <div className="pb-6 pt-1">
                         <p className="text-on-surface font-semibold">{title}</p>
@@ -245,9 +237,9 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
           <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
             <h4 className="text-xs uppercase font-black text-slate-400 tracking-widest mb-6 font-headline">Действия</h4>
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={() => window.open(`https://t.me/${lead.telegramId}`, '_blank')}
-                className="w-full flex items-center justify-between p-4 bg-orange-50 text-primary-container rounded-2xl font-bold hover:bg-orange-100 transition-colors"
+                className="w-full flex items-center justify-between p-4 bg-primary text-white rounded-2xl font-bold hover:opacity-90 active:scale-[0.99] transition-all shadow-md shadow-orange-500/10"
               >
                 <span>Написать в Telegram</span>
                 <Send className="w-5 h-5" />

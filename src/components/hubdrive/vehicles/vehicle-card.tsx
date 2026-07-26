@@ -105,7 +105,7 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                     <div className="absolute top-4 left-4 flex gap-2 z-10">
                          <span className={cn(
                              "backdrop-blur-sm text-[10px] font-bold px-3 py-1 rounded-full tracking-wider uppercase shadow-sm",
-                             vehicle.status === 'in_stock' ? 'bg-white/90 text-primary' : vehicle.status === 'in_transit' ? 'bg-surface-container-high/90 text-on-surface-variant' : 'bg-surface-container-lowest/80 text-on-surface-variant'
+                             vehicle.status === 'in_stock' ? 'bg-white/90 text-primary' : vehicle.status === 'in_transit' ? 'bg-surface-container-high/90 text-on-surface-variant' : vehicle.status === 'sold' ? 'bg-white/90 text-red-600' : 'bg-surface-container-lowest/80 text-on-surface-variant'
                          )}>
                              {statusLabels[vehicle.status]}
                          </span>

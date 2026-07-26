@@ -207,7 +207,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
       {/* Content Canvas */}
       <div className="pt-8 px-4 md:px-12 pb-24 max-w-[1600px] mx-auto">
         <div className="flex flex-col mb-10 gap-2">
-          <h2 className="text-3xl md:text-[3.5rem] font-extrabold font-headline tracking-tight text-on-surface leading-tight">
+          <h2 className="text-3xl md:text-4xl font-extrabold font-headline tracking-tight text-on-surface leading-tight">
              {isNew ? "Спецификация Автомобиля" : "Редактирование Автомобиля"}
           </h2>
           <p className="text-slate-500 font-body text-lg max-w-2xl">
@@ -560,7 +560,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                </div>
                <div>
                   <h4 className="font-headline font-bold text-sm mb-1">Обязательные поля</h4>
-                  <p className="font-body text-xs text-slate-500 leading-relaxed">Для публикации автомобиля в публичный каталог необходимо заполнить Марку, Модель, цену под ключ и прикрепить минимум 1 фото.</p>
+                  <p className="font-body text-xs text-slate-500 leading-relaxed">Для публикации автомобиля в публичный каталог необходимо заполнить марку, модель, цену в юанях и прикрепить минимум 1 фото.</p>
                </div>
             </div>
 

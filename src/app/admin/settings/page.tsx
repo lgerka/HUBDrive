@@ -179,7 +179,7 @@ export default function AdminSettingsPage() {
                <Settings2 className="w-7 h-7 text-primary" />
            </div>
            <div>
-             <h2 className="text-3xl font-sans font-extrabold tracking-tight text-on-surface">Настройки Платформы</h2>
+             <h1 className="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Настройки платформы</h1>
              <p className="text-muted-foreground font-sans mt-1">Определите глобальные переменные для HUBDrive.</p>
            </div>
         </div>
@@ -191,12 +191,12 @@ export default function AdminSettingsPage() {
         <div className="lg:col-span-8 space-y-8">
             
             {/* Business Block */}
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
                <div className="flex items-center gap-3 mb-8">
                   <div className="p-3 bg-primary/10 text-primary rounded-xl">
                       <Building2 className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xl font-sans font-extrabold">Детали Компании</h3>
+                  <h3 className="text-xl font-headline font-extrabold">Детали Компании</h3>
                </div>
                
                <div className="space-y-6">
@@ -223,12 +223,12 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Config Block */}
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
                <div className="flex items-center gap-3 mb-8">
                   <div className="p-3 bg-primary/10 text-primary rounded-xl">
                       <Wallet className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xl font-sans font-extrabold">Региональные настройки</h3>
+                  <h3 className="text-xl font-headline font-extrabold">Региональные настройки</h3>
                </div>
                
                <div className="space-y-6">
@@ -252,14 +252,14 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Exchange Rates Block */}
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
                <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                      <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
                          <DollarSign className="w-5 h-5" />
                      </div>
                      <div>
-                       <h3 className="text-xl font-sans font-extrabold">Курс валют</h3>
+                       <h3 className="text-xl font-headline font-extrabold">Курс валют</h3>
                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Обновляется автоматически раз в день</p>
                      </div>
                   </div>
@@ -278,11 +278,11 @@ export default function AdminSettingsPage() {
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-surface-container-low p-6 rounded-2xl">
                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">USD → CNY (юань)</p>
-                       <p className="text-3xl font-sans font-extrabold">¥ {rates.usdCny}</p>
+                       <p className="text-3xl font-headline font-extrabold">¥ {rates.usdCny}</p>
                     </div>
                     <div className="bg-surface-container-low p-6 rounded-2xl">
                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">USD → KZT (тенге)</p>
-                       <p className="text-3xl font-sans font-extrabold">₸ {rates.usdKzt.toLocaleString("ru-RU")}</p>
+                       <p className="text-3xl font-headline font-extrabold">₸ {rates.usdKzt.toLocaleString("ru-RU")}</p>
                     </div>
                     <p className="sm:col-span-2 text-[11px] text-muted-foreground">
                        Обновлено: {new Date(rates.updatedAt).toLocaleString("ru-RU")} · источник: {rates.source}. Курс используется для пересчёта цен: юани → доллары при импорте, доллары → тенге для бюджетов фильтров.
@@ -294,13 +294,13 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Managers Block */}
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
                <div className="flex items-center gap-3 mb-8">
                   <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
                       <UsersRound className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-sans font-extrabold">Менеджеры</h3>
+                    <h3 className="text-xl font-headline font-extrabold">Менеджеры</h3>
                     <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Назначаются на лидов в очереди</p>
                   </div>
                </div>
@@ -366,12 +366,12 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Analytics Block */}
-            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
                <div className="flex items-center gap-3 mb-8">
                   <div className="p-3 bg-purple-500/10 text-purple-500 rounded-xl">
                       <Activity className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xl font-sans font-extrabold">Интеграции</h3>
+                  <h3 className="text-xl font-headline font-extrabold">Интеграции</h3>
                </div>
                
                <div>
@@ -390,22 +390,22 @@ export default function AdminSettingsPage() {
 
         {/* Action Panel Sidebar */}
         <div className="lg:col-span-4 space-y-6">
-             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[2rem] shadow-sm border border-border/50 sticky top-8">
-                 <h4 className="font-sans font-extrabold text-lg mb-6">Действия</h4>
-                 <button 
+             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-border/50 sticky top-8">
+                 <h4 className="font-headline font-extrabold text-lg mb-6">Действия</h4>
+                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full py-4 rounded-full bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-sans font-bold text-sm shadow-md transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center"
+                  className="w-full py-4 rounded-xl bg-primary text-white font-headline font-bold text-sm shadow-md transition-all hover:opacity-90 active:scale-[0.99] disabled:opacity-50 flex items-center justify-center"
                  >
-                   {isSaving ? "Сохранение..." : "Сохранить конфигурацию"}
+                   {isSaving ? "Сохранение..." : "Сохранить настройки"}
                  </button>
 
                  <div className="mt-8 space-y-4 pt-6 border-t border-border/50">
                     <div className="flex items-center gap-3 text-sm font-medium">
-                       <ShieldCheck className="w-4 h-4 text-emerald-500" /> API Synchronized
+                       <ShieldCheck className="w-4 h-4 text-emerald-500" /> Соединение с API активно
                     </div>
                     <div className="flex items-center gap-3 text-sm font-medium">
-                       <HardDrive className="w-4 h-4 text-emerald-500" /> Prisma Store Active
+                       <HardDrive className="w-4 h-4 text-emerald-500" /> База данных подключена
                     </div>
                  </div>
              </div>
