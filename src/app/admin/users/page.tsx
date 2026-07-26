@@ -167,7 +167,6 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-4">Username</th>
                   <th className="px-6 py-4">Роль</th>
                   <th className="px-6 py-4">Присоединился</th>
-                  <th className="px-6 py-4">Иконка</th>
                   <th className="px-6 py-4 text-right">Управление</th>
                 </tr>
               </thead>
@@ -192,11 +191,6 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-5 text-muted-foreground">{new Date(user.createdAt).toLocaleDateString('ru-RU')}</td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-tight">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Акт.
-                        </div>
-                      </td>
                        <td className="px-6 py-5 rounded-r-2xl text-right">
                          <div className="flex items-center justify-end gap-3">
                            <button 
@@ -231,7 +225,7 @@ export default function AdminUsersPage() {
                 })}
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">Никого не найдено</td>
+                    <td colSpan={5} className="text-center py-12 text-muted-foreground text-sm">Никого не найдено</td>
                   </tr>
                 )}
               </tbody>

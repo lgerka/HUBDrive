@@ -50,12 +50,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 // Verify again
                 const verifyRes = await fetch('/api/admin/ping');
                 if (verifyRes.ok) setIsAuthorized(true);
-                else setLoginError('Login successful, but authorization ping failed.');
+                else setLoginError('Вход выполнен, но проверка сессии не прошла. Обновите страницу.');
             } else {
-                setLoginError('Invalid password');
+                setLoginError('Неверный пароль');
             }
         } catch {
-            setLoginError('Network error');
+            setLoginError('Ошибка сети — попробуйте ещё раз');
         } finally {
             setIsLoggingIn(false);
         }
@@ -73,25 +73,26 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="bg-white p-8 rounded-xl shadow-sm border max-w-sm w-full">
-                    <h1 className="text-xl font-bold mb-6 text-center text-slate-800">Admin Login</h1>
+                    <h1 className="text-xl font-bold mb-1 text-center text-slate-800">Админка HUBDrive</h1>
+                    <p className="text-sm text-slate-500 text-center mb-6">Введите пароль администратора</p>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
-                            <input 
-                                type="password" 
+                            <input
+                                type="password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
-                                placeholder="Enter admin password"
-                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                placeholder="Пароль"
+                                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                                 required
                             />
                         </div>
                         {loginError && <p className="text-red-500 text-sm font-medium">{loginError}</p>}
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={isLoggingIn}
-                            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                            className="w-full bg-primary hover:opacity-90 active:scale-[0.99] text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-50"
                         >
-                            {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Login"}
+                            {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Войти"}
                         </button>
                     </form>
                 </div>
@@ -115,20 +116,20 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-surface text-on-surface flex flex-col md:flex-row antialiased font-body">
             <aside className="w-full md:w-64 md:fixed left-0 top-0 md:h-screen bg-slate-50 border-r flex flex-col p-4 gap-2 z-50">
-                <div className="mb-8 px-4 hidden md:block">
-                    <h1 className="text-lg font-black tracking-tighter text-orange-700">Ethereal Showroom</h1>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Admin Console</p>
+                <div className="mb-6 px-4 pt-2 hidden md:block">
+                    <h1 className="text-lg font-black tracking-tighter text-primary">HUBDrive</h1>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Панель управления</p>
                 </div>
-                <nav className="p-4 space-y-1 flex flex-row md:flex-col overflow-x-auto">
+                <nav className="space-y-1 flex flex-row md:flex-col overflow-x-auto">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
                         return (
-                            <Link 
-                                key={item.href} 
+                            <Link
+                                key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "px-4 py-3 rounded-lg text-sm font-bold whitespace-nowrap transition-all flex items-center gap-3",
-                                    isActive ? "text-orange-700 bg-white shadow-sm" : "text-slate-500 hover:text-orange-600 hover:bg-orange-50/50 font-medium"
+                                    "px-4 py-3 rounded-lg text-sm whitespace-nowrap transition-all flex items-center gap-3",
+                                    isActive ? "text-primary bg-white shadow-sm font-bold" : "text-slate-500 hover:text-primary hover:bg-orange-50/50 font-medium"
                                 )}
                             >
                                 <item.icon className="w-5 h-5" />

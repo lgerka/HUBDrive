@@ -83,7 +83,7 @@ export default function AboutAdminPage() {
             {/* Content Canvas */}
             <div className="pt-8 px-4 md:px-12 max-w-[1200px] mx-auto">
                 <div className="flex flex-col mb-10 gap-2">
-                    <h2 className="text-3xl md:text-[3.5rem] font-extrabold font-headline tracking-tight text-on-surface leading-tight">О компании (About)</h2>
+                    <h2 className="text-3xl md:text-4xl font-extrabold font-headline tracking-tight text-on-surface leading-tight">О компании (About)</h2>
                     <p className="text-slate-500 font-body text-lg max-w-2xl">
                         Этот контент будет транслироваться во вкладке "О компании" публичного приложения HUBDrive. Убедитесь в точности фактов.
                     </p>

@@ -73,7 +73,7 @@ export default function LeadsPage() {
     }
 
     return (
-        <div className="space-y-8 max-w-[1400px] pb-10">
+        <div className="space-y-8 max-w-[1400px] w-full px-8 pt-8 pb-12">
             {/* Header section matching Noble Kinetic aesthetic */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -102,11 +102,11 @@ export default function LeadsPage() {
                     <div className="text-sm font-bold text-outline uppercase tracking-widest mb-1">Всего лидов</div>
                     <div className="text-3xl font-headline font-black text-on-surface">{leads.length}</div>
                 </div>
-                <div className="bg-surface-container-lowest p-6 rounded-3xl border border-[#ffdbca] relative overflow-hidden">
+                <div className="bg-surface-container-lowest p-6 rounded-3xl border border-orange-200 relative overflow-hidden">
                     <div className="absolute right-[-10px] top-[-10px] opacity-10">
                         <Flame className="w-24 h-24 text-primary" />
                     </div>
-                    <div className="text-sm font-bold text-primary uppercase tracking-widest mb-1 relative z-10">Горячие (HOT)</div>
+                    <div className="text-sm font-bold text-primary uppercase tracking-widest mb-1 relative z-10">Горячие</div>
                     <div className="text-3xl font-headline font-black text-primary-container relative z-10">
                         {leads.filter(l => l.level === 'HOT').length}
                     </div>
@@ -145,25 +145,25 @@ export default function LeadsPage() {
                                     onClick={() => router.push(`/admin/leads/${lead.id}`)}
                                     className="hover:bg-surface-bright transition-colors group cursor-pointer"
                                 >
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-5 align-top">
                                         <div className="flex flex-col">
                                             <span className="font-bold text-on-surface text-[15px]">{lead.name}</span>
                                             <span className="text-sm text-on-surface-variant mt-0.5">{lead.phone || "Телефон не указан"}</span>
                                             <span className="text-xs text-outline mt-1">{new Date(lead.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-5 align-top">
                                         <div className="flex flex-col gap-2">
                                             <div className={cn(
                                                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold w-fit",
-                                                lead.level === 'HOT' ? "bg-[#ffdbca] text-[#9d4300]" :
+                                                lead.level === 'HOT' ? "bg-orange-100 text-orange-800" :
                                                 lead.level === 'WARM' ? "bg-amber-100 text-amber-800" :
                                                 "bg-slate-100 text-slate-700"
                                             )}>
                                                 {lead.level === 'HOT' && <Flame className="w-3.5 h-3.5" />}
                                                 {lead.level === 'WARM' && <ThermometerSun className="w-3.5 h-3.5" />}
                                                 {lead.level === 'COLD' && <Snowflake className="w-3.5 h-3.5" />}
-                                                {lead.level} ({lead.score})
+                                                {lead.level === 'HOT' ? 'Горячий' : lead.level === 'WARM' ? 'Тёплый' : 'Холодный'} ({lead.score})
                                             </div>
                                             
                                             {lead.reasons.length > 0 && (
@@ -215,7 +215,7 @@ export default function LeadsPage() {
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-6 py-5 align-top mb-auto text-right">
+                                    <td className="px-6 py-5 align-top text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             {/* Fallback to telegramId logic or a direct copy click if username absent */}
                                             <button 
@@ -242,7 +242,7 @@ export default function LeadsPage() {
                                                         }
                                                     }
                                                 }}
-                                                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                className="inline-flex items-center justify-center h-10 w-10 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                                                 title="Удалить лида"
                                             >
                                                 <Trash2 className="w-4 h-4" />

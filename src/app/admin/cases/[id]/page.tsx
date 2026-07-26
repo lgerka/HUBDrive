@@ -183,7 +183,7 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
       {/* Content Canvas */}
       <div className="pt-8 px-4 md:px-12 pb-24 max-w-[1600px] mx-auto">
         <div className="flex flex-col mb-10 gap-2">
-          <h2 className="text-3xl md:text-[3.5rem] font-extrabold font-headline tracking-tight text-on-surface leading-tight">
+          <h2 className="text-3xl md:text-4xl font-extrabold font-headline tracking-tight text-on-surface leading-tight">
              {isNew ? "Запись о выдаче" : "Редактирование кейса"}
           </h2>
           <p className="text-slate-500 font-body text-lg max-w-2xl">
@@ -249,11 +249,11 @@ export default function AdminCaseEditor({ params }: { params: Promise<{ id: stri
                   <div className="relative">
                     <input 
                       type="number"
-                      className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold outline-none transition-all placeholder:text-slate-300 text-lg" 
+                      className="w-full bg-surface-container-low/50 border-none rounded-2xl pl-4 pr-10 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-bold outline-none transition-all placeholder:text-slate-300 text-lg" 
                       value={formData.price || ""} 
                       onChange={e => setFormData({...formData, price: Number(e.target.value)})} 
                     />
-                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₸</span>
+                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400 pointer-events-none">₸</span>
                   </div>
                 </div>
 

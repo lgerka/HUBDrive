@@ -72,7 +72,7 @@ export default function AdminCasesPage() {
       <div className="pt-8 px-4 md:px-12 max-w-[1600px] mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
           <div className="space-y-1">
-            <h2 className="text-3xl md:text-[3.5rem] font-extrabold font-headline tracking-tight text-on-surface leading-tight">Отзывы & Выдачи</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold font-headline tracking-tight text-on-surface leading-tight">Отзывы & Выдачи</h2>
             <p className="text-slate-500 font-body text-lg max-w-2xl">Истории успешно доставленных автомобилей. Эти данные отображаются в публичном приложении и повышают доверие.</p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function AdminCasesPage() {
                    </div>
                    <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                         <span className="text-[10px] uppercase font-bold font-label tracking-widest text-primary-container">{c.clientName}</span>
+                         <span className="text-[10px] uppercase font-bold font-label tracking-widest text-slate-600">{c.clientName}</span>
                          <span className="text-xs font-body text-slate-400">{c.city || 'Город не указан'}</span>
                       </div>
                       <h3 className="font-headline font-bold text-lg text-slate-900 leading-tight">

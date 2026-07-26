@@ -23,8 +23,9 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
         return;
     }
 
-    // PRD §18: технические статусы не должны генерировать уведомления
-    if (vehicle.status === 'hidden') return;
+    // PRD §18: технические статусы не должны генерировать уведомления.
+    // Проданные/переданные авто тоже не рассылаем — их уже нельзя купить.
+    if (vehicle.status === 'hidden' || vehicle.status === 'sold' || vehicle.status === 'delivered') return;
 
     try {
         // Фильтры с этой маркой + фильтры без марки («Не выбрано» подходит под любую)

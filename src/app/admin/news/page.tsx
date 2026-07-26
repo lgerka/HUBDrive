@@ -102,8 +102,8 @@ export default function AdminNewsPage() {
           <p className="text-3xl font-sans font-extrabold tracking-tight">{news.filter(n => n.videoUrl).length}</p>
         </div>
         <div className="bg-gradient-to-br from-[#9d4300] to-[#f97316] p-6 rounded-3xl shadow-md text-white">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-2">Просмотры</p>
-          <p className="text-3xl font-sans font-extrabold tracking-tight">48.2k</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-2">Черновики</p>
+          <p className="text-3xl font-sans font-extrabold tracking-tight">{news.length - publishedCount}</p>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ export default function AdminNewsPage() {
                       )}
                     </td>
                     <td className="px-6 py-5 rounded-r-2xl text-right">
-                      <div className="flex justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end space-x-1 transition-opacity">
                         <button onClick={() => router.push(`/admin/news/${n.id}`)} className="p-2.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
                           <Edit className="w-4 h-4" />
                         </button>

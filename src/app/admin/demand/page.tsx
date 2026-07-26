@@ -50,7 +50,7 @@ export default function AdminDemandPage() {
     new Intl.NumberFormat("ru-RU", { style: "currency", currency: "KZT", maximumFractionDigits: 0 }).format(val);
 
   return (
-    <div className="space-y-8 max-w-7xl">
+    <div className="space-y-8 max-w-[1400px] w-full px-8 pt-8 pb-12">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
         <div>
           <h1 className="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Аналитика Спроса</h1>
@@ -196,7 +196,7 @@ export default function AdminDemandPage() {
                   </div>
                   <span className="font-headline font-bold text-sm text-on-surface">{city.name}</span>
                 </div>
-                <span className="text-xl font-headline font-extrabold text-slate-300">{city.count}</span>
+                <span className="text-sm font-bold bg-white px-3 py-1 rounded-lg border border-slate-200 text-slate-600 shadow-sm">{city.count}</span>
               </div>
             ))}
             {data.topCities.length === 0 && <p className="text-slate-400 text-sm font-medium py-4 text-center">Нет данных</p>}
