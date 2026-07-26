@@ -196,6 +196,7 @@ model Vehicle {
 
   trimOptions      Json?
   priceKeyTurnKZT  Int
+  priceUSD         Int?
   priceChina       Int?
   pricePort        Int?
   deliveryEtaWeeks Int?

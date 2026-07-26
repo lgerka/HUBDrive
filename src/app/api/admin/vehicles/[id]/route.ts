@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
+import { getExchangeRates } from '@/lib/server/exchange';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +28,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await request.json();
+
+        // Цена в $ первична; тенге пересчитываем по курсу, если явно не передана
+        const priceUSD = Number(body.priceUSD) || null;
+        let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
+        if (priceUSD && !priceKeyTurnKZT) {
+            const rates = await getExchangeRates();
+            priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+        }
+
         const updated = await prisma.vehicle.update({
             where: { id },
             data: {
@@ -35,7 +45,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 generation: body.generation || null,
                 vin: body.vin || null,
                 year: Number(body.year),
-                priceKeyTurnKZT: Number(body.priceKeyTurnKZT),
+                priceUSD,
+                priceKeyTurnKZT,
                 priceChina: Number(body.priceChina) || null,
                 pricePort: Number(body.pricePort) || null,
                 deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,

@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive, UsersRound, Plus, Trash2 } from "lucide-react";
+import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive, UsersRound, Plus, Trash2, RefreshCw, DollarSign } from "lucide-react";
 
 interface AppSettings {
   companyName: string;
@@ -20,6 +20,13 @@ interface Manager {
   _count?: { assignedLeads: number };
 }
 
+interface ExchangeRates {
+  usdCny: number;
+  usdKzt: number;
+  updatedAt: string;
+  source: string;
+}
+
 export default function AdminSettingsPage() {
   const { initData } = useTelegram();
   const [settings, setSettings] = useState<AppSettings>({
@@ -34,15 +41,35 @@ export default function AdminSettingsPage() {
   const [newManagerName, setNewManagerName] = useState("");
   const [newManagerUsername, setNewManagerUsername] = useState("");
   const [isAddingManager, setIsAddingManager] = useState(false);
+  const [rates, setRates] = useState<ExchangeRates | null>(null);
+  const [isRefreshingRates, setIsRefreshingRates] = useState(false);
+
+  async function handleRefreshRates() {
+    setIsRefreshingRates(true);
+    try {
+      const res = await fetch("/api/admin/exchange-rates", {
+        method: "POST",
+        headers: { "x-telegram-init-data": initData },
+      });
+      if (res.ok) setRates(await res.json());
+      else alert("Не удалось обновить курс");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRefreshingRates(false);
+    }
+  }
 
   useEffect(() => {
     async function loadSettings() {
       try {
         const headers = { "x-telegram-init-data": initData };
-        const [settingsRes, managersRes] = await Promise.all([
+        const [settingsRes, managersRes, ratesRes] = await Promise.all([
           fetch("/api/admin/settings", { headers }),
           fetch("/api/admin/managers", { headers }),
+          fetch("/api/admin/exchange-rates", { headers }),
         ]);
+        if (ratesRes.ok) setRates(await ratesRes.json());
         if (settingsRes.ok) {
           const data = await settingsRes.json();
           setSettings({
@@ -222,6 +249,48 @@ export default function AdminSettingsPage() {
                     </select>
                  </div>
                </div>
+            </div>
+
+            {/* Exchange Rates Block */}
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-[2rem] shadow-sm border border-border/50">
+               <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                     <div className="p-3 bg-blue-500/10 text-blue-600 rounded-xl">
+                         <DollarSign className="w-5 h-5" />
+                     </div>
+                     <div>
+                       <h3 className="text-xl font-sans font-extrabold">Курс валют</h3>
+                       <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Обновляется автоматически раз в день</p>
+                     </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRefreshRates}
+                    disabled={isRefreshingRates}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container-high font-bold text-sm transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={isRefreshingRates ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
+                    Обновить
+                  </button>
+               </div>
+
+               {rates ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-surface-container-low p-6 rounded-2xl">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">USD → CNY (юань)</p>
+                       <p className="text-3xl font-sans font-extrabold">¥ {rates.usdCny}</p>
+                    </div>
+                    <div className="bg-surface-container-low p-6 rounded-2xl">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">USD → KZT (тенге)</p>
+                       <p className="text-3xl font-sans font-extrabold">₸ {rates.usdKzt.toLocaleString("ru-RU")}</p>
+                    </div>
+                    <p className="sm:col-span-2 text-[11px] text-muted-foreground">
+                       Обновлено: {new Date(rates.updatedAt).toLocaleString("ru-RU")} · источник: {rates.source}. Курс используется для пересчёта цен: юани → доллары при импорте, доллары → тенге для бюджетов фильтров.
+                    </p>
+                 </div>
+               ) : (
+                 <p className="text-sm text-muted-foreground">Курс ещё не загружался — нажмите «Обновить».</p>
+               )}
             </div>
 
             {/* Managers Block */}

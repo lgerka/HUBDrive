@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { notifyUsersAboutMatch } from '@/lib/server/telegram/notifier';
 import { verifyAdmin } from '@/lib/server/admin';
+import { getExchangeRates } from '@/lib/server/exchange';
 
 export async function GET(request: Request) {
     try {
@@ -43,6 +44,16 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
+
+        // Основная вводимая цена — в долларах; тенге считаем по актуальному курсу
+        // (нужен для бюджетов фильтров и обратной совместимости)
+        const priceUSD = Number(body.priceUSD) || null;
+        let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
+        if (priceUSD && !priceKeyTurnKZT) {
+            const rates = await getExchangeRates();
+            priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
+        }
+
         const vehicle = await prisma.vehicle.create({
             data: {
                 brand: body.brand,
@@ -50,7 +61,8 @@ export async function POST(request: Request) {
                 generation: body.generation || undefined,
                 vin: body.vin || null,
                 year: Number(body.year),
-                priceKeyTurnKZT: Number(body.priceKeyTurnKZT),
+                priceUSD,
+                priceKeyTurnKZT,
                 priceChina: Number(body.priceChina) || null,
                 pricePort: Number(body.pricePort) || null,
                 deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,

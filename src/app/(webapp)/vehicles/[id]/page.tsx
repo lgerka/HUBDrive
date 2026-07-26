@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { trackEvent } from '@/lib/api/track';
+import { fmtUsd } from '@/lib/price';
 import { SUPPORT_PHONE } from '@/constants/contacts';
 
 import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
@@ -221,7 +222,16 @@ export default function VehicleDetailPage() {
                             </div>
                         </div>
                         <div className="text-right shrink-0">
-                            <p className="font-headline text-2xl font-black text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>
+                            {vehicle.priceUSD && vehicle.priceUSD > 0 ? (
+                                <>
+                                    <p className="font-headline text-2xl font-black text-on-surface">{fmtUsd(vehicle.priceUSD)}</p>
+                                    {vehicle.priceKeyTurnKZT > 0 && (
+                                        <p className="text-xs text-on-surface-variant font-medium">≈ {formatPrice(vehicle.priceKeyTurnKZT)}</p>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="font-headline text-2xl font-black text-on-surface">{formatPrice(vehicle.priceKeyTurnKZT)}</p>
+                            )}
                         </div>
                     </div>
 
