@@ -12,6 +12,7 @@ import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { CatalogHeader } from '@/components/hubdrive/catalog/catalog-header';
 import { RecommendationsSection } from '@/components/hubdrive/catalog/recommendations-section';
 import { trackEvent } from '@/lib/api/track';
+import { useInfiniteScroll } from '@/lib/hooks/use-scroll-reveal';
 
 function CatalogContent() {
     const { q, status, brand, sort, setQuery, resetFilters, activeFiltersCount } = useCatalogQuery();
@@ -49,6 +50,11 @@ function CatalogContent() {
         fetchVehicles();
         trackEvent('catalog_opened'); // PRD §21
     }, []);
+
+    // Сбрасываем ленту в начало, когда меняются поиск/фильтры/сортировка
+    useEffect(() => {
+        setVisibleCount(10);
+    }, [q, status, brand, sort]);
 
     // Debounce search input
     useEffect(() => {
@@ -93,6 +99,14 @@ function CatalogContent() {
             return 0;
         });
     }, [q, status, brand, sort, vehicles]);
+
+    const hasMore = filteredVehicles.length > visibleCount;
+
+    // Подгружаем следующие 10 карточек, когда маячок под списком приблизился к экрану
+    const sentinelRef = useInfiniteScroll(
+        () => setVisibleCount(c => (c < filteredVehicles.length ? c + 10 : c)),
+        { enabled: hasMore && !isLoading }
+    );
 
     if (error) {
         return (
@@ -154,14 +168,10 @@ function CatalogContent() {
                         />
                     )}
 
-                    {filteredVehicles.length > visibleCount && !isLoading && (
-                        <div className="flex justify-center pt-6 pb-8">
-                            <button
-                                onClick={() => setVisibleCount(c => c + 10)}
-                                className="group flex items-center gap-3 bg-surface-container-low text-on-surface-variant font-bold px-10 py-4 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200"
-                            >
-                                <span>Показать еще ({filteredVehicles.length - visibleCount})</span>
-                            </button>
+                    {/* Догрузка по скроллу: маячок ловится IntersectionObserver'ом выше */}
+                    {hasMore && !isLoading && (
+                        <div ref={sentinelRef} className="flex justify-center pt-6 pb-8">
+                            <Loader2 className="h-6 w-6 animate-spin text-on-surface-variant/50" />
                         </div>
                     )}
                 </section>

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
 import { BOT_APP_URL } from '@/constants/contacts';
+import { handlePhoneInput, isPhoneComplete } from '@/lib/phone';
+import { TelegramLoginButton } from '@/components/hubdrive/telegram/telegram-login-button';
 
 export default function OnboardingProfilePage() {
     const { user, initData } = useTelegram();
@@ -25,54 +27,20 @@ export default function OnboardingProfilePage() {
     }, [user]);
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let val = e.target.value;
-        const isDeleting = val.length < phone.length;
-        
-        let v = val.replace(/\D/g, '');
-        if (v.startsWith('7') || v.startsWith('8')) {
-            v = v.substring(1);
-        }
-        
-        if (isDeleting && v.length === 0) {
-            setPhone('');
-            setError('');
-            return;
-        }
-
-        if (v.length === 0) {
-            setPhone('+7 ');
-            setError('');
-            return;
-        }
-
-        let res = '+7 ';
-        if (v.length > 0) res += `(${v.substring(0, 3)}`;
-        if (v.length >= 3) res += `) ${v.substring(3, 6)}`;
-        if (v.length >= 6) res += `-${v.substring(6, 8)}`;
-        if (v.length >= 8) res += `-${v.substring(8, 10)}`;
-        
-        setPhone(res);
+        setPhone(handlePhoneInput(phone, e.target.value));
         setError('');
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         setError('');
-
-        // Вне Telegram (например, приложение открыли с иконки на домашнем экране)
-        // подписанных данных пользователя нет — сохранить профиль невозможно.
-        if (!initData) {
-            setError('needs-telegram');
-            return;
-        }
 
         if (!name.trim()) {
             setError('Пожалуйста, введите ваше имя');
             return;
         }
 
-        const phoneDigits = phone.replace(/\D/g, '');
-        if (phoneDigits.length < 11) {
+        if (!isPhoneComplete(phone)) {
             setError('Пожалуйста, введите полный номер телефона');
             return;
         }
@@ -88,6 +56,11 @@ export default function OnboardingProfilePage() {
                 body: JSON.stringify({ name, phone })
             });
             const data = await res.json();
+            if (res.status === 401) {
+                // Ни Telegram WebApp, ни веб-сессии — предлагаем войти через Telegram
+                setError('needs-telegram');
+                return;
+            }
             if (data.ok) {
                 if (initData) {
                     await fetchProfile(initData);
@@ -177,16 +150,17 @@ export default function OnboardingProfilePage() {
                     {error === 'needs-telegram' ? (
                         <div className="p-5 bg-[#f97316]/10 rounded-2xl backdrop-blur-sm space-y-3">
                             <p className="text-sm font-medium text-foreground">
-                                Профиль сохраняется через Telegram — так менеджер сможет вам написать.
-                                Откройте HUBDrive в Telegram и заполните данные там, это займёт полминуты.
+                                Подтвердите, что это вы — через Telegram. Так менеджер будет знать,
+                                кому писать, а вам не придётся вводить код.
                             </p>
+                            <TelegramLoginButton onSuccess={() => { setError(''); handleSubmit(); }} />
                             <a
                                 href={BOT_APP_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center w-full h-12 rounded-2xl bg-[#229ED9] text-white font-bold text-sm active:scale-[0.98] transition-transform"
+                                className="block text-center text-xs font-medium text-muted-foreground underline underline-offset-4"
                             >
-                                Открыть в Telegram
+                                Или откройте HUBDrive прямо в Telegram
                             </a>
                         </div>
                     ) : error ? (

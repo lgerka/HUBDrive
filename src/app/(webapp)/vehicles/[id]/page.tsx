@@ -17,6 +17,7 @@ import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
 import { VehicleSpecsGrid } from '@/components/hubdrive/vehicles/vehicle-specs-grid';
 import { VehicleInfoBlocks } from '@/components/hubdrive/vehicles/vehicle-info-blocks';
 import { VehicleCtaBar } from '@/components/hubdrive/vehicles/vehicle-cta-bar';
+import { SimilarRequestBlock, SimilarRequestSheet } from '@/components/hubdrive/vehicles/similar-request';
 
 export default function VehicleDetailPage() {
     const params = useParams();
@@ -34,6 +35,7 @@ export default function VehicleDetailPage() {
         return Math.abs(hash) % 20 + 5;
     }, [id]);
 
+    const [similarOpen, setSimilarOpen] = useState(false);
     const [vehicle, setVehicle] = useState<Vehicle | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
@@ -275,25 +277,22 @@ export default function VehicleDetailPage() {
 
                 <VehicleSpecsGrid vehicle={vehicle} />
 
-                {/* PRD §10: CTA «Заказать похожую машину» — создаёт фильтр с предзаполнением */}
-                <section className="px-6 pb-8">
-                    <button
-                        onClick={() => router.push(`/filters/new?brand=${encodeURIComponent(vehicle.brand)}&model=${encodeURIComponent(vehicle.model)}`)}
-                        className="w-full py-4 rounded-2xl border-2 border-primary/30 text-primary font-bold text-sm hover:bg-primary/5 active:scale-[0.98] transition-all"
-                    >
-                        Заказать похожую машину
-                    </button>
-                    <p className="text-xs text-on-surface-variant text-center mt-2">
-                        Создадим фильтр с параметрами этого авто — пришлём похожие предложения
-                    </p>
-                </section>
+                {/* Заявка на подбор: проявляется при прокрутке, фильтр не создаёт */}
+                <SimilarRequestBlock vehicleId={vehicle.id} brand={vehicle.brand} model={vehicle.model} />
             </main>
 
+            {similarOpen && (
+                <SimilarRequestSheet
+                    vehicleId={vehicle.id}
+                    brand={vehicle.brand}
+                    model={vehicle.model}
+                    onClose={() => setSimilarOpen(false)}
+                />
+            )}
+
             <VehicleCtaBar
-                // Проданное авто нельзя купить — главная кнопка ведёт на заказ похожего
-                onContact={vehicle.status === 'sold'
-                    ? () => router.push(`/filters/new?brand=${encodeURIComponent(vehicle.brand)}&model=${encodeURIComponent(vehicle.model)}`)
-                    : handleContact}
+                // Проданное авто нельзя купить — главная кнопка предлагает подбор похожего
+                onContact={vehicle.status === 'sold' ? () => setSimilarOpen(true) : handleContact}
                 primaryLabel={vehicle.status === 'sold' ? 'Заказать похожую' : undefined}
                 isContactLoading={isSending}
                 onCall={() => {

@@ -6,6 +6,7 @@ import {
     Truck, Wallet, BellRing, SlidersHorizontal, Sparkles, Home, Search, Eye, CalendarClock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MINI_APP_URL } from '@/constants/contacts';
 
 export type OnboardingIntent = 'viewing' | 'three_months' | 'ready_now';
 
@@ -243,7 +244,9 @@ function SlideQuiz({ intent, onSelect }: { intent: OnboardingIntent | null; onSe
 function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; onFinish: (to: 'filters' | 'home') => void }) {
     const [homeScreenDone, setHomeScreenDone] = useState(false);
     const [homeStatus, setHomeStatus] = useState<string>('unknown');
+    const [showManual, setShowManual] = useState(false);
     const tg = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined;
+    const inTelegram = Boolean(tg?.initData) || (tg?.platform && tg.platform !== 'unknown');
 
     // Нативный Telegram API (Bot API 8.0+): ярлык мини-аппа на рабочий стол телефона,
     // без Safari — Telegram сам показывает системный диалог.
@@ -256,21 +259,30 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const canAddToHome =
-        typeof tg?.addToHomeScreen === 'function' &&
-        homeStatus !== 'unsupported' &&
-        homeStatus !== 'added';
-
-    // iOS не даёт добавить ярлык напрямую: Telegram откроет Safari со своей подсказкой,
-    // которая не совпадает с новым дизайном Safari — даём пользователю точные шаги.
+    const alreadyAdded = homeStatus === 'added' || homeScreenDone;
+    // Нативное добавление есть не везде: старые клиенты и Telegram Desktop его не умеют
+    const nativeAvailable = typeof tg?.addToHomeScreen === 'function' && homeStatus !== 'unsupported';
     const isIOS = tg?.platform === 'ios';
 
     const handleAddToHome = () => {
+        if (!nativeAvailable) {
+            setShowManual(true);
+            return;
+        }
         try {
             tg.addToHomeScreen();
             setHomeScreenDone(true);
         } catch (e) {
             console.error('addToHomeScreen failed', e);
+            setShowManual(true);
+        }
+    };
+
+    const copyAppLink = async () => {
+        try {
+            await navigator.clipboard.writeText(MINI_APP_URL);
+        } catch {
+            /* буфер недоступен — ссылка всё равно показана рядом */
         }
     };
 
@@ -291,22 +303,41 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto w-full">
-                {canAddToHome && (
-                    <>
+                {alreadyAdded ? (
+                    <div className="w-full py-3.5 rounded-full bg-green-50 text-green-700 font-bold flex items-center justify-center gap-2">
+                        <Check className="w-5 h-5" />
+                        HUBDrive уже на экране «Домой»
+                    </div>
+                ) : (
+                    <button
+                        onClick={handleAddToHome}
+                        className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    >
+                        <Home className="w-5 h-5 text-primary" />
+                        Добавить на экран «Домой»
+                    </button>
+                )}
+
+                {isIOS && nativeAvailable && !alreadyAdded && (
+                    <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
+                        Откроется Safari: нажмите «Поделиться» → «На экран „Домой“»
+                    </p>
+                )}
+
+                {showManual && (
+                    <div className="rounded-2xl bg-surface-container-low p-4 space-y-2 text-left">
+                        <p className="text-xs text-on-surface leading-relaxed">
+                            {inTelegram
+                                ? 'Ваша версия Telegram пока не умеет добавлять ярлык сама. Откройте эту ссылку в браузере телефона и добавьте её на домашний экран:'
+                                : 'Откройте эту ссылку в Telegram, чтобы приложение запускалось с вашим профилем:'}
+                        </p>
                         <button
-                            onClick={handleAddToHome}
-                            disabled={homeScreenDone && !isIOS}
-                            className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
+                            onClick={copyAppLink}
+                            className="w-full py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container text-xs font-bold text-primary active:scale-[0.98] transition-transform"
                         >
-                            <Home className="w-5 h-5 text-primary" />
-                            {homeScreenDone && !isIOS ? 'Готово — HUBDrive на экране Домой' : 'Добавить на экран Домой'}
+                            Скопировать ссылку на приложение
                         </button>
-                        {isIOS && (
-                            <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
-                                Откроется Safari: нажмите «⋯» → «Поделиться» → «На экран „Домой“»
-                            </p>
-                        )}
-                    </>
+                    </div>
                 )}
                 <button
                     onClick={() => onFinish(wantsCar ? 'filters' : 'home')}
