@@ -6,6 +6,22 @@
   html {
     font-size: 13px; /* 81.25% scale down to make everything smaller and fit more content on screen */
   }
+
+  /*
+   * Установленное приложение (иконка на домашнем экране) открывается на весь экран:
+   * статус-бар с часами накладывается на контент, поэтому сдвигаем верхние
+   * фиксированные шапки на высоту «чёлки». В браузере правило не действует.
+   */
+  @media all and (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+    }
+    header.fixed,
+    header.sticky,
+    .pwa-safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+  }
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
