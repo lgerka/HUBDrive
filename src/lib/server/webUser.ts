@@ -1,11 +1,15 @@
 import { User } from '@prisma/client';
 import { prisma } from '@/lib/server/prisma';
 import { verifyInitData } from '@/lib/telegram/verifyInitData';
+import { readSessionUserId } from '@/lib/server/webSession';
 
 /**
- * Резолвит пользователя WebApp по заголовку x-telegram-init-data.
+ * Резолвит пользователя WebApp двумя способами:
+ *  1) заголовок x-telegram-init-data — когда приложение открыто внутри Telegram;
+ *  2) cookie web_session — вход через Telegram Login Widget (иконка на домашнем
+ *     экране, обычный браузер).
  * Создаёт пользователя при первом обращении (upsert по telegramId).
- * Вне Telegram: в development возвращает dev-пользователя, в production — null.
+ * Вне Telegram и без сессии: в development — dev-пользователь, в production — null.
  */
 export async function resolveWebUser(request: Request): Promise<User | null> {
     const initData = request.headers.get('x-telegram-init-data');
@@ -24,6 +28,18 @@ export async function resolveWebUser(request: Request): Promise<User | null> {
                     lastActiveAt: new Date(),
                 },
                 update: { lastActiveAt: new Date() },
+            });
+        }
+    }
+
+    // Вход через Telegram Login Widget — приложение открыто вне Telegram
+    const sessionUserId = readSessionUserId(request);
+    if (sessionUserId) {
+        const user = await prisma.user.findUnique({ where: { id: sessionUserId } });
+        if (user) {
+            return prisma.user.update({
+                where: { id: user.id },
+                data: { lastActiveAt: new Date() },
             });
         }
     }

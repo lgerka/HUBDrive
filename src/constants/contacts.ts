@@ -1,8 +1,11 @@
 // Контакты компании — единая точка правды для всех CTA в приложении.
 // TODO: заменить телефон на реальный номер отдела продаж.
 export const SUPPORT_TELEGRAM_URL = 'https://t.me/hubdrive_support';
-/** Бот-приложение: сюда отправляем, если приложение открыли вне Telegram (например, с иконки PWA). */
-export const BOT_APP_URL = 'https://t.me/HUBDrive_bot';
+/** Бот: сюда отправляем, если приложение открыли вне Telegram (например, с иконки PWA). */
+export const BOT_USERNAME = 'HUBDrive_bot';
+export const BOT_APP_URL = `https://t.me/${BOT_USERNAME}`;
+/** Прямая ссылка на мини-приложение: открывает каталог внутри Telegram, минуя чат. */
+export const MINI_APP_URL = `https://t.me/${BOT_USERNAME}?startapp=catalog`;
 export const SUPPORT_PHONE = '+77000000000';
 export const SUPPORT_PHONE_DISPLAY = '+7 (700) 000-00-00';
 
