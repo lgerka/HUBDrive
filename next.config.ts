@@ -26,6 +26,9 @@ const securityHeaders = [
             "img-src 'self' data: blob: https://images.unsplash.com https://placehold.co https://lh3.googleusercontent.com https://*.supabase.co https://*.vercel.live",
             "connect-src 'self' https://api.telegram.org https://vercel.live https://*.vercel.live wss://*.vercel.live",
             "media-src 'self' https://*.supabase.co",
+            // PWA: манифест и service worker
+            "manifest-src 'self'",
+            "worker-src 'self'",
             "frame-src 'self' https://vercel.live https://www.youtube.com https://www.youtube-nocookie.com",
             "frame-ancestors 'none'",
         ].join('; '),

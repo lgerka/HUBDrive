@@ -2,6 +2,7 @@ import { bot } from './bot';
 import { prisma } from '../prisma';
 import { Vehicle } from '@prisma/client';
 import { pickBestMatch } from '@/lib/matching/pickBestMatch';
+import { getChatIds } from './targets';
 
 const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
 
@@ -124,8 +125,9 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
 
 /** PRD §16.1: «Hot-пользователь получил новое предложение» — служебное сообщение менеджерам */
 export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, score: number) {
-    if (!process.env.ADMIN_TELEGRAM_IDS) return;
-    const adminIds = process.env.ADMIN_TELEGRAM_IDS.split(',').map(id => id.trim()).filter(Boolean);
+    // Горячий лид — это заявка, идёт в чат продаж
+    const adminIds = getChatIds('leads');
+    if (adminIds.length === 0) return;
 
     const dedupKey = `hot_match_${vehicle.id}_${user.id}`;
     const existing = await prisma.notification.findUnique({ where: { dedupKey } });
@@ -163,9 +165,10 @@ export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, sc
 
 /** PRD §16.1: «Создан новый hot-фильтр» — служебное сообщение менеджерам */
 export async function notifyManagerAboutHotLead(user: any, filterTitle?: string) {
-    if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.ADMIN_TELEGRAM_IDS) return;
-
-    const adminIds = process.env.ADMIN_TELEGRAM_IDS.split(',').map(id => id.trim()).filter(id => id);
+    if (!process.env.TELEGRAM_BOT_TOKEN) return;
+    // Новый горячий лид — заявка, идёт в чат продаж
+    const adminIds = getChatIds('leads');
+    if (adminIds.length === 0) return;
 
     const text = `🚨 **Новый Горячий Лид!**\n\n` +
                  `Клиент: ${user.name || user.username || user.telegramId}\n` +

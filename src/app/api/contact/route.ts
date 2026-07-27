@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { validateTelegramWebAppData } from '@/lib/telegram/validate';
 
 import { prisma } from '@/lib/server/prisma';
+import { getChatIds } from '@/lib/server/telegram/targets';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -48,12 +49,12 @@ export async function POST(request: Request) {
         }
 
         // 4. Send to Telegram
-        const rawAdminIds = process.env.ADMIN_TELEGRAM_IDS;
-        if (!rawAdminIds) {
-            console.error('[API] ADMIN_TELEGRAM_IDS not set');
+        // Заявка клиента → чат продаж (TELEGRAM_LEADS_CHAT_ID, фолбэк ADMIN_TELEGRAM_IDS)
+        const adminIds = getChatIds('leads');
+        if (adminIds.length === 0) {
+            console.error('[API] Чат для заявок не настроен: задайте TELEGRAM_LEADS_CHAT_ID');
             return NextResponse.json({ error: 'Manager chat ID not configured' }, { status: 500 });
         }
-        const adminIds = rawAdminIds.split(',').map(id => id.trim()).filter(Boolean);
 
         const price = new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(vehicle.priceKeyTurnKZT);
 

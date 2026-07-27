@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive, UsersRound, Plus, Trash2, RefreshCw, DollarSign } from "lucide-react";
+import { Loader2, Settings2, Building2, Wallet, Activity, ShieldCheck, HardDrive, UsersRound, Plus, Trash2, RefreshCw, DollarSign, Send } from "lucide-react";
 
 interface AppSettings {
   companyName: string;
@@ -27,6 +27,12 @@ interface ExchangeRates {
   source: string;
 }
 
+interface TelegramChannels {
+  leads: { chatIds: string[]; explicit: boolean };
+  tech: { chatIds: string[]; explicit: boolean };
+  botConfigured: boolean;
+}
+
 export default function AdminSettingsPage() {
   const { initData } = useTelegram();
   const [settings, setSettings] = useState<AppSettings>({
@@ -43,6 +49,32 @@ export default function AdminSettingsPage() {
   const [isAddingManager, setIsAddingManager] = useState(false);
   const [rates, setRates] = useState<ExchangeRates | null>(null);
   const [isRefreshingRates, setIsRefreshingRates] = useState(false);
+  const [tgChannels, setTgChannels] = useState<TelegramChannels | null>(null);
+  const [testingChannel, setTestingChannel] = useState<"leads" | "tech" | null>(null);
+
+  async function handleTestChannel(channel: "leads" | "tech") {
+    setTestingChannel(channel);
+    try {
+      const res = await fetch("/api/admin/telegram-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
+        body: JSON.stringify({ channel }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.sent > 0
+          ? `Тестовое сообщение отправлено (${data.sent} чат(ов)). Проверьте Telegram.`
+          : `Не доставлено: ${data.results?.[0]?.error || "неизвестная ошибка"}`);
+      } else {
+        alert(data.error || "Не удалось отправить");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка сети");
+    } finally {
+      setTestingChannel(null);
+    }
+  }
 
   async function handleRefreshRates() {
     setIsRefreshingRates(true);
@@ -64,12 +96,14 @@ export default function AdminSettingsPage() {
     async function loadSettings() {
       try {
         const headers = { "x-telegram-init-data": initData };
-        const [settingsRes, managersRes, ratesRes] = await Promise.all([
+        const [settingsRes, managersRes, ratesRes, tgRes] = await Promise.all([
           fetch("/api/admin/settings", { headers }),
           fetch("/api/admin/managers", { headers }),
           fetch("/api/admin/exchange-rates", { headers }),
+          fetch("/api/admin/telegram-test", { headers }),
         ]);
         if (ratesRes.ok) setRates(await ratesRes.json());
+        if (tgRes.ok) setTgChannels(await tgRes.json());
         if (settingsRes.ok) {
           const data = await settingsRes.json();
           setSettings({
@@ -291,6 +325,63 @@ export default function AdminSettingsPage() {
                ) : (
                  <p className="text-sm text-muted-foreground">Курс ещё не загружался — нажмите «Обновить».</p>
                )}
+            </div>
+
+            {/* Telegram Channels Block */}
+            <div className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl shadow-sm border border-border/50">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-sky-500/10 text-sky-600 rounded-xl">
+                      <Send className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-headline font-extrabold">Telegram-оповещения</h3>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mt-0.5">Куда бот шлёт сообщения</p>
+                  </div>
+               </div>
+
+               <div className="space-y-4">
+                  {([
+                    { key: "leads" as const, title: "Заявки от клиентов", desc: "Обращения «Связаться» и горячие лиды", env: "TELEGRAM_LEADS_CHAT_ID" },
+                    { key: "tech" as const, title: "Технические оповещения", desc: "Служебные сообщения и ошибки", env: "TELEGRAM_TECH_CHAT_ID" },
+                  ]).map(ch => {
+                    const info = tgChannels?.[ch.key];
+                    const configured = (info?.chatIds.length ?? 0) > 0;
+                    return (
+                      <div key={ch.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-low p-5 rounded-2xl">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-on-surface">{ch.title}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              !configured ? "bg-red-100 text-red-600"
+                                : info?.explicit ? "bg-emerald-100 text-emerald-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}>
+                              {!configured ? "не настроен" : info?.explicit ? "настроен" : "общий чат"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{ch.desc}</p>
+                          <p className="text-[11px] text-muted-foreground mt-1 font-mono truncate">
+                            {configured ? `${ch.env} = ${info?.chatIds.join(", ")}` : `Задайте ${ch.env} в переменных Vercel`}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleTestChannel(ch.key)}
+                          disabled={!configured || testingChannel !== null || !tgChannels?.botConfigured}
+                          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-border/50 hover:bg-surface-container-high font-bold text-sm transition-colors disabled:opacity-40"
+                        >
+                          {testingChannel === ch.key ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          Тест
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Пока отдельные чаты не заданы, всё уходит в общий список <span className="font-mono">ADMIN_TELEGRAM_IDS</span>.
+                    Чтобы разделить: создайте две группы, добавьте туда бота, узнайте id группы (напишите в неё и откройте
+                    <span className="font-mono"> api.telegram.org/bot&lt;токен&gt;/getUpdates</span>) и пропишите их в переменных Vercel.
+                  </p>
+               </div>
             </div>
 
             {/* Managers Block */}
