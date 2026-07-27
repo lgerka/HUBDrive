@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const initData = request.headers.get('x-telegram-init-data');
         if (!initData) {
             console.error('[API] Missing x-telegram-init-data header');
-            return NextResponse.json({ error: 'Missing initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Откройте приложение через Telegram — так мы узнаем, кто вы' }, { status: 401 });
         }
 
         if (!TELEGRAM_BOT_TOKEN) {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
         if (!validatedData) {
             console.error('[API] Invalid initData');
-            return NextResponse.json({ error: 'Invalid initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Сессия Telegram устарела — перезапустите приложение' }, { status: 401 });
         }
 
         const userUser = JSON.parse(validatedData.user || '{}');
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
         // 4. Send to Telegram
         // Заявка клиента → чат продаж (TELEGRAM_LEADS_CHAT_ID, фолбэк ADMIN_TELEGRAM_IDS)
-        const adminIds = getChatIds('leads');
+        const adminIds = await getChatIds('leads');
         if (adminIds.length === 0) {
             console.error('[API] Чат для заявок не настроен: задайте TELEGRAM_LEADS_CHAT_ID');
             return NextResponse.json({ error: 'Manager chat ID not configured' }, { status: 500 });

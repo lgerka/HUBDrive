@@ -336,11 +336,14 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                 )}
                 <div className="space-y-3">
                   <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Мощность (л.с.)</label>
-                  <input 
-                    type="number" 
-                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all" 
-                    value={formData.powerHp} 
-                    onChange={e => setFormData({...formData, powerHp: Number(e.target.value)})} 
+                  {/* 0 показываем пустым полем: иначе ведущий ноль не стирается */}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="150"
+                    className="w-full bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all placeholder:text-slate-500/60"
+                    value={formData.powerHp ? String(formData.powerHp) : ""}
+                    onChange={e => setFormData({...formData, powerHp: Number(onlyDigits(e.target.value)) || 0})}
                   />
                 </div>
                 <div className="space-y-3">

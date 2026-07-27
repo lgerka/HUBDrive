@@ -126,7 +126,7 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
 /** PRD §16.1: «Hot-пользователь получил новое предложение» — служебное сообщение менеджерам */
 export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, score: number) {
     // Горячий лид — это заявка, идёт в чат продаж
-    const adminIds = getChatIds('leads');
+    const adminIds = await getChatIds('leads');
     if (adminIds.length === 0) return;
 
     const dedupKey = `hot_match_${vehicle.id}_${user.id}`;
@@ -167,7 +167,7 @@ export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, sc
 export async function notifyManagerAboutHotLead(user: any, filterTitle?: string) {
     if (!process.env.TELEGRAM_BOT_TOKEN) return;
     // Новый горячий лид — заявка, идёт в чат продаж
-    const adminIds = getChatIds('leads');
+    const adminIds = await getChatIds('leads');
     if (adminIds.length === 0) return;
 
     const text = `🚨 **Новый Горячий Лид!**\n\n` +
