@@ -58,5 +58,53 @@ export function initBotCommands() {
     });
 }
 
+/**
+ * Запоминаем групповые чаты, куда добавили бота, — чтобы их id можно было
+ * выбрать в админке (Настройки → Telegram-оповещения) без похода в BotFather.
+ */
+async function rememberChat(chat: { id: number; type: string; title?: string }) {
+    if (chat.type !== 'group' && chat.type !== 'supergroup' && chat.type !== 'channel') return;
+    try {
+        const row = await prisma.systemSettings.findUnique({ where: { key: 'telegramKnownChats' } });
+        const list = Array.isArray(row?.value) ? (row!.value as { id: string }[]) : [];
+        const id = String(chat.id);
+        const rest = list.filter(c => c.id !== id);
+        const value = [{ id, title: chat.title || id, type: chat.type, seenAt: new Date().toISOString() }, ...rest].slice(0, 20);
+        await prisma.systemSettings.upsert({
+            where: { key: 'telegramKnownChats' },
+            create: { key: 'telegramKnownChats', value },
+            update: { value },
+        });
+    } catch (err) {
+        console.error('Failed to remember chat:', err);
+    }
+}
+
+export function initChatDiscovery() {
+    // /id — подсказывает id прямо в чате
+    bot.command('id', async (ctx) => {
+        const chat = ctx.chat;
+        if (!chat) return;
+        await rememberChat(chat as { id: number; type: string; title?: string });
+        const isGroup = chat.type === 'group' || chat.type === 'supergroup';
+        await ctx.reply(
+            `ID этого чата: \`${chat.id}\`\n\n` +
+            (isGroup
+                ? 'Чат сохранён — выберите его в админке: Настройки → Telegram-оповещения.'
+                : 'Это личный чат. Для группы отправьте /id внутри группы.'),
+            { parse_mode: 'Markdown' }
+        );
+    });
+
+    // Любое сообщение в группе — тихо запоминаем чат
+    bot.on('message', async (ctx, next) => {
+        if (ctx.chat && ctx.chat.type !== 'private') {
+            await rememberChat(ctx.chat as { id: number; type: string; title?: string });
+        }
+        await next();
+    });
+}
+
 // Initializing commands so they are registered
 initBotCommands();
+initChatDiscovery();

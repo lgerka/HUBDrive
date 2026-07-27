@@ -8,12 +8,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         const { id } = await params;
         const initData = request.headers.get('x-telegram-init-data');
         if (!initData) {
-            return NextResponse.json({ error: 'Missing initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Откройте приложение через Telegram — так мы узнаем, кто вы' }, { status: 401 });
         }
 
         const { isValid, user } = verifyInitData(initData);
         if (!isValid || !user) {
-            return NextResponse.json({ error: 'Invalid initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Сессия Telegram устарела — перезапустите приложение' }, { status: 401 });
         }
 
         const telegramId = user.id.toString();
@@ -52,12 +52,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const { id } = await params;
         const initData = request.headers.get('x-telegram-init-data');
         if (!initData) {
-            return NextResponse.json({ error: 'Missing initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Откройте приложение через Telegram — так мы узнаем, кто вы' }, { status: 401 });
         }
 
         const { isValid, user } = verifyInitData(initData);
         if (!isValid || !user) {
-            return NextResponse.json({ error: 'Invalid initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Сессия Telegram устарела — перезапустите приложение' }, { status: 401 });
         }
 
         const telegramId = user.id.toString();

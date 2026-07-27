@@ -53,12 +53,12 @@ export async function GET(request: Request) {
     try {
         const initData = request.headers.get('x-telegram-init-data');
         if (!initData) {
-            return NextResponse.json({ error: 'Missing initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Откройте приложение через Telegram — так мы узнаем, кто вы' }, { status: 401 });
         }
 
         const verification = verifyInitData(initData);
         if (!verification.isValid || !verification.user) {
-            return NextResponse.json({ error: 'Invalid initData' }, { status: 401 });
+            return NextResponse.json({ error: 'Сессия Telegram устарела — перезапустите приложение' }, { status: 401 });
         }
 
         const notifications = await prisma.notification.findMany({

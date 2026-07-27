@@ -2,21 +2,46 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { bot } from '@/lib/server/telegram/bot';
-import { getChatIds, NotifyChannel } from '@/lib/server/telegram/targets';
+import { getChatIds, getChannelSource, getKnownChats, setChatId, NotifyChannel } from '@/lib/server/telegram/targets';
 
-/** Какие каналы оповещений настроены — для блока «Telegram-оповещения» в настройках. */
+function parseChannel(raw: unknown): NotifyChannel {
+    return raw === 'tech' ? 'tech' : 'leads';
+}
+
+/** Состояние каналов + чаты, где бот уже побывал — для блока «Telegram-оповещения». */
 export async function GET(request: Request) {
     const isAdmin = await verifyAdmin(request, prisma);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const [leadsIds, techIds, leadsSrc, techSrc, knownChats] = await Promise.all([
+        getChatIds('leads'),
+        getChatIds('tech'),
+        getChannelSource('leads'),
+        getChannelSource('tech'),
+        getKnownChats(),
+    ]);
+
     return NextResponse.json({
-        leads: { chatIds: getChatIds('leads'), explicit: Boolean(process.env.TELEGRAM_LEADS_CHAT_ID) },
-        tech: { chatIds: getChatIds('tech'), explicit: Boolean(process.env.TELEGRAM_TECH_CHAT_ID) },
+        leads: { chatIds: leadsIds, source: leadsSrc },
+        tech: { chatIds: techIds, source: techSrc },
+        knownChats,
         botConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
     });
 }
 
-/** Тестовое сообщение в выбранный канал — проверка, что бот добавлен в чат и id верный. */
+/** Привязать чат к каналу. */
+export async function PUT(request: Request) {
+    const isAdmin = await verifyAdmin(request, prisma);
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const body = await request.json().catch(() => ({}));
+    const channel = parseChannel(body.channel);
+    const chatId = typeof body.chatId === 'string' ? body.chatId : '';
+    await setChatId(channel, chatId);
+    return NextResponse.json({ ok: true, channel, chatId });
+}
+
+/** Тестовое сообщение в выбранный канал — проверка, что бот в чате и id верный. */
 export async function POST(request: Request) {
     const isAdmin = await verifyAdmin(request, prisma);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -26,13 +51,13 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const channel: NotifyChannel = body.channel === 'tech' ? 'tech' : 'leads';
-    const chatIds = getChatIds(channel);
+    const channel = parseChannel(body.channel);
+    const chatIds = await getChatIds(channel);
     if (chatIds.length === 0) {
         return NextResponse.json({
             error: channel === 'leads'
-                ? 'Чат заявок не настроен: задайте TELEGRAM_LEADS_CHAT_ID'
-                : 'Тех-чат не настроен: задайте TELEGRAM_TECH_CHAT_ID',
+                ? 'Чат заявок не выбран — укажите его в настройках'
+                : 'Тех-чат не выбран — укажите его в настройках',
         }, { status: 400 });
     }
 

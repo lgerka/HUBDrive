@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
+import { BOT_APP_URL } from '@/constants/contacts';
 
 export default function OnboardingProfilePage() {
     const { user, initData } = useTelegram();
@@ -57,7 +58,14 @@ export default function OnboardingProfilePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        
+
+        // Вне Telegram (например, приложение открыли с иконки на домашнем экране)
+        // подписанных данных пользователя нет — сохранить профиль невозможно.
+        if (!initData) {
+            setError('needs-telegram');
+            return;
+        }
+
         if (!name.trim()) {
             setError('Пожалуйста, введите ваше имя');
             return;
@@ -166,11 +174,26 @@ export default function OnboardingProfilePage() {
                         </div>
                     </div>
 
-                    {error && (
+                    {error === 'needs-telegram' ? (
+                        <div className="p-5 bg-[#f97316]/10 rounded-2xl backdrop-blur-sm space-y-3">
+                            <p className="text-sm font-medium text-foreground">
+                                Профиль сохраняется через Telegram — так менеджер сможет вам написать.
+                                Откройте HUBDrive в Telegram и заполните данные там, это займёт полминуты.
+                            </p>
+                            <a
+                                href={BOT_APP_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center w-full h-12 rounded-2xl bg-[#229ED9] text-white font-bold text-sm active:scale-[0.98] transition-transform"
+                            >
+                                Открыть в Telegram
+                            </a>
+                        </div>
+                    ) : error ? (
                         <div className="text-destructive text-sm font-medium p-4 bg-destructive/10 rounded-2xl backdrop-blur-sm">
                             {error}
                         </div>
-                    )}
+                    ) : null}
 
                     <div className="mt-auto pb-8 pt-10">
                         <Button 

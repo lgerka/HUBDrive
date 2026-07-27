@@ -27,9 +27,16 @@ interface ExchangeRates {
   source: string;
 }
 
+interface KnownChat {
+  id: string;
+  title: string;
+  type: string;
+}
+
 interface TelegramChannels {
-  leads: { chatIds: string[]; explicit: boolean };
-  tech: { chatIds: string[]; explicit: boolean };
+  leads: { chatIds: string[]; source: "settings" | "env" | "admins" | "none" };
+  tech: { chatIds: string[]; source: "settings" | "env" | "admins" | "none" };
+  knownChats: KnownChat[];
   botConfigured: boolean;
 }
 
@@ -51,6 +58,25 @@ export default function AdminSettingsPage() {
   const [isRefreshingRates, setIsRefreshingRates] = useState(false);
   const [tgChannels, setTgChannels] = useState<TelegramChannels | null>(null);
   const [testingChannel, setTestingChannel] = useState<"leads" | "tech" | null>(null);
+
+  async function reloadTgChannels() {
+    const res = await fetch("/api/admin/telegram-test", { headers: { "x-telegram-init-data": initData } });
+    if (res.ok) setTgChannels(await res.json());
+  }
+
+  async function handleSelectChat(channel: "leads" | "tech", chatId: string) {
+    try {
+      const res = await fetch("/api/admin/telegram-test", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
+        body: JSON.stringify({ channel, chatId }),
+      });
+      if (res.ok) await reloadTgChannels();
+      else alert("Не удалось сохранить выбор чата");
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function handleTestChannel(channel: "leads" | "tech") {
     setTestingChannel(channel);
@@ -341,28 +367,42 @@ export default function AdminSettingsPage() {
 
                <div className="space-y-4">
                   {([
-                    { key: "leads" as const, title: "Заявки от клиентов", desc: "Обращения «Связаться» и горячие лиды", env: "TELEGRAM_LEADS_CHAT_ID" },
-                    { key: "tech" as const, title: "Технические оповещения", desc: "Служебные сообщения и ошибки", env: "TELEGRAM_TECH_CHAT_ID" },
+                    { key: "leads" as const, title: "Заявки от клиентов", desc: "Обращения «Связаться» и горячие лиды" },
+                    { key: "tech" as const, title: "Технические оповещения", desc: "Служебные сообщения и ошибки" },
                   ]).map(ch => {
                     const info = tgChannels?.[ch.key];
                     const configured = (info?.chatIds.length ?? 0) > 0;
+                    const known = tgChannels?.knownChats ?? [];
+                    const selected = info?.source === "settings" ? (info.chatIds[0] ?? "") : "";
+                    const badge = !configured ? { text: "не настроен", cls: "bg-red-100 text-red-600" }
+                      : info?.source === "settings" ? { text: "чат выбран", cls: "bg-emerald-100 text-emerald-700" }
+                      : info?.source === "env" ? { text: "из переменных", cls: "bg-emerald-100 text-emerald-700" }
+                      : { text: "общий чат админов", cls: "bg-amber-100 text-amber-700" };
                     return (
-                      <div key={ch.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-low p-5 rounded-2xl">
-                        <div className="min-w-0">
+                      <div key={ch.key} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-surface-container-low p-5 rounded-2xl">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-bold text-on-surface">{ch.title}</p>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              !configured ? "bg-red-100 text-red-600"
-                                : info?.explicit ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-700"
-                            }`}>
-                              {!configured ? "не настроен" : info?.explicit ? "настроен" : "общий чат"}
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badge.cls}`}>
+                              {badge.text}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">{ch.desc}</p>
-                          <p className="text-[11px] text-muted-foreground mt-1 font-mono truncate">
-                            {configured ? `${ch.env} = ${info?.chatIds.join(", ")}` : `Задайте ${ch.env} в переменных Vercel`}
-                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 mb-3">{ch.desc}</p>
+                          <select
+                            value={selected}
+                            onChange={e => handleSelectChat(ch.key, e.target.value)}
+                            className="w-full max-w-sm bg-surface-container-lowest border border-border/50 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20"
+                          >
+                            <option value="">— по умолчанию (чат админов) —</option>
+                            {known.map(c => (
+                              <option key={c.id} value={c.id}>{c.title} ({c.id})</option>
+                            ))}
+                          </select>
+                          {configured && (
+                            <p className="text-[11px] text-muted-foreground mt-1.5 font-mono truncate">
+                              сейчас шлём в: {info?.chatIds.join(", ")}
+                            </p>
+                          )}
                         </div>
                         <button
                           type="button"
@@ -377,9 +417,9 @@ export default function AdminSettingsPage() {
                     );
                   })}
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Пока отдельные чаты не заданы, всё уходит в общий список <span className="font-mono">ADMIN_TELEGRAM_IDS</span>.
-                    Чтобы разделить: создайте две группы, добавьте туда бота, узнайте id группы (напишите в неё и откройте
-                    <span className="font-mono"> api.telegram.org/bot&lt;токен&gt;/getUpdates</span>) и пропишите их в переменных Vercel.
+                    Нужной группы нет в списке? Добавьте бота в группу и отправьте там команду <span className="font-mono">/id</span> —
+                    бот ответит идентификатором, а чат появится в этом списке. Пока чат не выбран, сообщения уходят
+                    в общий чат админов.
                   </p>
                </div>
             </div>
