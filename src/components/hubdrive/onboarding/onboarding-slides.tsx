@@ -6,7 +6,7 @@ import {
     Truck, Wallet, BellRing, SlidersHorizontal, Sparkles, Home, Search, Eye, CalendarClock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { InstallInstructions } from '@/components/hubdrive/landing/install-instructions';
 
 export type OnboardingIntent = 'viewing' | 'three_months' | 'ready_now';
 
@@ -242,55 +242,7 @@ function SlideQuiz({ intent, onSelect }: { intent: OnboardingIntent | null; onSe
 
 /* 6. Финал: на главный экран телефона + CTA в воронку */
 function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; onFinish: (to: 'filters' | 'home') => void }) {
-    const [homeScreenDone, setHomeScreenDone] = useState(false);
-    const [homeStatus, setHomeStatus] = useState<string>('unknown');
-    const [showManual, setShowManual] = useState(false);
-    const [linkCopied, setLinkCopied] = useState(false);
-    const tg = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined;
-    const inTelegram = Boolean(tg?.initData) || (tg?.platform && tg.platform !== 'unknown');
-
-    // Нативный Telegram API (Bot API 8.0+): ярлык мини-аппа на рабочий стол телефона,
-    // без Safari — Telegram сам показывает системный диалог.
-    React.useEffect(() => {
-        if (typeof tg?.checkHomeScreenStatus === 'function') {
-            try {
-                tg.checkHomeScreenStatus((status: string) => setHomeStatus(status || 'unknown'));
-            } catch { /* старый клиент */ }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const alreadyAdded = homeStatus === 'added' || homeScreenDone;
-    // Нативное добавление есть не везде: старые клиенты и Telegram Desktop его не умеют
-    const nativeAvailable = typeof tg?.addToHomeScreen === 'function' && homeStatus !== 'unsupported';
-    const isIOS = tg?.platform === 'ios';
-
-    const handleAddToHome = () => {
-        if (!nativeAvailable) {
-            setShowManual(true);
-            return;
-        }
-        try {
-            tg.addToHomeScreen();
-            setHomeScreenDone(true);
-        } catch (e) {
-            console.error('addToHomeScreen failed', e);
-            setShowManual(true);
-        }
-    };
-
-    // Ссылка на сам сайт (не на t.me) — иначе ярлык из Safari снова откроет Telegram
-    const copyAppLink = async () => {
-        const url = typeof window !== 'undefined' ? window.location.origin : WEBAPP_ORIGIN;
-        try {
-            await navigator.clipboard.writeText(url);
-            setLinkCopied(true);
-            setTimeout(() => setLinkCopied(false), 3000);
-        } catch {
-            /* буфер недоступен — покажем ссылку текстом */
-        }
-    };
-
+    const [showInstall, setShowInstall] = useState(false);
     const wantsCar = intent === 'ready_now' || intent === 'three_months';
 
     return (
@@ -308,58 +260,19 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto w-full">
-                {/* Путь 1 — ярлык мини-приложения: открывается внутри Telegram */}
-                {alreadyAdded ? (
-                    <div className="w-full py-3.5 rounded-full bg-green-50 text-green-700 font-bold flex items-center justify-center gap-2">
-                        <Check className="w-5 h-5" />
-                        Ярлык добавлен
-                    </div>
-                ) : inTelegram ? (
-                    <>
-                        <button
-                            onClick={handleAddToHome}
-                            className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-                        >
-                            <Home className="w-5 h-5 text-primary" />
-                            Ярлык HUBDrive в Telegram
-                        </button>
-                        <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
-                            Ярлык открывает HUBDrive внутри Telegram — сразу с вашим профилем
-                        </p>
-                    </>
-                ) : null}
-
-                {/* Путь 2 — отдельное приложение с иконки, без Telegram */}
-                {!alreadyAdded && !showManual && (
+                {/* Установка ведёт только на полноэкранное приложение (PWA) */}
+                {showInstall ? (
+                    <InstallInstructions compact />
+                ) : (
                     <button
-                        onClick={() => setShowManual(true)}
-                        className="w-full py-2.5 text-sm font-bold text-primary active:opacity-60"
+                        onClick={() => setShowInstall(true)}
+                        className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                     >
-                        {inTelegram ? 'Хочу отдельное приложение на телефоне' : 'Установить приложение на телефон'}
+                        <Home className="w-5 h-5 text-primary" />
+                        Установить приложение на телефон
                     </button>
                 )}
 
-                {showManual && (
-                    <div className="rounded-2xl bg-surface-container-low p-4 space-y-3 text-left">
-                        <p className="text-xs text-on-surface leading-relaxed">
-                            Отдельное приложение открывается сразу, минуя Telegram. Установка — 10 секунд:
-                        </p>
-                        <ol className="text-xs text-on-surface-variant space-y-1.5 leading-relaxed list-decimal list-inside">
-                            <li>Скопируйте ссылку кнопкой ниже</li>
-                            <li>Откройте её {isIOS ? 'в Safari' : 'в браузере телефона'}</li>
-                            <li>{isIOS ? '«Поделиться» → «На экран „Домой“» → «Добавить»' : 'Меню браузера ⋮ → «Установить приложение»'}</li>
-                        </ol>
-                        <button
-                            onClick={copyAppLink}
-                            className="w-full py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container text-xs font-bold text-primary active:scale-[0.98] transition-transform"
-                        >
-                            {linkCopied ? 'Ссылка скопирована ✓' : 'Скопировать ссылку на приложение'}
-                        </button>
-                        <p className="text-[10px] text-on-surface-variant/60 leading-snug">
-                            Внутри понадобится один раз войти через Telegram — чтобы менеджер знал, кому отвечать.
-                        </p>
-                    </div>
-                )}
                 <button
                     onClick={() => onFinish(wantsCar ? 'filters' : 'home')}
                     className="w-full h-14 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-extrabold text-lg rounded-full shadow-lg shadow-primary-container/25 active:scale-[0.98] transition-all"
