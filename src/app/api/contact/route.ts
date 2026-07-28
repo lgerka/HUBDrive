@@ -1,87 +1,66 @@
 import { NextResponse } from 'next/server';
-import { validateTelegramWebAppData } from '@/lib/telegram/validate';
-
 import { prisma } from '@/lib/server/prisma';
 import { getChatIds } from '@/lib/server/telegram/targets';
+import { resolveWebUser } from '@/lib/server/webUser';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
 
 export async function POST(request: Request) {
-    console.log('[API] /api/contact called');
-
     try {
-        // 1. Validate initData
-        const initData = request.headers.get('x-telegram-init-data');
-        if (!initData) {
-            console.error('[API] Missing x-telegram-init-data header');
-            return NextResponse.json({ error: 'Откройте приложение через Telegram — так мы узнаем, кто вы' }, { status: 401 });
+        // Кто обращается: Telegram WebApp (initData) либо вход через Telegram Login
+        // Widget (cookie web_session) — приложение работает и вне Telegram
+        const dbUser = await resolveWebUser(request);
+        if (!dbUser) {
+            return NextResponse.json(
+                { error: 'Подтвердите вход через Telegram — так мы узнаем, кто вы', needsAuth: true },
+                { status: 401 }
+            );
         }
 
         if (!TELEGRAM_BOT_TOKEN) {
             console.error('[API] TELEGRAM_BOT_TOKEN not set');
-            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+            return NextResponse.json({ error: 'Бот не настроен' }, { status: 500 });
         }
 
-        const validatedData = validateTelegramWebAppData(initData, TELEGRAM_BOT_TOKEN);
-
-        if (!validatedData) {
-            console.error('[API] Invalid initData');
-            return NextResponse.json({ error: 'Сессия Telegram устарела — перезапустите приложение' }, { status: 401 });
-        }
-
-        const userUser = JSON.parse(validatedData.user || '{}');
-        const username = userUser.username ? `@${userUser.username}` : `ID: ${userUser.id}`;
-        const name = [userUser.first_name, userUser.last_name].filter(Boolean).join(' ');
-
-
-        // 2. Parse body
-        const body = await request.json();
-        const { vehicleId } = body;
-
+        const { vehicleId } = await request.json().catch(() => ({ vehicleId: undefined }));
         if (!vehicleId) {
-            return NextResponse.json({ error: 'Vehicle ID required' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан автомобиль' }, { status: 400 });
         }
 
-        // 3. Find vehicle
         const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
         if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Автомобиль не найден' }, { status: 404 });
         }
 
-        // 4. Send to Telegram
-        // Заявка клиента → чат продаж (TELEGRAM_LEADS_CHAT_ID, фолбэк ADMIN_TELEGRAM_IDS)
-        const adminIds = await getChatIds('leads');
-        if (adminIds.length === 0) {
-            console.error('[API] Чат для заявок не настроен: задайте TELEGRAM_LEADS_CHAT_ID');
-            return NextResponse.json({ error: 'Manager chat ID not configured' }, { status: 500 });
+        // Заявка клиента → чат продаж (настраивается в админке, фолбэк — ENV)
+        const chatIds = await getChatIds('leads');
+        if (chatIds.length === 0) {
+            console.error('[API] Чат для заявок не настроен');
+            return NextResponse.json({ error: 'Чат для заявок не настроен' }, { status: 500 });
         }
 
-        const price = new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(vehicle.priceKeyTurnKZT);
+        const name = dbUser.name
+            || [dbUser.firstName, dbUser.lastName].filter(Boolean).join(' ')
+            || 'Клиент';
+        const contact = dbUser.username ? `@${dbUser.username}` : `ID: ${dbUser.telegramId}`;
+        const price = vehicle.priceUSD
+            ? `$ ${vehicle.priceUSD.toLocaleString('ru-RU')}`
+            : new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(vehicle.priceKeyTurnKZT);
 
-        const message = `
-<b>Новая заявка HUBDrive</b>
-
-<b>Клиент:</b> ${name} (${username})
-<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}
-<b>Цена:</b> ${price}
-<b>ID:</b> ${vehicle.id}
-
-<a href="https://hub-drive-psi.vercel.app/vehicles/${vehicle.id}">Открыть в приложении</a>
-        `.trim();
+        const message = [
+            '<b>Новая заявка HUBDrive</b>',
+            '',
+            `<b>Клиент:</b> ${name} (${contact})`,
+            `<b>Телефон:</b> ${dbUser.phone || 'не указан'}`,
+            `<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+            `<b>Цена:</b> ${price}`,
+            '',
+            `<a href="${WEBAPP_URL}/vehicles/${vehicle.id}">Открыть карточку</a>`,
+        ].join('\n');
 
         // PRD §21: логируем «Связаться» как событие (учитывается в lead scoring +30)
         try {
-            const dbUser = await prisma.user.upsert({
-                where: { telegramId: String(userUser.id) },
-                create: {
-                    telegramId: String(userUser.id),
-                    firstName: userUser.first_name,
-                    lastName: userUser.last_name,
-                    username: userUser.username,
-                    name,
-                },
-                update: { lastActiveAt: new Date() },
-            });
             await prisma.event.create({
                 data: {
                     type: 'contact_clicked',
@@ -94,31 +73,24 @@ export async function POST(request: Request) {
             console.error('[API] Failed to log contact_clicked event:', err);
         }
 
-        // Send via Telegram Bot API to all admins
-        for (const adminId of adminIds) {
+        let sent = 0;
+        for (const chatId of chatIds) {
             try {
                 const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: adminId,
-                        text: message,
-                        parse_mode: 'HTML',
-                    }),
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }),
                 });
-                
-                if (!tgRes.ok) {
-                    console.error('[API] Telegram API error for admin:', adminId, await tgRes.text());
-                }
+                if (tgRes.ok) sent++;
+                else console.error('[API] Telegram API error:', chatId, await tgRes.text());
             } catch (err) {
-                console.error('[API] Failed to send message to admin:', adminId, err);
+                console.error('[API] Failed to send message:', chatId, err);
             }
         }
 
-        return NextResponse.json({ success: true });
-
+        return NextResponse.json({ success: true, sent });
     } catch (error) {
         console.error('[API] Error processing contact request:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Не удалось отправить заявку' }, { status: 500 });
     }
 }

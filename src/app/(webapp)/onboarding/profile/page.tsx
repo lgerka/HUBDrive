@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
 import { BOT_APP_URL } from '@/constants/contacts';
-import { handlePhoneInput, isPhoneComplete } from '@/lib/phone';
+import { formatPhone, isPhoneComplete } from '@/lib/phone';
+import { PhoneInput } from '@/components/hubdrive/common/phone-input';
 import { TelegramLoginButton } from '@/components/hubdrive/telegram/telegram-login-button';
 
 export default function OnboardingProfilePage() {
@@ -25,11 +26,6 @@ export default function OnboardingProfilePage() {
             setName(`${user.first_name || ''} ${user.last_name || ''}`.trim());
         }
     }, [user]);
-
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPhone(handlePhoneInput(phone, e.target.value));
-        setError('');
-    };
 
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -53,7 +49,7 @@ export default function OnboardingProfilePage() {
                     'Content-Type': 'application/json',
                     'x-telegram-init-data': initData || ''
                 },
-                body: JSON.stringify({ name, phone })
+                body: JSON.stringify({ name, phone: formatPhone(phone) })
             });
             const data = await res.json();
             if (res.status === 401) {
@@ -135,14 +131,11 @@ export default function OnboardingProfilePage() {
                             <Label htmlFor="phone" className="text-sm uppercase tracking-widest text-muted-foreground font-semibold px-1">
                                 Номер телефона
                             </Label>
-                            <Input 
+                            <PhoneInput
                                 id="phone"
-                                type="tel" 
-                                placeholder="+7 (999) 000-00-00" 
                                 value={phone}
-                                onChange={handlePhoneChange}
+                                onChange={next => { setPhone(next); setError(''); }}
                                 disabled={isSubmitting}
-                                className="h-14 bg-white/60 dark:bg-white/5 backdrop-blur-md border-0 border-b border-transparent focus-visible:border-[#f97316] focus-visible:ring-0 text-lg rounded-xl shadow-sm transition-all placeholder:text-muted-foreground/50 px-5"
                             />
                         </div>
                     </div>

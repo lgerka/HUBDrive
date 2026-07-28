@@ -6,7 +6,7 @@ import {
     Truck, Wallet, BellRing, SlidersHorizontal, Sparkles, Home, Search, Eye, CalendarClock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MINI_APP_URL } from '@/constants/contacts';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 export type OnboardingIntent = 'viewing' | 'three_months' | 'ready_now';
 
@@ -245,6 +245,7 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
     const [homeScreenDone, setHomeScreenDone] = useState(false);
     const [homeStatus, setHomeStatus] = useState<string>('unknown');
     const [showManual, setShowManual] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
     const tg = typeof window !== 'undefined' ? (window as any).Telegram?.WebApp : undefined;
     const inTelegram = Boolean(tg?.initData) || (tg?.platform && tg.platform !== 'unknown');
 
@@ -278,11 +279,15 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
         }
     };
 
+    // Ссылка на сам сайт (не на t.me) — иначе ярлык из Safari снова откроет Telegram
     const copyAppLink = async () => {
+        const url = typeof window !== 'undefined' ? window.location.origin : WEBAPP_ORIGIN;
         try {
-            await navigator.clipboard.writeText(MINI_APP_URL);
+            await navigator.clipboard.writeText(url);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 3000);
         } catch {
-            /* буфер недоступен — ссылка всё равно показана рядом */
+            /* буфер недоступен — покажем ссылку текстом */
         }
     };
 
@@ -303,40 +308,56 @@ function SlideFinish({ intent, onFinish }: { intent: OnboardingIntent | null; on
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto w-full">
+                {/* Путь 1 — ярлык мини-приложения: открывается внутри Telegram */}
                 {alreadyAdded ? (
                     <div className="w-full py-3.5 rounded-full bg-green-50 text-green-700 font-bold flex items-center justify-center gap-2">
                         <Check className="w-5 h-5" />
-                        HUBDrive уже на экране «Домой»
+                        Ярлык добавлен
                     </div>
-                ) : (
+                ) : inTelegram ? (
+                    <>
+                        <button
+                            onClick={handleAddToHome}
+                            className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                        >
+                            <Home className="w-5 h-5 text-primary" />
+                            Ярлык HUBDrive в Telegram
+                        </button>
+                        <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
+                            Ярлык открывает HUBDrive внутри Telegram — сразу с вашим профилем
+                        </p>
+                    </>
+                ) : null}
+
+                {/* Путь 2 — отдельное приложение с иконки, без Telegram */}
+                {!alreadyAdded && !showManual && (
                     <button
-                        onClick={handleAddToHome}
-                        className="w-full py-3.5 rounded-full border-2 border-surface-container-high bg-surface-container-lowest font-bold text-on-surface flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                        onClick={() => setShowManual(true)}
+                        className="w-full py-2.5 text-sm font-bold text-primary active:opacity-60"
                     >
-                        <Home className="w-5 h-5 text-primary" />
-                        Добавить на экран «Домой»
+                        {inTelegram ? 'Хочу отдельное приложение на телефоне' : 'Установить приложение на телефон'}
                     </button>
                 )}
 
-                {isIOS && nativeAvailable && !alreadyAdded && (
-                    <p className="text-[11px] text-on-surface-variant/70 text-center leading-snug px-4">
-                        Откроется Safari: нажмите «Поделиться» → «На экран „Домой“»
-                    </p>
-                )}
-
                 {showManual && (
-                    <div className="rounded-2xl bg-surface-container-low p-4 space-y-2 text-left">
+                    <div className="rounded-2xl bg-surface-container-low p-4 space-y-3 text-left">
                         <p className="text-xs text-on-surface leading-relaxed">
-                            {inTelegram
-                                ? 'Ваша версия Telegram пока не умеет добавлять ярлык сама. Откройте эту ссылку в браузере телефона и добавьте её на домашний экран:'
-                                : 'Откройте эту ссылку в Telegram, чтобы приложение запускалось с вашим профилем:'}
+                            Отдельное приложение открывается сразу, минуя Telegram. Установка — 10 секунд:
                         </p>
+                        <ol className="text-xs text-on-surface-variant space-y-1.5 leading-relaxed list-decimal list-inside">
+                            <li>Скопируйте ссылку кнопкой ниже</li>
+                            <li>Откройте её {isIOS ? 'в Safari' : 'в браузере телефона'}</li>
+                            <li>{isIOS ? '«Поделиться» → «На экран „Домой“» → «Добавить»' : 'Меню браузера ⋮ → «Установить приложение»'}</li>
+                        </ol>
                         <button
                             onClick={copyAppLink}
                             className="w-full py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container text-xs font-bold text-primary active:scale-[0.98] transition-transform"
                         >
-                            Скопировать ссылку на приложение
+                            {linkCopied ? 'Ссылка скопирована ✓' : 'Скопировать ссылку на приложение'}
                         </button>
+                        <p className="text-[10px] text-on-surface-variant/60 leading-snug">
+                            Внутри понадобится один раз войти через Telegram — чтобы менеджер знал, кому отвечать.
+                        </p>
                     </div>
                 )}
                 <button
