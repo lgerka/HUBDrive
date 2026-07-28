@@ -6,7 +6,7 @@ import { Home, Car, Bell, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
-    { href: "/", label: "Главная", icon: Home },
+    { href: "/app", label: "Главная", icon: Home },
     { href: "/catalog", label: "Каталог", icon: Car },
     { href: "/notifications", label: "Уведомления", icon: Bell },
     { href: "/profile", label: "Профиль", icon: User },
@@ -23,7 +23,7 @@ export function BottomNav() {
         <nav className="fixed bottom-0 w-full z-50 bg-[#f8f9fb]/90 dark:bg-[#191c1e]/90 backdrop-blur-xl rounded-t-3xl shadow-[0px_-8px_24px_rgba(25,28,30,0.03)] border-t border-surface-container pb-[env(safe-area-inset-bottom)]">
             <div className="flex justify-around items-center pt-3 pb-4 px-4 w-full">
                 {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-                    const isActive = pathname === href || (pathname.startsWith(href) && href !== "/")
+                    const isActive = pathname === href || (pathname.startsWith(href) && href !== "/app")
                     
                     return (
                         <Link 

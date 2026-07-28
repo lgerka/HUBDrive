@@ -30,7 +30,7 @@ export default function AboutPage() {
       {/* Floating Navigation */}
       <div className="fixed top-0 w-full z-50 px-4 pt-4 pb-2 flex justify-between items-center backdrop-blur-md bg-gradient-to-b from-slate-950/80 to-transparent">
           <Link 
-              href="/"
+              href="/app"
               className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-xl transition-all active:scale-95"
           >
               <ArrowLeft className="w-5 h-5" />

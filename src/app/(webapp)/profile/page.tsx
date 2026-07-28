@@ -56,7 +56,7 @@ export default function ProfilePage() {
         if (webApp) {
             webApp.close();
         } else {
-            router.push("/");
+            router.push("/app");
         }
     };
 

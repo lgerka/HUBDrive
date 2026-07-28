@@ -74,10 +74,10 @@ export default function OnboardingProfilePage() {
                         router.push('/filters');
                     } catch (e) {
                         console.error('Failed to save pending filter', e);
-                        router.push('/');
+                        router.push('/app');
                     }
                 } else {
-                    router.push('/');
+                    router.push('/app');
                 }
             } else {
                 setError(data.error || 'Произошла ошибка при сохранении');

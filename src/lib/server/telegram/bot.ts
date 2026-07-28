@@ -50,7 +50,7 @@ export function initBotCommands() {
                 inline_keyboard: [[
                     {
                         text: "🚗 Открыть каталог",
-                        web_app: { url: WEBAPP_URL }
+                        web_app: { url: `${WEBAPP_URL}/app` }
                     }
                 ]]
             }

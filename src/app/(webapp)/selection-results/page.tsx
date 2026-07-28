@@ -15,7 +15,7 @@ export default function SelectionResultsPage() {
       <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm border-b border-border/40">
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/" className="active:scale-95 transition-transform duration-200 text-foreground hover:text-primary">
+            <Link href="/app" className="active:scale-95 transition-transform duration-200 text-foreground hover:text-primary">
               <ArrowLeft className="w-6 h-6" />
             </Link>
             <h1 className="text-lg font-bold font-sans tracking-tight">Результаты подбора</h1>
