@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Heart, Phone, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,10 +24,27 @@ export function VehicleCtaBar({
     isFavorite,
     className,
 }: VehicleCtaBarProps) {
+    // Панель не перекрывает фото при открытии карточки: выезжает, когда
+    // пользователь свайпнул вверх (пролистал первый экран).
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const check = () => setVisible(window.scrollY > 120);
+        check();
+        window.addEventListener("scroll", check, { passive: true });
+        window.addEventListener("resize", check);
+        return () => {
+            window.removeEventListener("scroll", check);
+            window.removeEventListener("resize", check);
+        };
+    }, []);
+
     return (
         <div
             className={cn(
                 "fixed bottom-[calc(72px+env(safe-area-inset-bottom))] left-0 w-full z-40 flex justify-between items-center px-6 py-4 bg-surface-container-lowest shadow-[0_-12px_32px_rgba(25,28,30,0.04)] rounded-t-[2.5rem]",
+                "transition-all duration-500 ease-out",
+                visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none",
                 className
             )}
         >

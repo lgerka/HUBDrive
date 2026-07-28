@@ -132,9 +132,17 @@ export default function VehicleDetailPage() {
                 body: JSON.stringify({ vehicleId: vehicle?.id }),
             });
 
+            const data = await res.json().catch(() => ({}));
+
+            if (res.status === 401) {
+                // Приложение открыто вне Telegram — просим подтвердить, кто это,
+                // в той же шторке (там есть вход через Telegram и поля контактов)
+                setSimilarOpen(true);
+                return;
+            }
+
             if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to send request');
+                throw new Error(data.error || 'Не удалось отправить заявку');
             }
 
             toast({
@@ -146,7 +154,7 @@ export default function VehicleDetailPage() {
             toast({
                 variant: "destructive",
                 title: "Ошибка",
-                description: "Не удалось отправить заявку. Попробуйте позже.",
+                description: error instanceof Error ? error.message : "Не удалось отправить заявку. Попробуйте позже.",
             });
         } finally {
             setIsSending(false);

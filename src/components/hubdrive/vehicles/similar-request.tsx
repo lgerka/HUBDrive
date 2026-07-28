@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Loader2, Check, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
-import { formatPhone, handlePhoneInput, isPhoneComplete } from "@/lib/phone";
+import { formatPhone, maskLocal, isPhoneComplete } from "@/lib/phone";
+import { PhoneInput } from "@/components/hubdrive/common/phone-input";
 import { useScrollReveal } from "@/lib/hooks/use-scroll-reveal";
 
 interface SimilarRequestProps {
@@ -83,7 +84,7 @@ export function SimilarRequestSheet({
         fetch("/api/me", { headers: { "x-telegram-init-data": initData } })
             .then(r => (r.ok ? r.json() : null))
             .then(d => {
-                if (d?.user?.phone) setPhone(formatPhone(d.user.phone));
+                if (d?.user?.phone) setPhone(maskLocal(d.user.phone));
                 if (d?.user?.name) setName(prev => prev || d.user.name);
             })
             .catch(() => { });
@@ -99,7 +100,7 @@ export function SimilarRequestSheet({
             const res = await fetch("/api/requests/similar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "x-telegram-init-data": initData || "" },
-                body: JSON.stringify({ vehicleId, name: name.trim(), phone }),
+                body: JSON.stringify({ vehicleId, name: name.trim(), phone: formatPhone(phone) }),
             });
             const data = await res.json();
             if (res.ok && data.success) {
@@ -159,13 +160,10 @@ export function SimilarRequestSheet({
                                 <label className="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">
                                     Телефон
                                 </label>
-                                <input
-                                    type="tel"
-                                    inputMode="tel"
+                                <PhoneInput
                                     value={phone}
-                                    onChange={e => { setPhone(handlePhoneInput(phone, e.target.value)); setError(""); }}
-                                    placeholder="+7 (700) 000-00-00"
-                                    className="w-full h-14 px-5 rounded-2xl bg-surface-container-low border border-surface-container text-base outline-none focus:border-primary transition-colors"
+                                    onChange={next => { setPhone(next); setError(""); }}
+                                    className="bg-surface-container-low border-surface-container"
                                 />
                             </div>
                         </div>

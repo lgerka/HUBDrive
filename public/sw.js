@@ -1,12 +1,19 @@
 // Минимальный service worker: нужен, чтобы Chrome/Android считал сайт устанавливаемым,
 // и чтобы приложение открывалось с офлайн-заглушкой вместо ошибки браузера.
-const CACHE = 'hubdrive-shell-v1';
+const CACHE = 'hubdrive-shell-v2';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {
+    // Без skipWaiting: новая версия ждёт, пока пользователь нажмёт «Обновить»,
+    // чтобы страница не перезагружалась у него под руками
     event.waitUntil(
-        caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, '/icons/icon-192.png'])).then(() => self.skipWaiting())
+        caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, '/icons/icon-192.png']))
     );
+});
+
+// Кнопка «Обновить» просит воркер активироваться немедленно
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
