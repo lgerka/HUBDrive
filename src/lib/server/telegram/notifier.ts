@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { Vehicle } from '@prisma/client';
 import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { getChatIds } from './targets';
+import { sendPushToUser } from '@/lib/server/push/webpush';
 
 const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
 
@@ -71,6 +72,22 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
 
             try {
                 await bot.api.sendMessage(user.telegramId, text, { parse_mode: 'Markdown' });
+
+                // Тем, кто поставил приложение на телефон, дублируем системным пушем.
+                // Метка src=push нужна аналитике переходов из уведомлений.
+                sendPushToUser(user.id, {
+                    title: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
+                    body: `Появился автомобиль по вашему запросу — ${vehicle.priceUSD ? `$ ${vehicle.priceUSD.toLocaleString('ru-RU')}` : `${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸`}`,
+                    url: `/vehicles/${vehicle.id}?src=push`,
+                    image: Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined,
+                    tag: `vehicle-${vehicle.id}`,
+                }).then(sent => {
+                    if (sent > 0) {
+                        prisma.event.create({
+                            data: { type: 'push_sent_web', userId: user.id, vehicleId: vehicle.id, meta: { devices: sent } },
+                        }).catch(() => { });
+                    }
+                }).catch(err => console.error('Web push failed:', err));
 
                 await prisma.notification.create({
                     data: {

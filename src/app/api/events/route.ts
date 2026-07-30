@@ -10,6 +10,11 @@ const CLIENT_EVENT_TYPES = [
     'call_clicked',
     'news_opened',
     'support_opened',
+    // аналитика по каналам: приложение с иконки, мини-приложение, лендинг
+    'app_opened',
+    'app_installed',
+    'landing_opened',
+    'push_clicked',
 ] as const;
 
 type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
@@ -39,23 +44,26 @@ export async function GET(request: Request) {
     }
 }
 
+// Эти события приходят и от неавторизованных: лендинг и первый запуск приложения
+const ANONYMOUS_ALLOWED: ClientEventType[] = ['landing_opened', 'app_opened', 'app_installed'];
+
 export async function POST(request: Request) {
     try {
-        const user = await resolveWebUser(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const body = await request.json();
         const type = body.type as ClientEventType;
         if (!CLIENT_EVENT_TYPES.includes(type)) {
             return NextResponse.json({ error: 'Invalid event type' }, { status: 400 });
         }
 
+        const user = await resolveWebUser(request);
+        if (!user && !ANONYMOUS_ALLOWED.includes(type)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         await prisma.event.create({
             data: {
                 type,
-                userId: user.id,
+                userId: user?.id ?? null,
                 vehicleId: typeof body.vehicleId === 'string' ? body.vehicleId : null,
                 meta: body.meta && typeof body.meta === 'object' ? body.meta : undefined,
             },
