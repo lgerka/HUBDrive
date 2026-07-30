@@ -12,7 +12,7 @@ import { StructuredData } from "@/components/hubdrive/landing/structured-data";
 
 export const revalidate = 300;
 
-const HERO_IMAGE = "https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/public/media/banners/onboarding.jpg";
+const HERO_IMAGE = "https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/public/media/landing/hero-main.jpg";
 
 async function getShowcase() {
     try {

@@ -8,6 +8,9 @@ import {
 import { cn } from '@/lib/utils';
 import { InstallInstructions } from '@/components/hubdrive/landing/install-instructions';
 
+const STORAGE = 'https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/public/media/onboarding';
+const ART = { car: `${STORAGE}/car.jpg`, shield: `${STORAGE}/shield.jpg` };
+
 export type OnboardingIntent = 'viewing' | 'three_months' | 'ready_now';
 
 interface OnboardingSlidesProps {
@@ -90,81 +93,80 @@ function IconBubble({ icon: Icon, className }: { icon: typeof Check; className?:
     );
 }
 
-/* 1. Хук: ценность */
+/* 1. Хук: ценность (макет 01) */
 function SlideHook() {
     return (
-        <div className="flex-1 flex flex-col justify-center text-center py-6">
-            <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden mb-8 bg-surface-container-low">
+        <div className="flex-1 flex flex-col justify-center text-center py-4">
+            <div className="relative w-full aspect-[4/3] mb-8">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                    src="https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/public/media/banners/onboarding.jpg"
-                    alt="Премиальный автомобиль"
-                    className="w-full h-full object-cover"
+                    src={ART.car}
+                    alt="Автомобиль из Китая"
+                    className="w-full h-full object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent" />
             </div>
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight leading-tight mb-4">
+            <h1 className="font-headline text-[2rem] font-extrabold tracking-tight leading-[1.15] mb-4">
                 Авто из Китая —<br /><span className="text-primary">без риска</span> и переплат
             </h1>
-            <p className="text-on-surface-variant text-lg leading-relaxed max-w-sm mx-auto">
-                Премиальные модели напрямую из Китая. Дешевле локального рынка, с проверкой и документами.
+            <p className="text-on-surface-variant text-lg leading-relaxed max-w-xs mx-auto">
+                Проверенные автомобили<br />по честной цене под ключ.
             </p>
         </div>
     );
 }
 
-/* 2. Боль → мы её знаем */
+/* 2. Страхи снимаем (макет 02) */
 function SlidePain() {
     return (
-        <div className="flex-1 flex flex-col justify-center py-6">
-            <div className="flex flex-col items-center gap-4 mb-10">
-                <div className="w-full max-w-sm space-y-3">
-                    <div className="bg-surface-container-low rounded-2xl rounded-bl-sm px-5 py-4 text-on-surface font-medium shadow-sm">
-                        «А вдруг пришлют не то авто?»
-                    </div>
-                    <div className="bg-surface-container-low rounded-2xl rounded-bl-sm px-5 py-4 text-on-surface font-medium shadow-sm">
-                        «Скрытые платежи на таможне?»
-                    </div>
-                    <div className="bg-primary text-white rounded-2xl rounded-br-sm px-5 py-4 font-bold shadow-md ml-10">
-                        Эти страхи — обоснованы. Поэтому мы построили сервис иначе.
-                    </div>
+        <div className="flex-1 flex flex-col justify-center text-center py-4">
+            <div className="relative mb-8">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={ART.shield} alt="Проверка автомобиля" className="w-full max-w-[200px] mx-auto" />
+
+                {/* Реплики клиентов — версткой, чтобы читались на любом экране */}
+                <div className="absolute left-0 top-[45%] -translate-y-1/2 bg-surface-container-lowest rounded-2xl px-4 py-3 shadow-md max-w-[128px]">
+                    <p className="text-xs leading-snug text-on-surface">«А вдруг не то авто?»</p>
+                </div>
+                <div className="absolute right-0 top-[45%] -translate-y-1/2 bg-surface-container-lowest rounded-2xl px-4 py-3 shadow-md max-w-[128px]">
+                    <p className="text-xs leading-snug text-on-surface">«Скрытые платежи?»</p>
                 </div>
             </div>
-            <h2 className="font-headline text-3xl font-extrabold tracking-tight text-center mb-3">
-                Покупать «вслепую» — страшно
+
+            <h2 className="font-headline text-[2rem] font-extrabold tracking-tight leading-[1.15] mb-4">
+                Покупать вслепую<br />не придётся
             </h2>
-            <p className="text-on-surface-variant text-lg leading-relaxed text-center max-w-sm mx-auto">
-                Серые схемы, посредники, авто-фантомы. Мы знаем рынок изнутри — и берём риски на себя.
+            <p className="text-on-surface-variant text-lg leading-relaxed max-w-xs mx-auto">
+                Проверяем автомобиль, документы и стоимость до оплаты.
             </p>
         </div>
     );
 }
 
-/* 3. Система: чек-лист доверия */
+/* 3. Обязательства (макет 03) */
 function SlideSystem() {
     const items = [
-        { icon: BadgeCheck, text: 'Лично проверяем каждое авто в Китае' },
-        { icon: Wallet, text: 'Цена под ключ — без скрытых доплат' },
-        { icon: FileText, text: 'Договор и полный пакет документов' },
-        { icon: UserRound, text: 'Личный менеджер на каждом этапе' },
-        { icon: Truck, text: 'Контроль доставки до выдачи ключей' },
+        { icon: Search, text: 'Проверка в Китае' },
+        { icon: Wallet, text: 'Цена без доплат' },
+        { icon: FileText, text: 'Полный пакет документов' },
+        { icon: UserRound, text: 'Личный менеджер' },
+        { icon: Truck, text: 'Контроль доставки' },
     ];
     return (
-        <div className="flex-1 flex flex-col justify-center py-6">
-            <div className="flex justify-center mb-8">
-                <IconBubble icon={ShieldCheck} className="w-24 h-24 rounded-[2rem]" />
-            </div>
-            <h2 className="font-headline text-3xl font-extrabold tracking-tight text-center mb-8">
-                Мы создали систему:
+        <div className="flex-1 flex flex-col justify-center py-4">
+            <h2 className="font-headline text-[2rem] font-extrabold tracking-tight leading-[1.15] text-center mb-8">
+                Все риски берём<br />на себя
             </h2>
-            <div className="space-y-4 max-w-sm mx-auto w-full">
+            <div className="space-y-3 max-w-sm mx-auto w-full">
                 {items.map(({ icon: Icon, text }) => (
-                    <div key={text} className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                            <Check className="w-5 h-5 text-emerald-600" />
-                        </div>
+                    <div
+                        key={text}
+                        className="flex items-center gap-4 rounded-2xl border border-orange-100/70 bg-surface-container-lowest px-5 py-4"
+                    >
+                        <Icon className="w-6 h-6 text-primary shrink-0" strokeWidth={1.75} />
                         <span className="font-medium text-on-surface">{text}</span>
-                        <Icon className="w-5 h-5 text-primary/40 ml-auto shrink-0" />
+                        <div className="ml-auto w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                            <Check className="w-4 h-4 text-emerald-600" strokeWidth={3} />
+                        </div>
                     </div>
                 ))}
             </div>
@@ -172,22 +174,55 @@ function SlideSystem() {
     );
 }
 
-/* 4. Механика: фильтр работает за вас */
+/* 4. Механика: фильтр работает за вас (макет 04) */
 function SlideMechanics() {
     return (
-        <div className="flex-1 flex flex-col justify-center py-6">
-            <div className="flex justify-center items-center gap-3 mb-10">
-                <IconBubble icon={SlidersHorizontal} />
-                <ArrowRight className="w-6 h-6 text-on-surface-variant/40" />
-                <IconBubble icon={Search} />
-                <ArrowRight className="w-6 h-6 text-on-surface-variant/40" />
-                <IconBubble icon={BellRing} />
+        <div className="flex-1 flex flex-col justify-center py-4">
+            {/* Сохранённый фильтр */}
+            <div className="flex items-center gap-4 rounded-2xl bg-surface-container-lowest px-5 py-4 shadow-sm">
+                <SlidersHorizontal className="w-6 h-6 text-on-surface shrink-0" strokeWidth={1.75} />
+                <div className="min-w-0">
+                    <p className="font-headline font-bold text-on-surface leading-tight">Фильтр сохранён</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Кроссовер · до 25 млн ₸ · 2021+</p>
+                </div>
+                <div className="ml-auto w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-emerald-600" strokeWidth={3} />
+                </div>
             </div>
-            <h2 className="font-headline text-3xl font-extrabold tracking-tight text-center mb-3">
-                Авто найдёт вас само
+
+            {/* Найденное авто */}
+            <div className="mt-4 flex overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={ART.car} alt="Подходящий автомобиль" className="w-2/5 object-cover" />
+                <div className="flex-1 p-4">
+                    <p className="font-headline font-bold leading-tight text-on-surface">Подходящий кроссовер</p>
+                    <p className="text-[11px] text-on-surface-variant mt-1">2022 · 2.0 л · 4WD</p>
+                    <p className="font-headline font-extrabold text-on-surface mt-2">24 500 000 ₸</p>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">Пробег 32 000 км</p>
+                </div>
+            </div>
+
+            <div className="flex justify-center py-3">
+                <ArrowRight className="w-5 h-5 rotate-90 text-primary/50" />
+            </div>
+
+            {/* Уведомление */}
+            <div className="flex items-center gap-3 rounded-2xl bg-surface-container-lowest px-4 py-3 shadow-sm">
+                <div className="w-9 h-9 rounded-full bg-[#229ED9] flex items-center justify-center shrink-0">
+                    <BellRing className="w-4 h-4 text-white" />
+                </div>
+                <div className="min-w-0">
+                    <p className="text-sm font-bold text-on-surface leading-tight">Найден подходящий вариант!</p>
+                    <p className="text-xs text-on-surface-variant truncate">Кроссовер за 24 500 000 ₸</p>
+                </div>
+                <span className="ml-auto text-[11px] text-on-surface-variant/60 shrink-0">сейчас</span>
+            </div>
+
+            <h2 className="font-headline text-[2rem] font-extrabold tracking-tight leading-[1.15] text-center mt-8 mb-3">
+                Подходящее авто<br />найдёт вас само
             </h2>
-            <p className="text-on-surface-variant text-lg leading-relaxed text-center max-w-sm mx-auto">
-                Сохраните фильтр: марка, бюджет, год. Как только появится подходящий вариант — пришлём уведомление в Telegram первым.
+            <p className="text-on-surface-variant text-lg leading-relaxed text-center max-w-xs mx-auto">
+                Сохраните параметры — сообщим,<br />когда появится ваш вариант.
             </p>
         </div>
     );
