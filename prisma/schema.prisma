@@ -82,6 +82,12 @@ enum EventType {
   support_opened
   filter_deleted
   webapp_opened
+  app_installed
+  app_opened
+  landing_opened
+  push_subscribed
+  push_clicked
+  push_sent_web
 }
 
 model User {
@@ -107,6 +113,7 @@ model User {
   favorites     Favorite[]
   notifications Notification[]
   events        Event[]
+  pushSubs      PushSubscription[]
 
   @@index([createdAt])
   @@index([assignedManagerId])
@@ -318,4 +325,20 @@ model SystemSettings {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+/// Устройства с включёнными пушами (иконка приложения на телефоне)
+model PushSubscription {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  source     String?   @default("pwa")
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([userId])
 }

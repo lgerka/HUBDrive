@@ -12,6 +12,8 @@ import { FavoritesProvider } from "@/components/hubdrive/favorites/favorites-pro
 import { OnboardingGuard } from "@/components/hubdrive/telegram/OnboardingGuard";
 import { UpdatePrompt } from "@/components/hubdrive/pwa/update-prompt";
 import { InstallPrompt } from "@/components/hubdrive/pwa/install-prompt";
+import { PushOptIn } from "@/components/hubdrive/pwa/push-optin";
+import { SessionTracker } from "@/components/hubdrive/analytics/session-tracker";
 
 export default function WebAppLayout({
     children,
@@ -29,6 +31,8 @@ export default function WebAppLayout({
                     {/* Только в приложении: на лендинге эти плашки не нужны */}
                     <UpdatePrompt />
                     <InstallPrompt />
+                    <PushOptIn />
+                    <SessionTracker area="app" />
                 </OnboardingGuard>
             </FavoritesProvider>
             <Toaster />
