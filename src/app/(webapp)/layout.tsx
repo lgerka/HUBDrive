@@ -10,6 +10,8 @@ import { TelegramProvider } from "@/components/hubdrive/telegram/TelegramProvide
 import { Toaster } from "@/components/ui/toaster";
 import { FavoritesProvider } from "@/components/hubdrive/favorites/favorites-provider";
 import { OnboardingGuard } from "@/components/hubdrive/telegram/OnboardingGuard";
+import { UpdatePrompt } from "@/components/hubdrive/pwa/update-prompt";
+import { InstallPrompt } from "@/components/hubdrive/pwa/install-prompt";
 
 export default function WebAppLayout({
     children,
@@ -24,6 +26,9 @@ export default function WebAppLayout({
                         <main className="flex-1 pb-[calc(80px+env(safe-area-inset-bottom))]">{children}</main>
                         <BottomNav />
                     </div>
+                    {/* Только в приложении: на лендинге эти плашки не нужны */}
+                    <UpdatePrompt />
+                    <InstallPrompt />
                 </OnboardingGuard>
             </FavoritesProvider>
             <Toaster />

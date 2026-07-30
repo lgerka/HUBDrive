@@ -12,6 +12,8 @@ import { RefreshCw } from "lucide-react";
  * перезагрузиться. Дополнительно ловим готовый к активации service worker.
  */
 const CHECK_INTERVAL = 5 * 60 * 1000;
+/** Версия, которую пользователь уже применил в этой сессии — чтобы плашка не возвращалась */
+const APPLIED_KEY = "appliedBuildVersion";
 
 export function UpdatePrompt() {
     const [available, setAvailable] = useState(false);
@@ -30,7 +32,17 @@ export function UpdatePrompt() {
                 currentVersion.current = version;
                 return;
             }
-            if (version !== currentVersion.current) setAvailable(true);
+            if (version === currentVersion.current) {
+                setAvailable(false);
+                return;
+            }
+            // Эту версию пользователь уже обновлял — не показываем плашку снова
+            if (sessionStorage.getItem(APPLIED_KEY) === version) {
+                currentVersion.current = version;
+                setAvailable(false);
+                return;
+            }
+            setAvailable(true);
         } catch {
             // офлайн — проверим в следующий раз
         }
@@ -77,17 +89,30 @@ export function UpdatePrompt() {
     const applyUpdate = async () => {
         setIsUpdating(true);
         try {
-            // Чистим кеш оболочки, чтобы точно загрузился новый код
+            // Запоминаем целевую версию: после перезагрузки плашка не всплывёт снова,
+            // даже если проверка успеет отработать до применения нового кода
+            const res = await fetch("/api/version", { cache: "no-store" }).catch(() => null);
+            const version = res && res.ok ? (await res.json()).version : null;
+            if (version) sessionStorage.setItem(APPLIED_KEY, version);
+
             if ("caches" in window) {
                 const keys = await caches.keys();
                 await Promise.all(keys.map(k => caches.delete(k)));
             }
             if (waitingWorker.current) {
                 waitingWorker.current.postMessage({ type: "SKIP_WAITING" });
+                // Ждём смену контроллера, иначе перезагрузка обгоняет активацию
+                // нового service worker и страница снова открывается на старом коде
+                await new Promise<void>(resolve => {
+                    const done = () => resolve();
+                    navigator.serviceWorker.addEventListener("controllerchange", done, { once: true });
+                    setTimeout(done, 1500);
+                });
             }
         } catch {
             // не критично — всё равно перезагружаемся
         }
+        setAvailable(false);
         window.location.reload();
     };
 
