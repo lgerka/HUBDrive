@@ -8,6 +8,7 @@ import { fmtUsd } from "@/lib/price";
 import { BOT_APP_URL } from "@/constants/contacts";
 import { InstallInstructions } from "@/components/hubdrive/landing/install-instructions";
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
+import { StructuredData } from "@/components/hubdrive/landing/structured-data";
 
 export const revalidate = 300;
 
@@ -50,6 +51,8 @@ const FAQ = [
     { q: "Можно ли посмотреть авто до покупки?", a: "Да. Мы присылаем подробные фото и видео с осмотра, показания толщиномера и одометра, а также данные по документам." },
     { q: "Какие авто вы возите?", a: "В основном свежие автомобили 2021–2023 годов: Volkswagen, Audi, Mazda, Toyota и другие популярные модели китайского рынка." },
     { q: "Что входит в цену?", a: "Стоимость автомобиля, подготовка, доставка до Казахстана, таможенное оформление и полная пошлина. Итоговая цена фиксируется в договоре." },
+    { q: "В какие города Казахстана вы привозите?", a: "Работаем по всему Казахстану: Алматы, Астана, Шымкент, Караганда, Актобе и другие города. Автомобиль можно забрать самостоятельно или заказать доставку по адресу." },
+    { q: "Сколько стоит растаможка авто из Китая?", a: "Пошлина и оформление уже включены в цену под ключ — отдельно доплачивать не нужно. Менеджер показывает расчёт по конкретной машине до подписания договора." },
 ];
 
 export default async function LandingPage() {
@@ -59,6 +62,7 @@ export default async function LandingPage() {
         <main className="min-h-screen">
             {/* В установленном приложении лендинг не нужен — сразу открываем каталог */}
             <StandaloneRedirect />
+            <StructuredData faq={FAQ} vehicles={vehicles} />
 
             {/* Шапка */}
             <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur-md">
@@ -85,12 +89,12 @@ export default async function LandingPage() {
                             Авто из Китая в Казахстан
                         </p>
                         <h1 className="font-headline text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-                            Пригоняем автомобили,<br />
+                            Привозим автомобили,<br />
                             <span className="text-orange-600">которые видели своими глазами</span>
                         </h1>
                         <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
-                            Проверяем каждую машину до оплаты, считаем цену сразу под ключ и ведём сделку по договору —
-                            от выбора до вручения ключей.
+                            Проверяем каждую машину в Китае до оплаты, считаем цену сразу под ключ —
+                            с доставкой и растаможкой в Казахстане. Привозим в Алматы, Астану и другие города.
                         </p>
 
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -142,7 +146,7 @@ export default async function LandingPage() {
             {/* Гарантии */}
             <section className="bg-slate-50 py-16">
                 <div className="mx-auto max-w-6xl px-5">
-                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Что вы получаете</h2>
+                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Что вы получаете при пригоне авто из Китая</h2>
                     <div className="mt-8 grid gap-5 sm:grid-cols-2">
                         {GUARANTEES.map(({ icon: Icon, title, text }) => (
                             <div key={title} className="rounded-2xl bg-white p-6 shadow-sm">
@@ -163,7 +167,7 @@ export default async function LandingPage() {
                     <div className="mx-auto max-w-6xl px-5">
                         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
                             <div>
-                                <h2 className="font-headline text-3xl font-extrabold tracking-tight">Сейчас в наличии</h2>
+                                <h2 className="font-headline text-3xl font-extrabold tracking-tight">Автомобили из Китая в наличии</h2>
                                 <p className="mt-2 text-slate-600">Цены указаны с доставкой и таможней</p>
                             </div>
                             <a
@@ -218,7 +222,7 @@ export default async function LandingPage() {
             {/* Как работаем */}
             <section className="bg-slate-900 py-16 text-white">
                 <div className="mx-auto max-w-6xl px-5">
-                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Как проходит покупка</h2>
+                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Как проходит покупка авто из Китая</h2>
                     <ol className="mt-10 grid gap-8 md:grid-cols-5">
                         {STEPS.map(({ icon: Icon, title, text }, i) => (
                             <li key={title} className="relative">
@@ -263,7 +267,7 @@ export default async function LandingPage() {
             {/* FAQ */}
             <section className="bg-slate-50 py-16">
                 <div className="mx-auto max-w-3xl px-5">
-                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Частые вопросы</h2>
+                    <h2 className="font-headline text-3xl font-extrabold tracking-tight">Частые вопросы о пригоне авто из Китая</h2>
                     <div className="mt-8 space-y-4">
                         {FAQ.map(({ q, a }) => (
                             <details key={q} className="group rounded-2xl bg-white p-6 shadow-sm">

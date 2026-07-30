@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { InstallPrompt } from "@/components/hubdrive/pwa/install-prompt";
 import { ServiceWorkerRegister } from "@/components/hubdrive/pwa/service-worker-register";
-import { UpdatePrompt } from "@/components/hubdrive/pwa/update-prompt";
 
 const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
@@ -62,8 +60,7 @@ export default function RootLayout({
       >
         {children}
         <ServiceWorkerRegister />
-        <UpdatePrompt />
-        <InstallPrompt />
+        {/* Плашки обновления и установки — только внутри приложения, см. (webapp)/layout */}
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </body>
     </html>
