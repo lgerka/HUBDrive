@@ -10,6 +10,7 @@ import { InstallInstructions } from "@/components/hubdrive/landing/install-instr
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
 import { StructuredData } from "@/components/hubdrive/landing/structured-data";
 import { SessionTracker } from "@/components/hubdrive/analytics/session-tracker";
+import { InstallPrompt } from "@/components/hubdrive/pwa/install-prompt";
 
 export const revalidate = 300;
 
@@ -65,6 +66,8 @@ export default async function LandingPage() {
             <StandaloneRedirect />
             <StructuredData faq={FAQ} vehicles={vehicles} />
             <SessionTracker area="landing" />
+            {/* Напоминание об установке — периодически, чтобы не упустить новые авто */}
+            <InstallPrompt requireOnboarding={false} />
 
             {/* Шапка */}
             <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur-md">

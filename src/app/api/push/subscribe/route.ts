@@ -12,10 +12,10 @@ export async function GET() {
 /** Сохраняет подписку устройства: с неё пуши приходят прямо в телефон. */
 export async function POST(request: Request) {
     try {
+        // Подписку принимаем и без входа: в установленном приложении человек
+        // ещё может быть не авторизован, а уведомления он хочет уже сейчас.
+        // Как только войдёт — эта же подписка привяжется к его профилю.
         const user = await resolveWebUser(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Нужен вход через Telegram' }, { status: 401 });
-        }
 
         const body = await request.json().catch(() => ({}));
         const { endpoint, keys, source } = body as {
@@ -33,16 +33,17 @@ export async function POST(request: Request) {
         // Один и тот же endpoint может переехать к другому пользователю (общий телефон)
         await prisma.$executeRaw`
             insert into "PushSubscription" (id, "userId", endpoint, p256dh, auth, source, "userAgent", "createdAt")
-            values (gen_random_uuid()::text, ${user.id}, ${endpoint}, ${keys.p256dh}, ${keys.auth},
+            values (gen_random_uuid()::text, ${user?.id ?? null}, ${endpoint}, ${keys.p256dh}, ${keys.auth},
                     ${source ?? 'pwa'}, ${userAgent}, now())
             on conflict (endpoint) do update
-              set "userId" = ${user.id}, p256dh = ${keys.p256dh}, auth = ${keys.auth},
+              set "userId" = coalesce(${user?.id ?? null}, "PushSubscription"."userId"),
+                  p256dh = ${keys.p256dh}, auth = ${keys.auth},
                   source = ${source ?? 'pwa'}, "userAgent" = ${userAgent}
         `;
 
         // Фиксируем событие — пригодится в аналитике «сколько устройств с пушами»
         await prisma.event.create({
-            data: { type: 'push_subscribed', userId: user.id, meta: { source: source ?? 'pwa' } },
+            data: { type: 'push_subscribed', userId: user?.id ?? null, meta: { source: source ?? 'pwa' } },
         }).catch(() => { });
 
         return NextResponse.json({ ok: true });

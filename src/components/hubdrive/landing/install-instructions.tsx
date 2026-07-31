@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Copy, Share, Plus, MoreVertical, Smartphone } from "lucide-react";
 import { WEBAPP_ORIGIN } from "@/constants/contacts";
 import { cn } from "@/lib/utils";
+import { InstallCarousel } from "./install-carousel";
 
 type Platform = "ios-safari" | "ios-other" | "android" | "desktop";
 
@@ -99,11 +100,7 @@ export function InstallInstructions({ compact = false }: { compact?: boolean }) 
                 { icon: Plus, text: platform === "android" ? <>Выберите <b>«Установить приложение»</b></> : <>Пролистайте и выберите <b>«На экран „Домой“»</b> → <b>«Добавить»</b></> },
             ]
             : platform === "ios-safari"
-                ? [
-                    { icon: Share, text: <>Нажмите <b>«Поделиться»</b> — кнопка внизу экрана Safari</> },
-                    { icon: Plus, text: <>Пролистайте меню и выберите <b>«На экран „Домой“»</b></> },
-                    { icon: Check, text: <>Нажмите <b>«Добавить»</b> — иконка появится на экране телефона</> },
-                ]
+                ? []
                 : platform === "ios-other"
                     ? [
                         { icon: Copy, text: <>Скопируйте ссылку кнопкой ниже</> },
@@ -122,8 +119,22 @@ export function InstallInstructions({ compact = false }: { compact?: boolean }) 
                             { icon: Plus, text: <>Android: меню браузера ⋮ → «Установить приложение»</> },
                         ];
 
+    const isIOS = platform === "ios-safari" || platform === "ios-other";
+    const inSafariNow = platform === "ios-safari" && !isTelegram;
+
     return (
         <div className={cn("rounded-3xl bg-slate-50 p-6 md:p-8", compact && "p-5")}>
+            {isIOS && !isTelegram && (
+                <div className="mb-6">
+                    <p className="mb-3 text-sm font-bold text-slate-900">
+                        {inSafariNow
+                            ? "Вы уже в Safari — можно ставить прямо сейчас:"
+                            : "Так это выглядит в Safari:"}
+                    </p>
+                    <InstallCarousel />
+                </div>
+            )}
+
             <ol className="space-y-4">
                 {steps.map((step, i) => (
                     <li key={i} className="flex items-start gap-4">
@@ -150,13 +161,13 @@ export function InstallInstructions({ compact = false }: { compact?: boolean }) 
                     >
                         Установить приложение
                     </button>
-                ) : (
+                ) : inSafariNow ? null : (
                     <button
                         onClick={copyLink}
                         className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-900 transition-transform active:scale-[0.98]"
                     >
                         {copied ? <Check className="h-5 w-5 text-emerald-600" /> : <Copy className="h-5 w-5" />}
-                        {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
+                        {copied ? "Ссылка скопирована — откройте её в Safari" : "Скопировать ссылку для Safari"}
                     </button>
                 )}
                 <p className="text-center text-xs text-slate-500">
