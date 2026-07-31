@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Share, Plus, Copy, Check, Download } from "lucide-react";
+import { X, Copy, Check, Download } from "lucide-react";
+import { InstallCarousel } from "@/components/hubdrive/landing/install-carousel";
 
 /**
  * Модалка установки PWA: иконка на домашнем экране + запуск на весь экран.
@@ -16,7 +17,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISS_KEY = "pwaPromptDismissedAt";
-const DISMISS_DAYS = 7;
+const DISMISS_DAYS = 3;
 
 export function isStandalone() {
     if (typeof window === "undefined") return false;
@@ -45,7 +46,7 @@ function isInTelegram() {
     return Boolean(tg?.initData) || (tg?.platform !== undefined && tg.platform !== "unknown");
 }
 
-export function InstallPrompt() {
+export function InstallPrompt({ requireOnboarding = true }: { requireOnboarding?: boolean } = {}) {
     const [open, setOpen] = useState(false);
     const [platform, setPlatform] = useState<Platform>("desktop");
     const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
@@ -56,8 +57,8 @@ export function InstallPrompt() {
 
         const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || 0);
         if (dismissedAt && Date.now() - dismissedAt < DISMISS_DAYS * 864e5) return;
-        // Не перебиваем онбординг — предлагаем установку только тем, кто его прошёл
-        if (localStorage.getItem("onboardingCompleted") !== "true") return;
+        // В приложении не перебиваем онбординг; на лендинге его нет
+        if (requireOnboarding && localStorage.getItem("onboardingCompleted") !== "true") return;
 
         setPlatform(detectPlatform());
 
@@ -73,7 +74,7 @@ export function InstallPrompt() {
             window.removeEventListener("beforeinstallprompt", onBeforeInstall);
             clearTimeout(t);
         };
-    }, []);
+    }, [requireOnboarding]);
 
     const close = () => {
         localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -104,8 +105,8 @@ export function InstallPrompt() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/icons/icon-192.png" alt="" className="h-12 w-12 rounded-xl border border-surface-container" />
                         <div>
-                            <h2 className="font-headline text-lg font-extrabold text-on-surface">Установите приложение</h2>
-                            <p className="text-xs text-on-surface-variant">Бесплатно, за 10 секунд</p>
+                            <h2 className="font-headline text-lg font-extrabold text-on-surface">Не упустите новые авто</h2>
+                            <p className="text-xs text-on-surface-variant">Приложение + уведомления, 10 секунд</p>
                         </div>
                     </div>
                     <button onClick={close} className="rounded-full p-2 text-on-surface-variant hover:bg-surface-container active:scale-95">
@@ -114,39 +115,25 @@ export function InstallPrompt() {
                 </div>
 
                 <p className="mb-6 text-sm leading-relaxed text-on-surface-variant">
-                    Добавьте HUBDrive на домашний экран — открывается в один тап, на весь экран, с уведомлениями о новых авто.
+                    Поставьте HUBDrive на домашний экран: открывается в один тап и сам присылает уведомление,
+                    когда появляется подходящая машина.
                 </p>
 
                 {platform === "ios-safari" && (
-                    <ol className="space-y-4">
-                        <li className="flex items-start gap-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">1</span>
-                            <p className="text-sm text-on-surface">
-                                Нажмите <Share className="mx-1 inline h-4 w-4 -translate-y-0.5" />
-                                <b>«Поделиться»</b> внизу экрана
-                            </p>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">2</span>
-                            <p className="text-sm text-on-surface">
-                                Пролистайте и выберите <Plus className="mx-1 inline h-4 w-4 -translate-y-0.5" />
-                                <b>«На экран „Домой“»</b>
-                            </p>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">3</span>
-                            <p className="text-sm text-on-surface">
-                                Нажмите <b>«Добавить»</b> — иконка появится на экране
-                            </p>
-                        </li>
-                    </ol>
+                    <>
+                        <p className="mb-3 text-sm font-medium text-on-surface">
+                            Вы в Safari — установка займёт 10 секунд:
+                        </p>
+                        <InstallCarousel />
+                    </>
                 )}
 
                 {platform === "ios-other" && (
                     <div className="space-y-4">
                         <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
                             <p className="text-sm leading-relaxed text-on-surface">
-                                На iPhone приложение устанавливается только через <b>Safari</b>. Скопируйте ссылку, откройте её в Safari и вернитесь сюда.
+                                На iPhone приложение ставится только из <b>Safari</b>. Скопируйте ссылку и откройте её
+                                в Safari — там сразу появится пошаговая инструкция со скриншотами.
                             </p>
                         </div>
                         <button
