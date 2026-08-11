@@ -114,6 +114,7 @@ model User {
   notifications Notification[]
   events        Event[]
   pushSubs      PushSubscription[]
+  metaAttribution MetaAttribution[]
 
   @@index([createdAt])
   @@index([assignedManagerId])
@@ -341,4 +342,25 @@ model PushSubscription {
   lastUsedAt DateTime?
 
   @@index([userId])
+}
+
+/// Связь рекламного клика Meta с человеком: куки _fbp/_fbc сохраняются на
+/// лендинге, а когда тот же человек оставляет заявку (в том числе из Telegram,
+/// где браузерного пикселя нет), конверсия уходит с правильной атрибуцией.
+model MetaAttribution {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  fbp        String?
+  fbc        String?
+  ip         String?
+  userAgent  String?
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  telegramId BigInt?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([userId])
+  @@index([telegramId])
+  @@index([createdAt])
 }

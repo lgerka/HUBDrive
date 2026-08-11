@@ -3,6 +3,8 @@ import { prisma } from '@/lib/server/prisma';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
+import { attributionForUser } from '@/lib/server/meta/attribution';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -75,6 +77,37 @@ export async function POST(request: Request) {
             carLine,
             vehicle ? `\n<a href="${WEBAPP_URL}/vehicles/${vehicle.id}">Открыть карточку</a>` : '',
         ].filter(Boolean).join('\n');
+
+        // Заявка «подобрать похожий» — такая же ценная конверсия, как обычная:
+        // человек оставил телефон и ждёт звонка
+        try {
+            const { ip, userAgent } = requestSignals(request);
+            const attribution = await attributionForUser(dbUser.id);
+            await sendMetaEvent({
+                eventName: 'Lead',
+                eventId: `similar-${dbUser.id}-${Date.now()}`,
+                sourceUrl: vehicle ? `${WEBAPP_URL}/vehicles/${vehicle.id}` : WEBAPP_URL,
+                actionSource: attribution.fbp || attribution.fbc ? 'website' : 'system_generated',
+                userData: {
+                    ...attribution,
+                    phone,
+                    firstName: dbUser.firstName ?? undefined,
+                    externalId: dbUser.id,
+                    country: 'kz',
+                    ip,
+                    userAgent,
+                },
+                customData: {
+                    content_name: vehicle ? `${vehicle.brand} ${vehicle.model}` : 'подбор похожего',
+                    content_ids: vehicle ? [vehicle.id] : undefined,
+                    content_type: 'product',
+                    value: vehicle?.priceUSD ?? undefined,
+                    currency: 'USD',
+                },
+            });
+        } catch (err) {
+            console.error('[API] Не удалось передать заявку в Meta:', err);
+        }
 
         const token = process.env.TELEGRAM_BOT_TOKEN;
         if (!token) {

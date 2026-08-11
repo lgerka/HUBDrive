@@ -11,6 +11,7 @@ import { BOT_APP_URL } from '@/constants/contacts';
 import { formatPhone, isPhoneComplete } from '@/lib/phone';
 import { PhoneInput } from '@/components/hubdrive/common/phone-input';
 import { TelegramLoginButton } from '@/components/hubdrive/telegram/telegram-login-button';
+import { metaTrack } from '@/lib/meta/pixel';
 
 export default function OnboardingProfilePage() {
     const { user, initData } = useTelegram();
@@ -58,6 +59,11 @@ export default function OnboardingProfilePage() {
                 return;
             }
             if (data.ok) {
+                // Оставил имя и телефон — для рекламы это заявка о себе:
+                // по такому событию Meta ищет похожих людей
+                metaTrack('CompleteRegistration', { content_name: 'профиль' }, {
+                    userData: { phone: formatPhone(phone), firstName: name },
+                });
                 if (initData) {
                     await fetchProfile(initData);
                 }

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/server/prisma';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
+import { attributionForUser } from '@/lib/server/meta/attribution';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // Единая точка правды по адресу приложения — см. constants/contacts
@@ -73,6 +75,39 @@ export async function POST(request: Request) {
             });
         } catch (err) {
             console.error('[API] Failed to log contact_clicked event:', err);
+        }
+
+        // Заявка — главная конверсия: отдаём её в Meta, чтобы реклама
+        // оптимизировалась на людей, которые действительно оставляют заявки.
+        // Событие уходит с сервера, поэтому доходит и из Telegram, где
+        // браузерного пикселя нет.
+        try {
+            const { ip, userAgent } = requestSignals(request);
+            const attribution = await attributionForUser(dbUser.id);
+            await sendMetaEvent({
+                eventName: 'Lead',
+                eventId: `lead-${dbUser.id}-${vehicle.id}-${Date.now()}`,
+                sourceUrl: `${WEBAPP_URL}/vehicles/${vehicle.id}`,
+                actionSource: attribution.fbp || attribution.fbc ? 'website' : 'system_generated',
+                userData: {
+                    ...attribution,
+                    phone: dbUser.phone ?? undefined,
+                    firstName: dbUser.firstName ?? undefined,
+                    externalId: dbUser.id,
+                    country: 'kz',
+                    ip,
+                    userAgent,
+                },
+                customData: {
+                    content_ids: [vehicle.id],
+                    content_name: `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+                    content_type: 'product',
+                    value: vehicle.priceUSD ?? undefined,
+                    currency: 'USD',
+                },
+            });
+        } catch (err) {
+            console.error('[API] Не удалось передать заявку в Meta:', err);
         }
 
         let sent = 0;

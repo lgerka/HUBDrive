@@ -18,6 +18,7 @@ import { VehicleSpecsGrid } from '@/components/hubdrive/vehicles/vehicle-specs-g
 import { VehicleInfoBlocks } from '@/components/hubdrive/vehicles/vehicle-info-blocks';
 import { VehicleCtaBar } from '@/components/hubdrive/vehicles/vehicle-cta-bar';
 import { SimilarRequestBlock, SimilarRequestSheet } from '@/components/hubdrive/vehicles/similar-request';
+import { metaTrack } from '@/lib/meta/pixel';
 
 export default function VehicleDetailPage() {
     const params = useParams();
@@ -59,6 +60,16 @@ export default function VehicleDetailPage() {
                 trackEvent('vehicle_opened', {
                     vehicleId: data.id,
                     meta: { brand: data.brand, model: data.model },
+                });
+                // Тот же просмотр — в Meta: по нему собирается аудитория
+                // для ретаргетинга и учится оптимизация рекламы
+                metaTrack('ViewContent', {
+                    content_ids: [data.id],
+                    content_name: `${data.brand} ${data.model} ${data.year ?? ''}`.trim(),
+                    content_type: 'product',
+                    content_category: data.brand,
+                    value: data.priceUSD ?? undefined,
+                    currency: 'USD',
                 });
             } catch (err) {
                 console.error(err);
@@ -305,6 +316,12 @@ export default function VehicleDetailPage() {
                 isContactLoading={isSending}
                 onCall={() => {
                     trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });
+                    metaTrack('Contact', {
+                        content_ids: [vehicle.id],
+                        content_category: 'phone',
+                        value: vehicle.priceUSD ?? undefined,
+                        currency: 'USD',
+                    });
                     callSupport();
                 }}
                 onFavorite={handleFavorite}
