@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 import { cn } from "@/lib/utils";
-import { SUPPORT_PHONE, openSupportTelegram } from "@/constants/contacts";
+import { SUPPORT_PHONE_DISPLAY, openSupportTelegram, openWhatsApp, callSupport } from "@/constants/contacts";
 
 const FAQS = [
     {
@@ -104,18 +104,27 @@ export default function SupportPage() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => { window.location.href = `tel:${SUPPORT_PHONE}`; }}
-                        className="relative overflow-hidden bg-slate-900 dark:bg-slate-800 rounded-xl p-4 h-32 flex flex-col justify-between group cursor-pointer shadow-md hover:shadow-lg transition-shadow text-left active:scale-[0.98]"
+                        onClick={() => openWhatsApp("Здравствуйте! Хочу узнать про авто из Китая")}
+                        className="relative overflow-hidden bg-[#25D366] rounded-xl p-4 h-32 flex flex-col justify-between group cursor-pointer shadow-md shadow-[#25D366]/20 hover:shadow-lg transition-shadow text-left active:scale-[0.98]"
                     >
-                        <div className="bg-white/10 w-10 h-10 rounded-full flex items-center justify-center text-white">
-                            <Phone className="w-5 h-5" />
+                        <div className="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center text-white">
+                            <MessageCircle className="w-5 h-5" />
                         </div>
-                        <p className="text-white text-base font-bold leading-tight relative z-10">Позвонить нам</p>
+                        <p className="text-white text-base font-bold leading-tight relative z-10">WhatsApp</p>
                         <div className="absolute -right-4 -top-4 opacity-10">
-                            <Phone className="w-24 h-24 text-white" />
+                            <MessageCircle className="w-24 h-24 text-white" />
                         </div>
                     </button>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={callSupport}
+                    className="mt-4 w-full flex items-center justify-center gap-3 bg-slate-900 dark:bg-slate-800 rounded-xl px-5 py-4 text-white active:scale-[0.98] transition-transform"
+                >
+                    <Phone className="w-5 h-5" />
+                    <span className="text-base font-bold">Позвонить {SUPPORT_PHONE_DISPLAY}</span>
+                </button>
             </div>
 
             {/* FAQ Section */}
