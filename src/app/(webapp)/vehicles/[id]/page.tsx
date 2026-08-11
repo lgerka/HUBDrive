@@ -11,7 +11,7 @@ import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { trackEvent } from '@/lib/api/track';
 import { fmtUsd } from '@/lib/price';
-import { SUPPORT_PHONE } from '@/constants/contacts';
+import { callSupport } from '@/constants/contacts';
 
 import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
 import { VehicleSpecsGrid } from '@/components/hubdrive/vehicles/vehicle-specs-grid';
@@ -305,7 +305,7 @@ export default function VehicleDetailPage() {
                 isContactLoading={isSending}
                 onCall={() => {
                     trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });
-                    window.location.href = `tel:${SUPPORT_PHONE}`;
+                    callSupport();
                 }}
                 onFavorite={handleFavorite}
                 isFavorite={isFavorite(vehicle.id)}
