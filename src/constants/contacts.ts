@@ -13,14 +13,12 @@ export const BOT_APP_URL = `https://t.me/${BOT_USERNAME}`;
  *  4) запасной вариант для сборки.
  */
 function resolveOrigin(): string {
+    // Ручное переопределение — на случай смены домена без правки кода
     const manual = process.env.NEXT_PUBLIC_WEBAPP_URL;
     if (manual) return manual.replace(/\/$/, '');
 
-    const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-    if (vercelProd) return `https://${vercelProd.replace(/\/$/, '')}`;
-
-    if (typeof window !== 'undefined') return window.location.origin;
-
+    // Основной домен проекта. Специально не берём VERCEL_PROJECT_PRODUCTION_URL:
+    // там ещё технический адрес vercel.app, и он перебивал бы боевой домен
     return 'https://hubdrive.asia';
 }
 
