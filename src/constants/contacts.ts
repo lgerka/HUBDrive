@@ -3,8 +3,28 @@ export const SUPPORT_TELEGRAM_URL = 'https://t.me/hubdrive_support';
 /** Бот: сюда отправляем, если приложение открыли вне Telegram (например, с иконки PWA). */
 export const BOT_USERNAME = 'HUBDrive_bot';
 export const BOT_APP_URL = `https://t.me/${BOT_USERNAME}`;
-/** Адрес самого приложения — для установки как отдельного приложения (PWA). */
-export const WEBAPP_ORIGIN = 'https://hub-drive-inky.vercel.app';
+/**
+ * Адрес приложения: canonical, sitemap, ссылки в уведомлениях, установка PWA.
+ *
+ * Определяется сам, чтобы переезд на другой домен не ломал ссылки:
+ *  1) NEXT_PUBLIC_WEBAPP_URL — ручное переопределение;
+ *  2) production-домен Vercel — подхватывается автоматически после привязки;
+ *  3) в браузере — текущий origin;
+ *  4) запасной вариант для сборки.
+ */
+function resolveOrigin(): string {
+    const manual = process.env.NEXT_PUBLIC_WEBAPP_URL;
+    if (manual) return manual.replace(/\/$/, '');
+
+    const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProd) return `https://${vercelProd.replace(/\/$/, '')}`;
+
+    if (typeof window !== 'undefined') return window.location.origin;
+
+    return 'https://hub-drive-inky.vercel.app';
+}
+
+export const WEBAPP_ORIGIN = resolveOrigin();
 /** Прямая ссылка на мини-приложение: открывает каталог внутри Telegram, минуя чат. */
 export const MINI_APP_URL = `https://t.me/${BOT_USERNAME}?startapp=catalog`;
 

@@ -7,7 +7,8 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 export const bot = new Bot(token || 'dummy_token');
 
 // Боевой домен как фолбэк, если NEXT_PUBLIC_WEBAPP_URL не задан в окружении
-const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
+const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'https://hub-drive-inky.vercel.app');
 
 export function initBotCommands() {
     bot.command("start", async (ctx) => {
