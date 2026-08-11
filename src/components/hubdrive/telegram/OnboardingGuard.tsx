@@ -1,15 +1,35 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTelegram } from './TelegramProvider';
 import { useUserStore } from '@/lib/state/user.store';
 import { useFiltersStore } from '@/lib/state/filters.store';
 import { SplashScreen } from '@/components/hubdrive/ui/splash-screen';
 import { OnboardingSlides, OnboardingIntent } from '@/components/hubdrive/onboarding/onboarding-slides';
 
+/**
+ * Страницы, которые обязаны открываться сразу и без квиза: на них приходят
+ * по прямой ссылке из поиска, мессенджера или рекламы. Онбординг там —
+ * потерянный человек и пустая страница для поискового робота.
+ */
+const PUBLIC_PATHS = [
+    /^\/vehicles\//,
+    /^\/catalog/,
+    /^\/brands/,
+    /^\/about/,
+    /^\/why-us/,
+    /^\/how-it-works/,
+    /^\/cases/,
+    /^\/news/,
+    /^\/stories/,
+    /^\/support/,
+];
+
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const isPublicPage = PUBLIC_PATHS.some(re => re.test(pathname ?? ''));
     const { initData, isReady } = useTelegram();
     const { profile, fetchProfile } = useUserStore();
     const { fetchFilters } = useFiltersStore();
@@ -65,11 +85,11 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         }
     };
 
-    if (showOnboarding) {
+    if (showOnboarding && !isPublicPage) {
         return <OnboardingSlides onComplete={handleCompleteOnboarding} />;
     }
 
-    if (!isChecked || (!isReady && initData)) {
+    if (!isPublicPage && (!isChecked || (!isReady && initData))) {
         return <SplashScreen />;
     }
 

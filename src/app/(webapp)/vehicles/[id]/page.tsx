@@ -1,332 +1,167 @@
-"use client";
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/server/prisma';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { VehicleDetailClient } from './vehicle-detail-client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Heart, Loader2, ImageOff, Eye } from 'lucide-react';
-import { Vehicle } from '@prisma/client';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { useFavoritesStore } from '@/lib/state/favorites.store';
-import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
-import { trackEvent } from '@/lib/api/track';
-import { fmtUsd } from '@/lib/price';
-import { callSupport } from '@/constants/contacts';
+/**
+ * Карточка автомобиля.
+ *
+ * Данные читаются на сервере, а не догружаются из браузера. Это важно сразу
+ * по трём причинам: поисковик видит содержимое страницы, ссылка в WhatsApp
+ * и Telegram разворачивается с фото и ценой, а человек не смотрит на крутилку
+ * до первой отрисовки.
+ */
 
-import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
-import { VehicleSpecsGrid } from '@/components/hubdrive/vehicles/vehicle-specs-grid';
-import { VehicleInfoBlocks } from '@/components/hubdrive/vehicles/vehicle-info-blocks';
-import { VehicleCtaBar } from '@/components/hubdrive/vehicles/vehicle-cta-bar';
-import { SimilarRequestBlock, SimilarRequestSheet } from '@/components/hubdrive/vehicles/similar-request';
-import { metaTrack } from '@/lib/meta/pixel';
+/** Список обновляется часто, поэтому держим страницу свежей, но кэшируем на час. */
+export const revalidate = 3600;
 
-export default function VehicleDetailPage() {
-    const params = useParams();
-    const router = useRouter();
-    const { toast } = useToast();
-    const { toggleFavorite, isFavorite } = useFavoritesStore();
-    const { initData } = useTelegram();
-    const id = params.id as string;
-
-    const fakeViewCount = useMemo(() => {
-        let hash = 0;
-        for (let i = 0; i < id.length; i++) {
-            hash = id.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return Math.abs(hash) % 20 + 5;
-    }, [id]);
-
-    const [similarOpen, setSimilarOpen] = useState(false);
-    const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSending, setIsSending] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchVehicle() {
-            try {
-                setIsLoading(true);
-                const res = await fetch(`/api/vehicles/${id}`, { cache: 'no-store' });
-                if (!res.ok) {
-                    if (res.status === 404) {
-                        setVehicle(null);
-                        return;
-                    }
-                    throw new Error('Failed to fetch vehicle');
-                }
-                const data = await res.json();
-                setVehicle(data);
-                // PRD §21: просмотр карточки авто (учитывается в lead scoring)
-                trackEvent('vehicle_opened', {
-                    vehicleId: data.id,
-                    meta: { brand: data.brand, model: data.model },
-                });
-                // Тот же просмотр — в Meta: по нему собирается аудитория
-                // для ретаргетинга и учится оптимизация рекламы
-                metaTrack('ViewContent', {
-                    content_ids: [data.id],
-                    content_name: `${data.brand} ${data.model} ${data.year ?? ''}`.trim(),
-                    content_type: 'product',
-                    content_category: data.brand,
-                    value: data.priceUSD ?? undefined,
-                    currency: 'USD',
-                });
-            } catch (err) {
-                console.error(err);
-                setError('Не удалось загрузить данные автомобиля');
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        if (id) {
-            fetchVehicle();
-        }
-    }, [id]);
-
-    if (isLoading) {
-        return (
-            <div className="container max-w-md mx-auto min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
+async function getVehicle(id: string) {
+    try {
+        return await prisma.vehicle.findUnique({ where: { id } });
+    } catch (error) {
+        console.error('[vehicles] не удалось прочитать авто:', error);
+        return null;
     }
+}
 
-    if (error) {
-        return (
-            <div className="container max-w-md mx-auto p-4 text-center pt-32 min-h-screen">
-                <h2 className="text-xl font-bold text-destructive">Ошибка</h2>
-                <p className="text-muted-foreground mt-2 mb-4">{error}</p>
-                <Button onClick={() => router.back()}>Вернуться назад</Button>
-            </div>
-        );
+function priceLabel(vehicle: { priceUSD: number | null; priceKeyTurnKZT: number }): string {
+    if (vehicle.priceUSD && vehicle.priceUSD > 0) {
+        return `$${vehicle.priceUSD.toLocaleString('ru-RU')}`;
     }
+    return new Intl.NumberFormat('ru-KZ', {
+        style: 'currency',
+        currency: 'KZT',
+        maximumFractionDigits: 0,
+    }).format(vehicle.priceKeyTurnKZT);
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    const { id } = await params;
+    const vehicle = await getVehicle(id);
 
     if (!vehicle) {
-        return (
-            <div className="container max-w-md mx-auto p-4 text-center pt-32 min-h-screen flex flex-col items-center">
-                <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mb-6">
-                    <ImageOff className="h-10 w-10 text-muted-foreground opacity-50" />
-                </div>
-                <h2 className="text-xl font-bold">Автомобиль не найден</h2>
-                <p className="text-muted-foreground mt-2 mb-8 max-w-xs">
-                    Возможно, он был удален или ссылка некорректная.
-                </p>
-                <Button onClick={() => router.back()}>Вернуться в каталог</Button>
-            </div>
-        );
+        return { title: 'Автомобиль не найден', robots: { index: false, follow: true } };
     }
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('ru-KZ', {
-            style: 'currency',
-            currency: 'KZT',
-            maximumFractionDigits: 0,
-        }).format(price).replace('₸', '₸');
+    const name = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+    const title = `${name} — ${priceLabel(vehicle)} под ключ в Казахстане`;
+    const mileage = vehicle.mileage ? `${vehicle.mileage.toLocaleString('ru-RU')} км` : 'без пробега по РК';
+    const description =
+        `${name}, ${mileage}. Цена ${priceLabel(vehicle)} под ключ: с доставкой из Китая, `
+        + `растаможкой и оформлением в Казахстане. Проверка автомобиля до оплаты, договор, доставка в Алматы и Астану.`;
+
+    const cover = Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined;
+    const url = `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`;
+
+    return {
+        metadataBase: new URL(WEBAPP_ORIGIN),
+        title,
+        description,
+        alternates: { canonical: `/vehicles/${vehicle.id}` },
+        // Проданные машины из поиска убираем: страница остаётся живой по ссылке,
+        // но в выдаче ей делать нечего
+        robots: vehicle.status === 'sold' || vehicle.status === 'delivered'
+            ? { index: false, follow: true }
+            : { index: true, follow: true },
+        openGraph: {
+            type: 'website',
+            siteName: 'HUBDrive',
+            locale: 'ru_KZ',
+            url,
+            title,
+            description,
+            images: cover ? [{ url: cover, width: 1200, height: 630, alt: name }] : undefined,
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: cover ? [cover] : undefined,
+        },
     };
+}
 
-    const handleContact = async () => {
-        setIsSending(true);
-        try {
-            const tg = window.Telegram?.WebApp;
-            const initData = tg?.initData;
+export default async function VehiclePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const vehicle = await getVehicle(id);
 
-            if (!initData) {
-                console.warn("No initData found. Are you running in Telegram?");
-            }
+    // Честная 404 вместо страницы «не найдено» с кодом 200 —
+    // иначе битые ссылки копятся в поиске как мягкие ошибки
+    if (!vehicle) notFound();
 
-            const res = await fetch('/api/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-telegram-init-data': initData || '',
+    const name = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+    const cover = Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined;
+    const images = Array.isArray(vehicle.media) ? (vehicle.media as string[]).slice(0, 8) : [];
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': ['Product', 'Car'],
+        name,
+        brand: { '@type': 'Brand', name: vehicle.brand },
+        model: vehicle.model,
+        vehicleModelDate: String(vehicle.year),
+        productionDate: String(vehicle.year),
+        image: images.length > 0 ? images : undefined,
+        description: vehicle.description || `${name} под ключ в Казахстане с доставкой из Китая`,
+        ...(vehicle.mileage
+            ? {
+                mileageFromOdometer: {
+                    '@type': 'QuantitativeValue',
+                    value: vehicle.mileage,
+                    unitCode: 'KMT',
                 },
-                body: JSON.stringify({ vehicleId: vehicle?.id }),
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (res.status === 401) {
-                // Приложение открыто вне Telegram — просим подтвердить, кто это,
-                // в той же шторке (там есть вход через Telegram и поля контактов)
-                setSimilarOpen(true);
-                return;
             }
-
-            if (!res.ok) {
-                throw new Error(data.error || 'Не удалось отправить заявку');
-            }
-
-            toast({
-                title: "Заявка отправлена",
-                description: "Менеджер свяжется с вами в ближайшее время.",
-            });
-        } catch (error) {
-            console.error("Contact error:", error);
-            toast({
-                variant: "destructive",
-                title: "Ошибка",
-                description: error instanceof Error ? error.message : "Не удалось отправить заявку. Попробуйте позже.",
-            });
-        } finally {
-            setIsSending(false);
-        }
+            : {}),
+        ...(vehicle.powerHp ? { vehicleEngine: { '@type': 'EngineSpecification', enginePower: { '@type': 'QuantitativeValue', value: vehicle.powerHp, unitCode: 'N12' } } } : {}),
+        offers: {
+            '@type': 'Offer',
+            url: `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`,
+            price: vehicle.priceUSD ?? vehicle.priceKeyTurnKZT,
+            priceCurrency: vehicle.priceUSD ? 'USD' : 'KZT',
+            availability: vehicle.status === 'sold' || vehicle.status === 'delivered'
+                ? 'https://schema.org/SoldOut'
+                : 'https://schema.org/InStock',
+            itemCondition: 'https://schema.org/UsedCondition',
+            seller: { '@type': 'AutoDealer', name: 'HUBDrive', url: WEBAPP_ORIGIN },
+            areaServed: { '@type': 'Country', name: 'Казахстан' },
+        },
     };
 
-    const handleFavorite = async () => {
-        const isNowFavorite = await toggleFavorite(vehicle.id, initData);
-        toast({
-            title: isNowFavorite ? "В избранное" : "Удалено из избранного",
-            description: isNowFavorite ? "Автомобиль сохранен в вашем списке." : "Автомобиль удален из вашего списка.",
-        });
-    };
-
-    const handleShare = async () => {
-        const shareData = {
-            title: `${vehicle.brand} ${vehicle.model}`,
-            text: `Посмотри этот автомобиль: ${vehicle.brand} ${vehicle.model}`,
-            url: window.location.href
-        };
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else if (window.Telegram?.WebApp) {
-                (window.Telegram.WebApp as any).openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareData.url)}&text=${encodeURIComponent(shareData.text)}`);
-            }
-        } catch (err) {
-            console.error("Error sharing", err);
-        }
+    const breadcrumbs = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Главная', item: WEBAPP_ORIGIN },
+            { '@type': 'ListItem', position: 2, name: 'Каталог', item: `${WEBAPP_ORIGIN}/catalog` },
+            { '@type': 'ListItem', position: 3, name },
+        ],
     };
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background pb-[calc(170px+env(safe-area-inset-bottom))] antialiased">
-            {/* Top Nav (sticky) matching HTML */}
-            <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-sm">
-                <div className="flex justify-between items-center px-6 py-4 w-full">
-                    <button onClick={() => router.back()} className="text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90">
-                        <ArrowLeft className="w-6 h-6" />
-                    </button>
-                    <h1 className="font-headline font-bold text-lg tracking-tight text-primary">HUBDrive</h1>
-                    <div className="w-6" />
-                </div>
-                <div className="bg-surface-container w-full h-[1px]"></div>
-            </header>
-
-            <main className="pt-16 max-w-4xl mx-auto w-full">
-                <VehicleGallery media={vehicle.media as string[]} videoUrl={vehicle.videoUrl} altText={`${vehicle.brand} ${vehicle.model}`} />
-
-                {/* Basic Info Section */}
-                <section className="px-6 py-8 bg-surface">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1 pr-4">
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {vehicle.status === 'in_stock' && (
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100/50 text-green-700 text-[10px] font-bold uppercase tracking-wider">
-                                        В наличии
-                                    </span>
-                                )}
-                                {vehicle.status === 'in_transit' && (
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100/50 text-blue-700 text-[10px] font-bold uppercase tracking-wider">
-                                        В пути
-                                    </span>
-                                )}
-                                {vehicle.status === 'sold' ? (
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100/60 text-red-600 text-[10px] font-bold uppercase tracking-wider">
-                                        Продано
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
-                                        Новинка
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <h2 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">
-                                    {vehicle.brand} {vehicle.model}
-                                </h2>
-                                <button onClick={handleShare} className="p-2 -ml-1 mt-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container active:scale-95 transition-all">
-                                    <Share2 className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                            {/* Клиент видит цену только в долларах */}
-                            <p className="font-headline text-2xl font-black text-on-surface">
-                                {vehicle.priceUSD && vehicle.priceUSD > 0 ? fmtUsd(vehicle.priceUSD) : formatPrice(vehicle.priceKeyTurnKZT)}
-                            </p>
-                        </div>
-                    </div>
-
-                    {vehicle.status !== 'sold' && (
-                        <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">
-                            <Eye className="text-primary w-5 h-5 shrink-0" />
-                            <p className="text-sm font-medium text-on-surface-variant">
-                                Сейчас этот автомобиль смотрят <span className="font-bold text-primary">{fakeViewCount} человек</span>
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Закупочные цены (¥/₸) клиенту не показываем — только срок поставки */}
-                    {vehicle.deliveryEtaWeeks && vehicle.status !== 'sold' ? (
-                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest">
-                            <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-sm text-on-surface-variant">Срок поставки</span>
-                                <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
-                            </div>
-                        </div>
-                    ) : null}
-
-                    {/* Spec Strip */}
-                    <div className="mt-6 flex items-center space-x-4 overflow-x-auto hide-scrollbar pb-2">
-                        <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
-                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Год</p>
-                            <p className="font-headline font-bold text-on-surface">{vehicle.year} г.</p>
-                        </div>
-                        <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
-                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Пробег</p>
-                            <p className="font-headline font-bold text-on-surface">{vehicle.mileage ? `${new Intl.NumberFormat('ru-RU').format(vehicle.mileage)} км` : 'Новый'}</p>
-                        </div>
-                        <div className="flex-shrink-0 bg-surface-container-lowest px-5 py-4 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container/50">
-                            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Двигатель</p>
-                            <p className="font-headline font-bold text-on-surface line-clamp-1">{vehicle.engineType}{vehicle.powerHp ? `, ${vehicle.powerHp} л.с.` : ''}</p>
-                        </div>
-                    </div>
-                </section>
-
-                <VehicleInfoBlocks description={vehicle.description} />
-
-                <VehicleSpecsGrid vehicle={vehicle} />
-
-                {/* Заявка на подбор: проявляется при прокрутке, фильтр не создаёт */}
-                <SimilarRequestBlock vehicleId={vehicle.id} brand={vehicle.brand} model={vehicle.model} />
-            </main>
-
-            {similarOpen && (
-                <SimilarRequestSheet
-                    vehicleId={vehicle.id}
-                    brand={vehicle.brand}
-                    model={vehicle.model}
-                    onClose={() => setSimilarOpen(false)}
-                />
-            )}
-
-            <VehicleCtaBar
-                // Проданное авто нельзя купить — главная кнопка предлагает подбор похожего
-                onContact={vehicle.status === 'sold' ? () => setSimilarOpen(true) : handleContact}
-                primaryLabel={vehicle.status === 'sold' ? 'Заказать похожую' : undefined}
-                isContactLoading={isSending}
-                onCall={() => {
-                    trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });
-                    metaTrack('Contact', {
-                        content_ids: [vehicle.id],
-                        content_category: 'phone',
-                        value: vehicle.priceUSD ?? undefined,
-                        currency: 'USD',
-                    });
-                    callSupport();
-                }}
-                onFavorite={handleFavorite}
-                isFavorite={isFavorite(vehicle.id)}
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-        </div>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+            />
+            {/* Текстовое описание для поисковых роботов: интерактивная карточка
+                ниже рисуется скриптами, а этот блок есть в разметке всегда */}
+            <div className="sr-only">
+                <h1>{name} — авто из Китая под ключ в Казахстане</h1>
+                <p>
+                    Цена {priceLabel(vehicle)} под ключ: доставка из Китая, растаможка с полной пошлиной
+                    и оформление в Казахстане включены.
+                </p>
+                {vehicle.mileage ? <p>Пробег: {vehicle.mileage.toLocaleString('ru-RU')} км.</p> : null}
+                {vehicle.powerHp ? <p>Мощность: {vehicle.powerHp} л.с.</p> : null}
+                {vehicle.description ? <p>{vehicle.description}</p> : null}
+                {cover ? <img src={cover} alt={name} /> : null}
+            </div>
+            <VehicleDetailClient initialVehicle={vehicle} />
+        </>
     );
 }

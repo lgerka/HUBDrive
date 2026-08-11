@@ -47,7 +47,21 @@ export const metadata: Metadata = {
     other: {
         "geo.region": "KZ",
         "geo.placename": "Kazakhstan",
-        "content-language": "ru-KZ",
+        // Подтверждение прав на домен для Meta. Код берётся в Business Settings →
+        // Безопасность бренда → Домены и кладётся в переменную окружения:
+        // так его можно поменять без правки кода.
+        ...(process.env.META_DOMAIN_VERIFICATION
+            ? { "facebook-domain-verification": process.env.META_DOMAIN_VERIFICATION }
+            : {}),
+    },
+    // Подтверждение прав в панелях вебмастеров — коды выдаются при добавлении
+    // сайта и кладутся в переменные окружения
+    verification: {
+        google: process.env.GOOGLE_SITE_VERIFICATION,
+        yandex: process.env.YANDEX_SITE_VERIFICATION,
+        other: process.env.BING_SITE_VERIFICATION
+            ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+            : undefined,
     },
 };
 

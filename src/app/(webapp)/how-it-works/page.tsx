@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Как купить авто из Китая — весь путь по шагам",
+    description:
+        "От заявки до выдачи ключей: подбор, проверка на месте, договор, оплата, доставка, растаможка и постановка на учёт в Казахстане. Сроки и что входит в цену.",
+    alternates: { canonical: "/how-it-works" },
+};
+
 import Image from "next/image";
 import Link from "next/link";
 import { 
