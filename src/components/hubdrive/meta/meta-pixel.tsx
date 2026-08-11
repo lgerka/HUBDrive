@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { META_PIXEL_ID, isPixelEnabled, metaPageView } from "@/lib/meta/pixel";
+import { FbclidCapture } from "./fbclid-capture";
 
 /**
  * Базовый код Meta Pixel + просмотр страницы при каждой смене маршрута.
@@ -14,9 +15,15 @@ import { META_PIXEL_ID, isPixelEnabled, metaPageView } from "@/lib/meta/pixel";
 function PageViewOnRouteChange() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const firstRender = useRef(true);
 
     useEffect(() => {
-        // первую загрузку отправляет базовый код, дальше — этот эффект
+        // Первую загрузку уже посчитал базовый код пикселя — иначе на один
+        // заход приходилось бы два просмотра и статистика была бы завышена
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
         metaPageView();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname, searchParams?.toString()]);
@@ -55,6 +62,7 @@ fbq('track','PageView');`}
             <Suspense fallback={null}>
                 <PageViewOnRouteChange />
             </Suspense>
+            <FbclidCapture />
         </>
     );
 }

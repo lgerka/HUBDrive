@@ -364,3 +364,23 @@ model MetaAttribution {
   @@index([telegramId])
   @@index([createdAt])
 }
+
+/// Заявка с лендинга: человек из рекламы оставляет имя и телефон, не заходя
+/// в Telegram. Единственная конверсия, которую Meta видит своими глазами,
+/// поэтому именно на неё настраивается оптимизация кампаний.
+model LandingLead {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  comment   String?
+  source    String?
+  fbp       String?
+  fbc       String?
+  ip        String?
+  userAgent String?
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([phone])
+}

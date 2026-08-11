@@ -16,7 +16,9 @@ const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '';
 const ACCESS_TOKEN = process.env.META_CAPI_TOKEN ?? '';
 /** Код из «Тестирования событий» — заполняйте только на время проверки. */
 const TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE ?? '';
-const API_VERSION = process.env.META_API_VERSION || 'v21.0';
+// Версии Graph API живут около двух лет; v26.0 — актуальная с июля 2026.
+// Держим в переменной, чтобы поднять версию без правки кода.
+const API_VERSION = process.env.META_API_VERSION || 'v26.0';
 
 export function isCapiConfigured(): boolean {
     return Boolean(PIXEL_ID && ACCESS_TOKEN);
@@ -33,9 +35,21 @@ function hash(value: string | undefined | null): string | undefined {
 /** Телефон нормализуем к цифрам с кодом страны — иначе совпадение не найдётся. */
 function hashPhone(phone: string | undefined | null): string | undefined {
     if (!phone) return undefined;
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) return undefined;
+    let digits = phone.replace(/\D/g, '');
+    // 8 777 … — это местная запись того же номера, что и +7 777 …
+    if (digits.length === 11 && digits.startsWith('8')) digits = `7${digits.slice(1)}`;
+    // номер без кода страны: 777 123 45 67
+    if (digits.length === 10 && digits.startsWith('7')) digits = `7${digits}`;
+    if (digits.length < 11) return undefined;
     return createHash('sha256').update(digits).digest('hex');
+}
+
+/** Город Meta принимает без пробелов и знаков препинания. */
+function hashCity(city: string | undefined | null): string | undefined {
+    if (!city) return undefined;
+    const normalized = city.trim().toLowerCase().replace(/[\s\-.,]/g, '');
+    if (!normalized) return undefined;
+    return createHash('sha256').update(normalized).digest('hex');
 }
 
 export interface MetaUserData {
@@ -81,7 +95,7 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<boolean> {
         em: hash(input.userData.email),
         fn: hash(input.userData.firstName),
         ln: hash(input.userData.lastName),
-        ct: hash(input.userData.city),
+        ct: hashCity(input.userData.city),
         country: hash(input.userData.country),
         external_id: hash(input.userData.externalId),
         client_ip_address: input.userData.ip,
@@ -118,6 +132,8 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<boolean> {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
+                // Заявка клиента не должна ждать ответа Meta дольше пары секунд
+                signal: AbortSignal.timeout(2500),
             }
         );
         if (!res.ok) {

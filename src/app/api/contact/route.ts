@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { resolveWebUser } from '@/lib/server/webUser';
@@ -81,34 +81,37 @@ export async function POST(request: Request) {
         // оптимизировалась на людей, которые действительно оставляют заявки.
         // Событие уходит с сервера, поэтому доходит и из Telegram, где
         // браузерного пикселя нет.
-        try {
-            const { ip, userAgent } = requestSignals(request);
-            const attribution = await attributionForUser(dbUser.id);
-            await sendMetaEvent({
-                eventName: 'Lead',
-                eventId: `lead-${dbUser.id}-${vehicle.id}-${Date.now()}`,
-                sourceUrl: `${WEBAPP_URL}/vehicles/${vehicle.id}`,
-                actionSource: attribution.fbp || attribution.fbc ? 'website' : 'system_generated',
-                userData: {
-                    ...attribution,
-                    phone: dbUser.phone ?? undefined,
-                    firstName: dbUser.firstName ?? undefined,
-                    externalId: dbUser.id,
-                    country: 'kz',
-                    ip,
-                    userAgent,
-                },
-                customData: {
-                    content_ids: [vehicle.id],
-                    content_name: `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
-                    content_type: 'product',
-                    value: vehicle.priceUSD ?? undefined,
-                    currency: 'USD',
-                },
-            });
-        } catch (err) {
-            console.error('[API] Не удалось передать заявку в Meta:', err);
-        }
+        const { ip, userAgent } = requestSignals(request);
+        after(async () => {
+            try {
+                const attribution = await attributionForUser(dbUser.id);
+                await sendMetaEvent({
+                    eventName: 'Lead',
+                    eventId: `lead-${dbUser.id}-${vehicle.id}-${Date.now()}`,
+                    sourceUrl: `${WEBAPP_URL}/vehicles/${vehicle.id}`,
+                    actionSource: attribution.fbp || attribution.fbc ? 'website' : 'system_generated',
+                    userData: {
+                        ...attribution,
+                        phone: dbUser.phone ?? undefined,
+                        firstName: dbUser.firstName ?? undefined,
+                        city: dbUser.city ?? undefined,
+                        externalId: dbUser.id,
+                        country: 'kz',
+                        ip,
+                        userAgent,
+                    },
+                    customData: {
+                        content_ids: [vehicle.id],
+                        content_name: `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+                        content_type: 'product',
+                        value: vehicle.priceUSD ?? undefined,
+                        currency: 'USD',
+                    },
+                });
+            } catch (err) {
+                console.error('[API] Не удалось передать заявку в Meta:', err);
+            }
+        });
 
         let sent = 0;
         for (const chatId of chatIds) {
