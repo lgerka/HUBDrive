@@ -6,20 +6,19 @@ export const BOT_APP_URL = `https://t.me/${BOT_USERNAME}`;
 /**
  * Адрес приложения: canonical, sitemap, ссылки в уведомлениях, установка PWA.
  *
- * Определяется сам, чтобы переезд на другой домен не ломал ссылки:
- *  1) NEXT_PUBLIC_WEBAPP_URL — ручное переопределение;
- *  2) production-домен Vercel — подхватывается автоматически после привязки;
- *  3) в браузере — текущий origin;
- *  4) запасной вариант для сборки.
+ * Боевой домен зашит в код: так canonical, sitemap и ссылки в письмах и
+ * уведомлениях не зависят от настроек хостинга.
  */
-function resolveOrigin(): string {
-    // Ручное переопределение — на случай смены домена без правки кода
-    const manual = process.env.NEXT_PUBLIC_WEBAPP_URL;
-    if (manual) return manual.replace(/\/$/, '');
+const PRIMARY_ORIGIN = 'https://hubdrive.asia';
 
-    // Основной домен проекта. Специально не берём VERCEL_PROJECT_PRODUCTION_URL:
-    // там ещё технический адрес vercel.app, и он перебивал бы боевой домен
-    return 'https://hubdrive.asia';
+function resolveOrigin(): string {
+    // Ручное переопределение — на случай смены домена без правки кода.
+    // Технические адреса vercel.app игнорируем: они остаются в настройках
+    // после переезда и иначе перебивали бы боевой домен в canonical и ссылках.
+    const manual = process.env.NEXT_PUBLIC_WEBAPP_URL?.replace(/\/$/, '');
+    if (manual && !manual.includes('.vercel.app')) return manual;
+
+    return PRIMARY_ORIGIN;
 }
 
 export const WEBAPP_ORIGIN = resolveOrigin();

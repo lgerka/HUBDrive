@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { resolveWebUser } from '@/lib/server/webUser';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
-    || 'https://hubdrive.asia';
+// Единая точка правды по адресу приложения — см. constants/contacts
+const WEBAPP_URL = WEBAPP_ORIGIN;
 
 export async function POST(request: Request) {
     try {

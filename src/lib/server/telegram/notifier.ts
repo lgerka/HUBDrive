@@ -4,9 +4,10 @@ import { Vehicle } from '@prisma/client';
 import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { getChatIds } from './targets';
 import { sendPushToUser } from '@/lib/server/push/webpush';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
-const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
-    || 'https://hubdrive.asia';
+// Единая точка правды по адресу приложения — см. constants/contacts
+const WEBAPP_URL = WEBAPP_ORIGIN;
 
 function matchLevelLabel(level: string): string {
     if (level === 'perfect') return 'Отличное';
