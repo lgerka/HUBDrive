@@ -42,6 +42,23 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
                     trackEvent('webapp_opened');
                 }
             } catch { /* sessionStorage недоступен — пропускаем */ }
+
+            // Пришёл с лендинга по рекламе: ссылка t.me/бот?startapp=m_xxx
+            // открывает приложение напрямую, минуя команду /start, поэтому
+            // пропуск забираем здесь — иначе его заявка потеряет источник
+            try {
+                const startParam = (app.initDataUnsafe as { start_param?: string } | undefined)?.start_param;
+                if (startParam?.startsWith('m_')) {
+                    void fetch('/api/meta/link', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-telegram-init-data': app.initData || '',
+                        },
+                        body: JSON.stringify({ token: startParam.slice(2) }),
+                    }).catch(() => { });
+                }
+            } catch { /* метка не критична для работы приложения */ }
         } else {
             setIsInTelegram(false);
             setIsReady(true); // Always ready, even outside Telegram

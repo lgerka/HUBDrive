@@ -3,6 +3,7 @@ import { Manrope, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/hubdrive/pwa/service-worker-register";
+import { MetaPixel } from "@/components/hubdrive/meta/meta-pixel";
 
 const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
@@ -60,6 +61,7 @@ export default function RootLayout({
       >
         {children}
         <ServiceWorkerRegister />
+        <MetaPixel />
         {/* Плашки обновления и установки — только внутри приложения, см. (webapp)/layout */}
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </body>

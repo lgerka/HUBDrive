@@ -20,11 +20,11 @@ const securityHeaders = [
         key: 'Content-Security-Policy',
         value: [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://vercel.live https://*.vercel.live",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://vercel.live https://*.vercel.live https://connect.facebook.net",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob: https://images.unsplash.com https://placehold.co https://lh3.googleusercontent.com https://*.supabase.co https://*.vercel.live",
-            "connect-src 'self' https://api.telegram.org https://oauth.telegram.org https://vercel.live https://*.vercel.live wss://*.vercel.live",
+            "img-src 'self' data: blob: https://images.unsplash.com https://placehold.co https://lh3.googleusercontent.com https://*.supabase.co https://*.vercel.live https://www.facebook.com",
+            "connect-src 'self' https://api.telegram.org https://oauth.telegram.org https://vercel.live https://*.vercel.live wss://*.vercel.live https://connect.facebook.net https://www.facebook.com",
             "media-src 'self' https://*.supabase.co",
             // PWA: манифест и service worker
             "manifest-src 'self'",

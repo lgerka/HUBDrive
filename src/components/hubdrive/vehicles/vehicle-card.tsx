@@ -12,6 +12,7 @@ import { ImagePlaceholder } from '@/components/hubdrive/common/image-placeholder
 import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { BestMatchResult } from '@/lib/matching/pickBestMatch';
+import { metaTrack } from '@/lib/meta/pixel';
 
 interface VehicleCardProps {
     vehicle: Vehicle;
@@ -78,7 +79,18 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                             onClick={async (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                await toggleFavorite(vehicle.id, initData);
+                                const added = await toggleFavorite(vehicle.id, initData);
+                                // Сохранил в избранное — сильный сигнал интереса,
+                                // по нему собирается аудитория для ретаргетинга
+                                if (added) {
+                                    metaTrack('AddToWishlist', {
+                                        content_ids: [vehicle.id],
+                                        content_name: `${vehicle.brand} ${vehicle.model}`,
+                                        content_type: 'product',
+                                        value: (vehicle as Vehicle & { priceUSD?: number | null }).priceUSD ?? undefined,
+                                        currency: 'USD',
+                                    });
+                                }
                             }}
                             className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-colors z-10 shadow-sm"
                         >
@@ -130,7 +142,16 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                         onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            await toggleFavorite(vehicle.id, initData);
+                            const added = await toggleFavorite(vehicle.id, initData);
+                            if (added) {
+                                metaTrack('AddToWishlist', {
+                                    content_ids: [vehicle.id],
+                                    content_name: `${vehicle.brand} ${vehicle.model}`,
+                                    content_type: 'product',
+                                    value: (vehicle as Vehicle & { priceUSD?: number | null }).priceUSD ?? undefined,
+                                    currency: 'USD',
+                                });
+                            }
                         }}
                         className="absolute bottom-4 right-4 z-10 w-12 h-12 flex items-center justify-center bg-white/90 hover:bg-white backdrop-blur-md rounded-full text-on-surface shadow-md transition-colors"
                     >

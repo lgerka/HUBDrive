@@ -1,6 +1,7 @@
 import { Bot } from 'grammy';
 import { prisma } from '../prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { linkAttribution } from '@/lib/server/meta/attribution';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -43,6 +44,14 @@ export function initBotCommands() {
                 prisma.event.create({
                     data: { type: 'user_registered', userId: user.id, meta: { source: 'bot_start' } },
                 }).catch(err => console.error('Failed to log user_registered:', err));
+            }
+
+            // Пришёл с лендинга по рекламе: в параметре /start лежит пропуск,
+            // за которым спрятаны рекламные куки. Связываем клик с человеком,
+            // иначе его заявка будет выглядеть как случайный заход
+            const payload = ctx.match?.toString().trim();
+            if (payload?.startsWith('m_')) {
+                await linkAttribution(payload.slice(2), user.id, telegramId);
             }
         }
 

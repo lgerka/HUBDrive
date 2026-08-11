@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { BotLink } from "@/components/hubdrive/meta/bot-link";
+import { ContactLink } from "@/components/hubdrive/meta/contact-link";
+import { LeadForm } from "@/components/hubdrive/landing/lead-form";
 import {
     ShieldCheck, FileText, Truck, Wallet, UserRound, BadgeCheck,
     Search, MessagesSquare, KeyRound, ArrowRight, Send, Phone, MessageCircle,
 } from "lucide-react";
 import { prisma } from "@/lib/server/prisma";
 import { fmtUsd } from "@/lib/price";
-import { BOT_APP_URL, SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, SUPPORT_TELEGRAM_URL, whatsappLink } from "@/constants/contacts";
+import { SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, SUPPORT_TELEGRAM_URL, whatsappLink } from "@/constants/contacts";
 import { InstallInstructions } from "@/components/hubdrive/landing/install-instructions";
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
 import { StructuredData } from "@/components/hubdrive/landing/structured-data";
@@ -75,29 +78,33 @@ export default async function LandingPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/hub-drive-logo.png" alt="HUBDrive" className="h-7 w-auto" />
                     <div className="flex items-center gap-2">
-                        <a
+                        <ContactLink
                             href={`tel:${SUPPORT_PHONE}`}
+                            place="шапка"
+                            channel="phone"
+                            newTab={false}
                             className="hidden sm:flex h-10 items-center gap-2 rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-50"
                         >
                             <Phone className="h-4 w-4" />
                             {PHONE}
-                        </a>
-                        <a
+                        </ContactLink>
+                        <ContactLink
                             href={`tel:${SUPPORT_PHONE}`}
-                            aria-label="Позвонить"
+                            place="шапка, мобильный"
+                            channel="phone"
+                            ariaLabel="Позвонить"
+                            newTab={false}
                             className="flex sm:hidden h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-900"
                         >
                             <Phone className="h-4 w-4" />
-                        </a>
-                        <a
-                            href={BOT_APP_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        </ContactLink>
+                        <BotLink
+                            place="шапка"
                             className="flex h-10 items-center gap-2 rounded-full bg-slate-900 px-5 text-sm font-bold text-white transition-transform active:scale-95"
                         >
                             <Send className="h-4 w-4" />
                             Каталог
-                        </a>
+                        </BotLink>
                     </div>
                 </div>
             </header>
@@ -119,20 +126,18 @@ export default async function LandingPage() {
                         </p>
 
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <a
-                                href={BOT_APP_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <BotLink
+                                place="первый экран"
                                 className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
                             >
                                 <Send className="h-5 w-5" />
                                 Смотреть каталог в Telegram
-                            </a>
+                            </BotLink>
                             <a
-                                href="#install"
+                                href="#lead"
                                 className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 px-8 font-bold text-slate-900 transition-colors hover:bg-slate-50"
                             >
-                                Установить приложение
+                                Узнать цену под ключ
                             </a>
                         </div>
 
@@ -191,25 +196,21 @@ export default async function LandingPage() {
                                 <h2 className="font-headline text-3xl font-extrabold tracking-tight">Автомобили из Китая в наличии</h2>
                                 <p className="mt-2 text-slate-600">Цены указаны с доставкой и таможней</p>
                             </div>
-                            <a
-                                href={BOT_APP_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <BotLink
+                                place="весь каталог"
                                 className="flex items-center gap-2 text-sm font-bold text-orange-600"
                             >
                                 Весь каталог <ArrowRight className="h-4 w-4" />
-                            </a>
+                            </BotLink>
                         </div>
 
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {vehicles.map(v => {
                                 const cover = Array.isArray(v.media) ? (v.media[0] as string | undefined) : undefined;
                                 return (
-                                    <a
+                                    <BotLink
                                         key={v.id}
-                                        href={BOT_APP_URL}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        place="карточка авто"
                                         className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
                                     >
                                         <div className="aspect-[16/10] overflow-hidden bg-slate-100">
@@ -232,7 +233,7 @@ export default async function LandingPage() {
                                                 <p className="mt-3 font-headline text-xl font-extrabold">{fmtUsd(v.priceUSD)}</p>
                                             ) : null}
                                         </div>
-                                    </a>
+                                    </BotLink>
                                 );
                             })}
                         </div>
@@ -306,6 +307,26 @@ export default async function LandingPage() {
             </section>
 
             {/* Финальный CTA */}
+            <section id="lead" className="bg-slate-50 py-16">
+                <div className="mx-auto grid max-w-5xl gap-8 px-5 md:grid-cols-2 md:items-center">
+                    <div>
+                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
+                            Узнайте цену до того, как платить
+                        </h2>
+                        <p className="mt-4 leading-relaxed text-slate-600">
+                            Скажем честную сумму под ключ в Казахстане и покажем, из чего она складывается:
+                            цена в Китае, доставка, растаможка с полной пошлиной, утильсбор и оформление.
+                        </p>
+                        <ul className="mt-6 space-y-3 text-sm text-slate-700">
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Проверяем машину до оплаты и присылаем отчёт с фото</li>
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Фиксируем итоговую цену в договоре</li>
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Привозим в Алматы, Астану и другие города</li>
+                        </ul>
+                    </div>
+                    <LeadForm />
+                </div>
+            </section>
+
             <section className="py-16">
                 <div className="mx-auto max-w-4xl px-5">
                     <div className="rounded-3xl bg-gradient-to-br from-orange-500 to-orange-600 p-10 text-center text-white md:p-14">
@@ -315,31 +336,34 @@ export default async function LandingPage() {
                             Напишите, что ищете — менеджер пришлёт варианты с ценой под ключ и честным отчётом по состоянию.
                         </p>
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                            <a
+                            <ContactLink
                                 href={SUPPORT_TELEGRAM_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                place="финальный блок"
+                                channel="telegram"
                                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-8 font-bold text-orange-600 transition-transform active:scale-95 sm:w-auto"
                             >
                                 <Send className="h-5 w-5" />
                                 Написать в Telegram
-                            </a>
-                            <a
+                            </ContactLink>
+                            <ContactLink
                                 href={whatsappLink("Здравствуйте! Интересует авто из Китая")}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                place="финальный блок"
+                                channel="whatsapp"
                                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-8 font-bold text-white transition-transform active:scale-95 sm:w-auto"
                             >
                                 <MessageCircle className="h-5 w-5" />
                                 WhatsApp
-                            </a>
-                            <a
+                            </ContactLink>
+                            <ContactLink
                                 href={`tel:${SUPPORT_PHONE}`}
+                                place="финальный блок"
+                                channel="phone"
+                                newTab={false}
                                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-white/40 px-8 font-bold text-white transition-transform active:scale-95 sm:w-auto"
                             >
                                 <Phone className="h-5 w-5" />
                                 Позвонить
-                            </a>
+                            </ContactLink>
                         </div>
                     </div>
                 </div>
@@ -350,9 +374,9 @@ export default async function LandingPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/hub-drive-logo.png" alt="HUBDrive" className="h-6 w-auto" />
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-                        <a href={`tel:${SUPPORT_PHONE}`} className="font-bold text-slate-900 hover:text-orange-600">{SUPPORT_PHONE_DISPLAY}</a>
-                        <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">WhatsApp</a>
-                        <a href={SUPPORT_TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Telegram</a>
+                        <ContactLink href={`tel:${SUPPORT_PHONE}`} place="футер" channel="phone" newTab={false} className="font-bold text-slate-900 hover:text-orange-600">{SUPPORT_PHONE_DISPLAY}</ContactLink>
+                        <ContactLink href={whatsappLink()} place="футер" channel="whatsapp" className="hover:text-slate-900">WhatsApp</ContactLink>
+                        <ContactLink href={SUPPORT_TELEGRAM_URL} place="футер" channel="telegram" className="hover:text-slate-900">Telegram</ContactLink>
                         <Link href="/app" className="hover:text-slate-900">Каталог</Link>
                     </div>
                     <p className="text-xs text-slate-400">© {new Date().getFullYear()} HUBDrive</p>

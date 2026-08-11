@@ -8,6 +8,7 @@ import { useUserStore } from '@/lib/state/user.store';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { useToast } from '@/hooks/use-toast';
+import { metaTrack } from '@/lib/meta/pixel';
 
 function NewFilterContent() {
     const router = useRouter();
@@ -40,6 +41,14 @@ function NewFilterContent() {
             if (initData) {
                 await addFilterAsync(data, initData);
             }
+            // Сохранённый фильтр — человек назвал, что ищет: для рекламы это
+            // заявка о намерении, по ней хорошо собирать похожие аудитории
+            metaTrack('Search', {
+                search_string: [data?.brand, data?.model].filter(Boolean).join(' ') || 'подбор авто',
+                content_category: data?.brand ?? undefined,
+                value: data?.priceMaxUSD ?? data?.budgetMax ?? undefined,
+                currency: 'USD',
+            });
             router.push('/filters');
         } catch (err) {
             // PRD §8.1: например, превышен лимит в 2 фильтра
