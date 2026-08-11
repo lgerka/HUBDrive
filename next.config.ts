@@ -66,6 +66,19 @@ const nextConfig: NextConfig = {
             },
         ];
     },
+    async redirects() {
+        return [
+            {
+                // Старый технический адрес уводим на основной домен, чтобы
+                // сохранённые ссылки и ярлыки не жили на втором origin.
+                // API не трогаем: webhook Telegram не ходит по редиректам.
+                source: '/:path((?!api/).*)',
+                has: [{ type: 'host', value: 'hub-drive-inky.vercel.app' }],
+                destination: 'https://hubdrive.asia/:path',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 export default nextConfig;
