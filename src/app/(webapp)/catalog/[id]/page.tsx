@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { useToast } from '@/hooks/use-toast';
 import { Heart, MessageCircle } from 'lucide-react';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
+import { openSupportTelegram } from '@/constants/contacts';
 
 export default function VehicleDetailPage() {
     const params = useParams();
@@ -13,12 +14,10 @@ export default function VehicleDetailPage() {
     const { user, webApp } = useTelegram();
     const id = params.id;
 
+    // Ведём в живой чат с менеджером: прежний тост «Заявка отправлена»
+    // вводил в заблуждение — на самом деле ничего никуда не уходило
     const handleContact = () => {
-        toast({
-            title: "Заявка отправлена",
-            description: `Менеджер получил вашу заявку на авто #${id}. ${user?.first_name ? `Спасибо, ${user.first_name}!` : ''}`,
-            duration: 3000,
-        });
+        openSupportTelegram();
     };
 
     const handleFavorite = () => {
