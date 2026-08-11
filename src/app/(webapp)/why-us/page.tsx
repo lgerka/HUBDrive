@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Почему выбирают HUBDrive — честная цена под ключ",
+    description:
+        "Проверка машины до оплаты, фиксированная цена в договоре, растаможка с полной пошлиной и доставка в Алматы, Астану и другие города Казахстана.",
+    alternates: { canonical: "/why-us" },
+};
+
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, Factory, Eye, ShieldCheck, Banknote, ArrowRight, Activity, Car, Globe } from "lucide-react";

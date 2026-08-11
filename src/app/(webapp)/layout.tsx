@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
+import { WEBAPP_ORIGIN } from "@/constants/contacts";
 import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 
 export const metadata: Metadata = {
-    title: "HUBDrive",
-    description: "Telegram WebApp for Car Marketplace",
+    metadataBase: new URL(WEBAPP_ORIGIN),
+    // Заголовок конкретной страницы подставляется вместо %s; карточки авто
+    // и разделы задают свой собственный
+    title: {
+        default: "Каталог авто из Китая под ключ в Казахстане — HUBDrive",
+        template: "%s | HUBDrive",
+    },
+    description:
+        "Автомобили из Китая с доставкой и растаможкой под ключ в Казахстане. "
+        + "Проверка машины до оплаты, договор, цена сразу с пошлиной и логистикой.",
 };
 
 import { TelegramProvider } from "@/components/hubdrive/telegram/TelegramProvider";

@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "О компании HUBDrive — пригон авто из Китая в Казахстан",
+    description:
+        "Кто мы: команда, которая проверяет автомобили в Китае своими глазами, берёт на себя доставку, растаможку и оформление в Казахстане.",
+    alternates: { canonical: "/about" },
+};
+
 import Image from "next/image";
 import Link from "next/link";
 import { 

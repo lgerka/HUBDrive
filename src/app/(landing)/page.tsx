@@ -196,22 +196,22 @@ export default async function LandingPage() {
                                 <h2 className="font-headline text-3xl font-extrabold tracking-tight">Автомобили из Китая в наличии</h2>
                                 <p className="mt-2 text-slate-600">Цены указаны с доставкой и таможней</p>
                             </div>
-                            <BotLink
-                                place="весь каталог"
+                            <Link
+                                href="/catalog"
                                 className="flex items-center gap-2 text-sm font-bold text-orange-600"
                             >
                                 Весь каталог <ArrowRight className="h-4 w-4" />
-                            </BotLink>
+                            </Link>
                         </div>
 
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {vehicles.map(v => {
                                 const cover = Array.isArray(v.media) ? (v.media[0] as string | undefined) : undefined;
                                 return (
-                                    <BotLink
+                                    <Link
                                         key={v.id}
-                                        place="карточка авто"
-                                        className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
+                                        href={`/vehicles/${v.id}`}
+                                        className="group block overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
                                     >
                                         <div className="aspect-[16/10] overflow-hidden bg-slate-100">
                                             {cover && (
@@ -233,7 +233,7 @@ export default async function LandingPage() {
                                                 <p className="mt-3 font-headline text-xl font-extrabold">{fmtUsd(v.priceUSD)}</p>
                                             ) : null}
                                         </div>
-                                    </BotLink>
+                                    </Link>
                                 );
                             })}
                         </div>
