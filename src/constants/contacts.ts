@@ -21,7 +21,7 @@ function resolveOrigin(): string {
 
     if (typeof window !== 'undefined') return window.location.origin;
 
-    return 'https://hub-drive-inky.vercel.app';
+    return 'https://hubdrive.asia';
 }
 
 export const WEBAPP_ORIGIN = resolveOrigin();

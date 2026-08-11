@@ -6,7 +6,7 @@ import { getChatIds } from './targets';
 import { sendPushToUser } from '@/lib/server/push/webpush';
 
 const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
-    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'https://hub-drive-inky.vercel.app');
+    || 'https://hubdrive.asia';
 
 function matchLevelLabel(level: string): string {
     if (level === 'perfect') return 'Отличное';
