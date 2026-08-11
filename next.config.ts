@@ -77,6 +77,13 @@ const nextConfig: NextConfig = {
                 destination: 'https://hubdrive.asia/:path',
                 permanent: true,
             },
+            {
+                // Карточка авто живёт по /vehicles/<id>. Прежний адрес оставляем
+                // рабочим: по нему могли сохранить или переслать ссылку.
+                source: '/catalog/:id',
+                destination: '/vehicles/:id',
+                permanent: true,
+            },
         ];
     },
 };
