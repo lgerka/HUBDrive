@@ -1,14 +1,14 @@
 import { Bot } from 'grammy';
 import { prisma } from '../prisma';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 // Throw only in production if missing, otherwise use dummy token for local dev without webhook
 export const bot = new Bot(token || 'dummy_token');
 
-// Боевой домен как фолбэк, если NEXT_PUBLIC_WEBAPP_URL не задан в окружении
-const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
-    || 'https://hubdrive.asia';
+// Единая точка правды по адресу приложения — см. constants/contacts
+const WEBAPP_URL = WEBAPP_ORIGIN;
 
 export function initBotCommands() {
     bot.command("start", async (ctx) => {
