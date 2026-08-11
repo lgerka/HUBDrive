@@ -3,7 +3,8 @@ import { prisma } from '@/lib/server/prisma';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { getChatIds } from '@/lib/server/telegram/targets';
 
-const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://hub-drive-inky.vercel.app';
+const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'https://hub-drive-inky.vercel.app');
 
 /**
  * Заявка «Подобрать похожий автомобиль» из карточки авто.

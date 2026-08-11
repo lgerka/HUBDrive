@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -8,11 +6,9 @@ import {
   ShieldCheck, 
   Headset, 
   MapPin, 
-  Clock,
-  Phone,
-  MessageCircle
+  Clock
 } from "lucide-react";
-import { SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, openWhatsApp } from "@/constants/contacts";
+
 
 export default function AboutPage() {
   const showroomImage = "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2671&auto=format&fit=crop";
@@ -138,31 +134,7 @@ export default function AboutPage() {
                     </div>
                   </div>
                   
-                  <div className="mt-2 space-y-3">
-                    <a
-                      href={`tel:${SUPPORT_PHONE}`}
-                      className="flex items-center justify-center gap-2 w-full py-4 rounded-[1.25rem] bg-gradient-to-br from-[#9d4300] to-[#f97316] text-white font-sans font-bold text-sm shadow-md active:scale-95 transition-all"
-                    >
-                      <Phone className="w-4 h-4" />
-                      {SUPPORT_PHONE_DISPLAY}
-                    </a>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => openWhatsApp("Здравствуйте! Интересует авто из Китая")}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-[1.25rem] bg-[#25D366] text-white font-sans font-bold text-sm active:scale-95 transition-all"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        WhatsApp
-                      </button>
-                      <Link
-                        href="/support"
-                        className="flex items-center justify-center py-3.5 rounded-[1.25rem] border border-border text-foreground font-sans font-bold text-sm active:scale-95 transition-all"
-                      >
-                        Поддержка
-                      </Link>
-                    </div>
-                  </div>
+
                 </div>
               </div>
           </article>
