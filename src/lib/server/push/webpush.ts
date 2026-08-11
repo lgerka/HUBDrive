@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import { prisma } from '@/lib/server/prisma';
+import { SUPPORT_EMAIL } from '@/constants/contacts';
 
 /**
  * Web Push для установленного приложения (иконка на домашнем экране).
@@ -36,7 +37,9 @@ async function ensureConfigured(): Promise<boolean> {
     if (configured) return true;
     const keys = await getKeys();
     if (!keys) return false;
-    webpush.setVapidDetails('mailto:support@hubdrive.kz', keys.publicKey, keys.privateKey);
+    // Контакт для служб доставки уведомлений Apple и Google: сюда они пишут,
+    // если с нашими отправками что-то не так, поэтому почта должна быть рабочей
+    webpush.setVapidDetails(`mailto:${SUPPORT_EMAIL}`, keys.publicKey, keys.privateKey);
     configured = true;
     return true;
 }

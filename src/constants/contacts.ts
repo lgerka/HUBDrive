@@ -25,6 +25,9 @@ export const WEBAPP_ORIGIN = resolveOrigin();
 /** Прямая ссылка на мини-приложение: открывает каталог внутри Telegram, минуя чат. */
 export const MINI_APP_URL = `https://t.me/${BOT_USERNAME}?startapp=catalog`;
 
+/** Рабочая почта компании. */
+export const SUPPORT_EMAIL = 'hubdrive.kz@gmail.com';
+
 /** Рабочий номер отдела продаж: звонки и WhatsApp. */
 export const SUPPORT_PHONE = '+77054201954';
 export const SUPPORT_PHONE_DISPLAY = '+7 (705) 420-19-54';

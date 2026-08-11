@@ -273,7 +273,7 @@ export default function AdminSettingsPage() {
                     <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Контактный Email</label>
                     <input 
                       type="email"
-                      placeholder="hello@hubdrive.kz" 
+                      placeholder="hubdrive.kz@gmail.com" 
                       className="w-full bg-surface-container-low border-none rounded-xl py-4 px-5 text-sm focus:ring-1 focus:ring-primary/50 transition-all font-sans outline-none" 
                       value={settings.contactEmail} 
                       onChange={e => setSettings({...settings, contactEmail: e.target.value})} 
