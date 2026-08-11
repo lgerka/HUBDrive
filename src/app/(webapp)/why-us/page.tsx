@@ -105,9 +105,12 @@ export default function WhyUsPage() {
                 Экономьте деньги по сравнению с местными дилерами за счет отсутствия посредников в цепочке поставок.
               </p>
             </div>
-            <button className="bg-white text-primary px-6 py-3.5 rounded-full font-bold text-sm tracking-wide shadow-lg self-start mt-2 hover:scale-105 active:scale-95 transition-transform">
+            <Link
+              href="/support"
+              className="bg-white text-primary px-6 py-3.5 rounded-full font-bold text-sm tracking-wide shadow-lg self-start mt-2 hover:scale-105 active:scale-95 transition-transform"
+            >
               Рассчитать выгоду
-            </button>
+            </Link>
           </div>
 
         </div>

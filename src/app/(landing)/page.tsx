@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/server/prisma";
 import { fmtUsd } from "@/lib/price";
-import { BOT_APP_URL, SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, whatsappLink } from "@/constants/contacts";
+import { BOT_APP_URL, SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, SUPPORT_TELEGRAM_URL, whatsappLink } from "@/constants/contacts";
 import { InstallInstructions } from "@/components/hubdrive/landing/install-instructions";
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
 import { StructuredData } from "@/components/hubdrive/landing/structured-data";
@@ -316,7 +316,7 @@ export default async function LandingPage() {
                         </p>
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <a
-                                href={BOT_APP_URL}
+                                href={SUPPORT_TELEGRAM_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-8 font-bold text-orange-600 transition-transform active:scale-95 sm:w-auto"
@@ -352,7 +352,7 @@ export default async function LandingPage() {
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
                         <a href={`tel:${SUPPORT_PHONE}`} className="font-bold text-slate-900 hover:text-orange-600">{SUPPORT_PHONE_DISPLAY}</a>
                         <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">WhatsApp</a>
-                        <a href={BOT_APP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Telegram</a>
+                        <a href={SUPPORT_TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">Telegram</a>
                         <Link href="/app" className="hover:text-slate-900">Каталог</Link>
                     </div>
                     <p className="text-xs text-slate-400">© {new Date().getFullYear()} HUBDrive</p>

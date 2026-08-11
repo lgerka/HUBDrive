@@ -1,5 +1,5 @@
 // Контакты компании — единая точка правды для всех CTA в приложении и на лендинге.
-export const SUPPORT_TELEGRAM_URL = 'https://t.me/hubdrive_support';
+export const SUPPORT_TELEGRAM_URL = 'https://t.me/Hubdrivekz';
 /** Бот: сюда отправляем, если приложение открыли вне Telegram (например, с иконки PWA). */
 export const BOT_USERNAME = 'HUBDrive_bot';
 export const BOT_APP_URL = `https://t.me/${BOT_USERNAME}`;

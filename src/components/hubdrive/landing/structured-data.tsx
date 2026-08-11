@@ -1,4 +1,4 @@
-import { WEBAPP_ORIGIN, BOT_APP_URL, SUPPORT_PHONE, WHATSAPP_URL } from "@/constants/contacts";
+import { BOT_APP_URL, SUPPORT_PHONE, SUPPORT_TELEGRAM_URL, WEBAPP_ORIGIN, WHATSAPP_URL } from "@/constants/contacts";
 
 interface StructuredDataProps {
     faq: { q: string; a: string }[];
@@ -20,7 +20,7 @@ export function StructuredData({ faq, vehicles }: StructuredDataProps) {
         image: `${WEBAPP_ORIGIN}/icons/icon-512.png`,
         logo: `${WEBAPP_ORIGIN}/icons/icon-512.png`,
         telephone: SUPPORT_PHONE,
-        sameAs: [BOT_APP_URL, WHATSAPP_URL],
+        sameAs: [SUPPORT_TELEGRAM_URL, BOT_APP_URL, WHATSAPP_URL],
         contactPoint: [
             {
                 "@type": "ContactPoint",

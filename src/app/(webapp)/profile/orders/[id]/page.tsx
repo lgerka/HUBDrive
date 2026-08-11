@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  ArrowLeft, 
+import { SUPPORT_PHONE, SUPPORT_TELEGRAM_URL } from "@/constants/contacts";
+import {
+  ArrowLeft,
   Headset, 
   Route, 
   CheckCircle2, 
@@ -66,10 +67,10 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Сумма сделки</span>
               <p className="font-sans text-xl font-extrabold text-foreground">$102,400</p>
             </div>
-            <button className="flex items-center gap-2 bg-primary hover:bg-orange-600 text-primary-foreground px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-lg shadow-primary/20">
+            <a href={SUPPORT_TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-primary hover:bg-orange-600 text-primary-foreground px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-lg shadow-primary/20">
               <Headset className="w-4 h-4" />
               <span className="text-sm font-bold">Связаться</span>
-            </button>
+            </a>
           </div>
         </section>
 
@@ -199,14 +200,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             Привет! Я сопровождаю вашу сделку. Если у вас есть вопросы по доставке или таможенному оформлению — пишите, я на связи.
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 bg-background border border-border/50 text-foreground py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-muted transition-colors active:scale-95">
+            <a href={SUPPORT_TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-background border border-border/50 text-foreground py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-muted transition-colors active:scale-95">
               <MessageSquare className="w-4 h-4 text-primary" />
               Написать
-            </button>
-            <button className="flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3.5 rounded-xl text-sm font-bold shadow-md shadow-primary/20 hover:opacity-90 transition-colors active:scale-95">
+            </a>
+            <a href={`tel:${SUPPORT_PHONE}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3.5 rounded-xl text-sm font-bold shadow-md shadow-primary/20 hover:opacity-90 transition-colors active:scale-95">
               <Phone className="w-4 h-4" />
               Позвонить
-            </button>
+            </a>
           </div>
         </section>
       </main>

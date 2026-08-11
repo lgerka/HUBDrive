@@ -165,8 +165,7 @@ export default function ProfilePage() {
                         <ProfileActionMenu 
                             icon={Headset} 
                             label="Поддержка" 
-                            href="https://t.me/hubdrive_support" 
-                            external
+                            href="/support"
                         />
                         <div className="h-px bg-surface-container-low mx-6 my-1"></div>
                         <ProfileActionMenu 
