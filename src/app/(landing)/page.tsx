@@ -126,19 +126,19 @@ export default async function LandingPage() {
                         </p>
 
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                            <a
+                                href="#lead"
+                                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
+                            >
+                                Узнать цену под ключ
+                            </a>
                             <BotLink
                                 place="первый экран"
-                                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
+                                className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 px-8 font-bold text-slate-900 transition-colors hover:bg-slate-50"
                             >
                                 <Send className="h-5 w-5" />
                                 Смотреть каталог в Telegram
                             </BotLink>
-                            <a
-                                href="#lead"
-                                className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 px-8 font-bold text-slate-900 transition-colors hover:bg-slate-50"
-                            >
-                                Узнать цену под ключ
-                            </a>
                         </div>
 
                         <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-slate-100 pt-6">
@@ -166,6 +166,26 @@ export default async function LandingPage() {
                             className="aspect-[4/3] w-full object-cover"
                         />
                     </div>
+                </div>
+            </section>
+
+            <section id="lead" className="bg-slate-50 py-16">
+                <div className="mx-auto grid max-w-5xl gap-8 px-5 md:grid-cols-2 md:items-center">
+                    <div>
+                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
+                            Узнайте цену до того, как платить
+                        </h2>
+                        <p className="mt-4 leading-relaxed text-slate-600">
+                            Скажем честную сумму под ключ в Казахстане и покажем, из чего она складывается:
+                            цена в Китае, доставка, растаможка с полной пошлиной, утильсбор и оформление.
+                        </p>
+                        <ul className="mt-6 space-y-3 text-sm text-slate-700">
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Проверяем машину до оплаты и присылаем отчёт с фото</li>
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Фиксируем итоговую цену в договоре</li>
+                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Привозим в Алматы, Астану и другие города</li>
+                        </ul>
+                    </div>
+                    <LeadForm />
                 </div>
             </section>
 
@@ -307,26 +327,6 @@ export default async function LandingPage() {
             </section>
 
             {/* Финальный CTA */}
-            <section id="lead" className="bg-slate-50 py-16">
-                <div className="mx-auto grid max-w-5xl gap-8 px-5 md:grid-cols-2 md:items-center">
-                    <div>
-                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
-                            Узнайте цену до того, как платить
-                        </h2>
-                        <p className="mt-4 leading-relaxed text-slate-600">
-                            Скажем честную сумму под ключ в Казахстане и покажем, из чего она складывается:
-                            цена в Китае, доставка, растаможка с полной пошлиной, утильсбор и оформление.
-                        </p>
-                        <ul className="mt-6 space-y-3 text-sm text-slate-700">
-                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Проверяем машину до оплаты и присылаем отчёт с фото</li>
-                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Фиксируем итоговую цену в договоре</li>
-                            <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Привозим в Алматы, Астану и другие города</li>
-                        </ul>
-                    </div>
-                    <LeadForm />
-                </div>
-            </section>
-
             <section className="py-16">
                 <div className="mx-auto max-w-4xl px-5">
                     <div className="rounded-3xl bg-gradient-to-br from-orange-500 to-orange-600 p-10 text-center text-white md:p-14">
