@@ -7,14 +7,27 @@ import {
 } from "lucide-react";
 
 interface Analytics {
-    installs: { total: number; last7d: number };
-    push: { devices: number; clicks30d: number; sent30d: number; ctr: number };
+    period: { key: string; days: number | null; groupBy: 'day' | 'week' };
+    installs: { total: number; period: number };
+    push: { devices: number; clicks: number; sent: number; ctr: number };
     online: { total: number; bySource: Record<string, number>; windowMinutes: number };
-    sessions: { last24h: number; last7d: number; bySource: Record<string, number> };
-    engagement: { catalogViews30d: number; newsViews30d: number };
+    sessions: { period: number; last24h: number; bySource: Record<string, number> };
+    leads: { total: number; fromAds: number; contactClicks: number; callClicks: number };
+    engagement: { catalogViews: number; newsViews: number };
     topVehicles: { id: string; brand: string; model: string; year: number; views: number }[];
     daily: { day: string; source: string; count: number }[];
 }
+
+/** Периоды, между которыми переключается страница. */
+const PERIODS: { key: string; label: string }[] = [
+    { key: '1d', label: 'Сутки' },
+    { key: '7d', label: 'Неделя' },
+    { key: '30d', label: 'Месяц' },
+    { key: '90d', label: '3 месяца' },
+    { key: '180d', label: 'Полгода' },
+    { key: '365d', label: 'Год' },
+    { key: 'all', label: 'Всё время' },
+];
 
 const SOURCE_LABELS: Record<string, { label: string; icon: typeof Smartphone; color: string }> = {
     pwa: { label: "Приложение с иконки", icon: Smartphone, color: "text-orange-600 bg-orange-50" },
@@ -27,12 +40,13 @@ export default function AppAnalyticsPage() {
     const { initData } = useTelegram();
     const [data, setData] = useState<Analytics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [period, setPeriod] = useState('30d');
 
     useEffect(() => {
         let alive = true;
         async function load() {
             try {
-                const res = await fetch("/api/admin/app-analytics", {
+                const res = await fetch(`/api/admin/app-analytics?period=${period}`, {
                     headers: { "x-telegram-init-data": initData || "" },
                 });
                 if (res.ok && alive) setData(await res.json());
@@ -46,7 +60,7 @@ export default function AppAnalyticsPage() {
         // Онлайн-счётчик обновляем сам, чтобы не жать F5
         const timer = setInterval(load, 60_000);
         return () => { alive = false; clearInterval(timer); };
-    }, [initData]);
+    }, [initData, period]);
 
     if (isLoading || !data) {
         return (
@@ -65,7 +79,11 @@ export default function AppAnalyticsPage() {
         const key = new Date(d.day).toISOString().slice(0, 10);
         byDay.set(key, (byDay.get(key) ?? 0) + d.count);
     });
-    const days = [...byDay.entries()].slice(-14);
+    // На коротких периодах показываем всё, на длинных — последние 30 точек,
+    // иначе столбики становятся неразличимыми
+    const allDays = [...byDay.entries()];
+    const days = allDays.length > 30 ? allDays.slice(-30) : allDays;
+    const periodLabel = PERIODS.find(p => p.key === period)?.label.toLowerCase() ?? 'период';
 
     return (
         <div className="space-y-8 max-w-[1400px] w-full px-8 pt-8 pb-12">
@@ -76,6 +94,22 @@ export default function AppAnalyticsPage() {
                         Установки, активность и переходы по каналам: приложение с иконки, Telegram и лендинг.
                     </p>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap gap-1 rounded-full bg-slate-100 p-1">
+                        {PERIODS.map(p => (
+                            <button
+                                key={p.key}
+                                onClick={() => setPeriod(p.key)}
+                                className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                                    period === p.key
+                                        ? 'bg-white text-on-surface shadow-sm'
+                                        : 'text-slate-500 hover:text-on-surface'
+                                }`}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
                 <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2">
                     <span className="relative flex h-2.5 w-2.5">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -86,6 +120,7 @@ export default function AppAnalyticsPage() {
                     </span>
                     <span className="text-xs text-emerald-600/70">за {data.online.windowMinutes} мин</span>
                 </div>
+                </div>
             </header>
 
             {/* Ключевые цифры */}
@@ -94,27 +129,57 @@ export default function AppAnalyticsPage() {
                     icon={Download}
                     label="Установок приложения"
                     value={data.installs.total}
-                    hint={`+${data.installs.last7d} за неделю`}
+                    hint={`+${data.installs.period} за ${periodLabel}`}
                     accent
                 />
                 <Stat
                     icon={BellRing}
                     label="Устройств с уведомлениями"
                     value={data.push.devices}
-                    hint={`${data.push.clicks30d} переходов из пушей`}
+                    hint={`${data.push.clicks} переходов из пушей`}
                 />
                 <Stat
                     icon={Users}
-                    label="Заходов за сутки"
-                    value={data.sessions.last24h}
-                    hint={`${data.sessions.last7d} за 7 дней`}
+                    label={`Заходов за ${periodLabel}`}
+                    value={data.sessions.period}
+                    hint={`${data.sessions.last24h} за последние сутки`}
                 />
                 <Stat
                     icon={MousePointerClick}
                     label="Открытий каталога"
-                    value={data.engagement.catalogViews30d}
-                    hint={`новости: ${data.engagement.newsViews30d} / 30 дней`}
+                    value={data.engagement.catalogViews}
+                    hint={`новости: ${data.engagement.newsViews}`}
                 />
+            </section>
+
+            {/* Заявки за период */}
+            <section className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm border border-slate-100">
+                <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                    <h2 className="font-headline font-extrabold text-xl tracking-tight">Заявки за {periodLabel}</h2>
+                    {data.leads.total > 0 && data.sessions.period > 0 && (
+                        <p className="text-sm text-slate-500">
+                            из заходов в заявку — {((data.leads.total / data.sessions.period) * 100).toFixed(1)}%
+                        </p>
+                    )}
+                </div>
+                <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.leads.total}</p>
+                        <p className="mt-1 text-xs text-slate-400">форма на сайте</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-orange-600">{data.leads.fromAds}</p>
+                        <p className="mt-1 text-xs text-slate-400">из них по рекламе</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.leads.contactClicks}</p>
+                        <p className="mt-1 text-xs text-slate-400">заявок из приложения</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.leads.callClicks}</p>
+                        <p className="mt-1 text-xs text-slate-400">нажали «позвонить»</p>
+                    </div>
+                </div>
             </section>
 
             {/* По каналам */}
@@ -133,7 +198,7 @@ export default function AppAnalyticsPage() {
                             </div>
                             <p className="font-headline font-bold text-on-surface">{cfg.label}</p>
                             <p className="mt-3 font-headline text-3xl font-extrabold">{sessions}</p>
-                            <p className="text-xs text-slate-400 mt-1">заходов за 30 дней · {share}%</p>
+                            <p className="text-xs text-slate-400 mt-1">заходов за {periodLabel} · {share}%</p>
                             <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                                 <div className="h-full rounded-full bg-primary" style={{ width: `${share}%` }} />
                             </div>
@@ -147,7 +212,9 @@ export default function AppAnalyticsPage() {
 
             {/* Динамика */}
             <section className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm border border-slate-100">
-                <h2 className="font-headline font-extrabold text-xl tracking-tight mb-6">Заходы по дням</h2>
+                <h2 className="font-headline font-extrabold text-xl tracking-tight mb-6">
+                    Заходы {data.period.groupBy === 'week' ? 'по неделям' : 'по дням'}
+                </h2>
                 {days.length === 0 ? (
                     <p className="text-sm text-slate-400">Данных пока нет — статистика появится после первых заходов.</p>
                 ) : (
@@ -196,11 +263,11 @@ export default function AppAnalyticsPage() {
                 <div className="grid gap-6 sm:grid-cols-3">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Отправлено</p>
-                        <p className="mt-1 font-headline text-2xl font-extrabold">{data.push.sent30d}</p>
+                        <p className="mt-1 font-headline text-2xl font-extrabold">{data.push.sent}</p>
                     </div>
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Переходов</p>
-                        <p className="mt-1 font-headline text-2xl font-extrabold">{data.push.clicks30d}</p>
+                        <p className="mt-1 font-headline text-2xl font-extrabold">{data.push.clicks}</p>
                     </div>
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Конверсия</p>

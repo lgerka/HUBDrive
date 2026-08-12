@@ -1,40 +1,67 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
+import type { EventType } from '@prisma/client';
 
 /**
  * Аналитика по каналам: установленное приложение (иконка на телефоне),
  * мини-приложение Telegram и лендинг. Отвечает на вопросы «сколько установок»,
  * «кто сейчас онлайн», «что смотрят», «сколько переходов из уведомлений».
+ *
+ * Период выбирается на странице: сутки, неделя, месяц, квартал, полгода, год
+ * или всё время. Все цифры, кроме «онлайн» и общего числа установок, считаются
+ * за выбранный период — иначе сравнивать нечего.
  */
 export const dynamic = 'force-dynamic';
 
 const ONLINE_MINUTES = 5;
 
+/** Сколько дней назад смотреть. null — с самого начала. */
+const PERIODS: Record<string, number | null> = {
+    '1d': 1,
+    '7d': 7,
+    '30d': 30,
+    '90d': 90,
+    '180d': 180,
+    '365d': 365,
+    all: null,
+};
+
+const VISIT_TYPES: EventType[] = ['app_opened', 'landing_opened', 'webapp_opened'];
+
 export async function GET(request: Request) {
     const isAdmin = await verifyAdmin(request, prisma);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const url = new URL(request.url);
+    const periodKey = url.searchParams.get('period') ?? '30d';
+    const days = periodKey in PERIODS ? PERIODS[periodKey] : 30;
+
     const now = Date.now();
-    const since24h = new Date(now - 24 * 60 * 60 * 1000);
-    const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
-    const since30d = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    // Для «всего времени» берём заведомо раннюю дату — так один и тот же
+    // запрос работает и с периодом, и без него
+    const since = days === null ? new Date('2020-01-01') : new Date(now - days * 86_400_000);
     const sinceOnline = new Date(now - ONLINE_MINUTES * 60 * 1000);
+
+    // По дням график читается максимум за квартал; дальше группируем по неделям,
+    // иначе на экране каша из трёхсот столбиков
+    const groupBy = days !== null && days <= 90 ? 'day' : 'week';
 
     try {
         const [
-            installsTotal, installs7d,
-            pushDevices, pushClicks30d, pushSent30d,
+            installsTotal, installsPeriod,
+            pushDevices, pushClicks, pushSent,
             onlineRows, sourceRows, dailyRows,
-            topVehicles, sessions24h, sessions7d,
-            catalogViews30d, newsViews30d,
+            topVehicles, sessionsPeriod, sessions24h,
+            catalogViews, newsViews,
+            leadsPeriod, leadsFromAds, contactClicks, callClicks,
         ] = await Promise.all([
             prisma.event.count({ where: { type: 'app_installed' } }),
-            prisma.event.count({ where: { type: 'app_installed', createdAt: { gte: since7d } } }),
+            prisma.event.count({ where: { type: 'app_installed', createdAt: { gte: since } } }),
 
             prisma.$queryRaw<{ count: bigint }[]>`select count(*)::bigint as count from "PushSubscription"`,
-            prisma.event.count({ where: { type: 'push_clicked', createdAt: { gte: since30d } } }),
-            prisma.event.count({ where: { type: { in: ['push_sent_web', 'notification_sent_user'] }, createdAt: { gte: since30d } } }),
+            prisma.event.count({ where: { type: 'push_clicked', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: { in: ['push_sent_web', 'notification_sent_user'] }, createdAt: { gte: since } } }),
 
             // Онлайн: уникальные посетители с событиями за последние минуты
             prisma.$queryRaw<{ source: string | null; count: bigint }[]>`
@@ -42,38 +69,46 @@ export async function GET(request: Request) {
                 from "Event" where "createdAt" >= ${sinceOnline} group by 1
             `,
 
-            // Заходы по каналам за 30 дней
+            // Заходы по каналам за период
             prisma.$queryRaw<{ source: string | null; count: bigint }[]>`
                 select coalesce(meta->>'source', 'unknown') as source, count(*)::bigint as count
                 from "Event"
-                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since30d}
+                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since}
                 group by 1 order by 2 desc
             `,
 
-            // Динамика заходов по дням
+            // Динамика заходов: по дням или по неделям, смотря какой период
             prisma.$queryRaw<{ day: Date; source: string | null; count: bigint }[]>`
-                select date_trunc('day', "createdAt") as day,
+                select date_trunc(${groupBy}, "createdAt") as day,
                        coalesce(meta->>'source', 'unknown') as source,
                        count(*)::bigint as count
                 from "Event"
-                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since30d}
+                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since}
                 group by 1, 2 order by 1
             `,
 
-            // Что смотрят: топ карточек за 30 дней
+            // Что смотрят: топ карточек за период
             prisma.$queryRaw<{ id: string; brand: string; model: string; year: number; views: bigint }[]>`
                 select v.id, v.brand, v.model, v.year, count(*)::bigint as views
                 from "Event" e join "Vehicle" v on v.id = e."vehicleId"
-                where e.type = 'vehicle_opened' and e."createdAt" >= ${since30d}
+                where e.type = 'vehicle_opened' and e."createdAt" >= ${since}
                 group by v.id, v.brand, v.model, v.year
                 order by views desc limit 8
             `,
 
-            prisma.event.count({ where: { type: { in: ['app_opened', 'landing_opened', 'webapp_opened'] }, createdAt: { gte: since24h } } }),
-            prisma.event.count({ where: { type: { in: ['app_opened', 'landing_opened', 'webapp_opened'] }, createdAt: { gte: since7d } } }),
+            prisma.event.count({ where: { type: { in: VISIT_TYPES }, createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: { in: VISIT_TYPES }, createdAt: { gte: new Date(now - 86_400_000) } } }),
 
-            prisma.event.count({ where: { type: 'catalog_opened', createdAt: { gte: since30d } } }),
-            prisma.event.count({ where: { type: 'news_opened', createdAt: { gte: since30d } } }),
+            prisma.event.count({ where: { type: 'catalog_opened', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'news_opened', createdAt: { gte: since } } }),
+
+            // Заявки — то, ради чего всё остальное
+            prisma.landingLead.count({ where: { createdAt: { gte: since } } }),
+            prisma.landingLead.count({
+                where: { createdAt: { gte: since }, OR: [{ fbc: { not: null } }, { fbp: { not: null } }] },
+            }),
+            prisma.event.count({ where: { type: 'contact_clicked', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'call_clicked', createdAt: { gte: since } } }),
         ]);
 
         const asMap = (rows: { source: string | null; count: bigint }[]) =>
@@ -83,20 +118,27 @@ export async function GET(request: Request) {
         const bySource = asMap(sourceRows);
 
         return NextResponse.json({
-            installs: { total: installsTotal, last7d: installs7d },
+            period: { key: periodKey, days, groupBy },
+            installs: { total: installsTotal, period: installsPeriod },
             push: {
                 devices: Number(pushDevices[0]?.count ?? 0),
-                clicks30d: pushClicks30d,
-                sent30d: pushSent30d,
-                ctr: pushSent30d > 0 ? Math.round((pushClicks30d / pushSent30d) * 100) : 0,
+                clicks: pushClicks,
+                sent: pushSent,
+                ctr: pushSent > 0 ? Math.round((pushClicks / pushSent) * 100) : 0,
             },
             online: {
                 total: Object.values(online).reduce((a, b) => a + b, 0),
                 bySource: online,
                 windowMinutes: ONLINE_MINUTES,
             },
-            sessions: { last24h: sessions24h, last7d: sessions7d, bySource },
-            engagement: { catalogViews30d, newsViews30d },
+            sessions: { period: sessionsPeriod, last24h: sessions24h, bySource },
+            leads: {
+                total: leadsPeriod,
+                fromAds: leadsFromAds,
+                contactClicks,
+                callClicks,
+            },
+            engagement: { catalogViews, newsViews },
             topVehicles: topVehicles.map(v => ({
                 id: v.id, brand: v.brand, model: v.model, year: v.year, views: Number(v.views),
             })),
