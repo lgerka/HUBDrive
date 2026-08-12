@@ -66,7 +66,7 @@ export default function ProfilePage() {
         
     const tgPhone = user?.username 
         ? `@${user.username}` 
-        : "+7 777 123 45 67"; 
+        : "Номер не указан"; 
 
     const displayPhone = profile?.phone || tgPhone;
     const displayName = profile?.name || tgName;
