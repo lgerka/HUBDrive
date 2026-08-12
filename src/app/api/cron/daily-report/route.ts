@@ -19,7 +19,10 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const AD_ACCOUNT_ID = process.env.META_AD_ACCOUNT_ID ?? '';
-const ADS_TOKEN = process.env.META_ADS_TOKEN ?? '';
+// Отдельный токен для чтения статистики нужен не всегда: иногда прав хватает
+// и у токена, который мы уже используем для отправки конверсий. Пробуем его,
+// чтобы не заводить лишнюю переменную ради одного отчёта.
+const ADS_TOKEN = process.env.META_ADS_TOKEN || process.env.META_CAPI_TOKEN || '';
 const API_VERSION = process.env.META_API_VERSION || 'v26.0';
 
 function authorized(request: Request): boolean {
@@ -69,7 +72,16 @@ async function adsSummary(since: Date, until: Date): Promise<string[]> {
         if (!res.ok) {
             const text = await res.text().catch(() => '');
             console.error('[отчёт] реклама недоступна:', res.status, text.slice(0, 300));
-            return ['', '<b>Реклама</b>', 'Не удалось получить данные из кабинета'];
+            // Разделяем «не хватает прав» и «что-то сломалось»: в первом случае
+            // нужен токен с доступом к статистике, во втором — просто повторить
+            const noPermission = /permission|OAuth|token/i.test(text);
+            return [
+                '',
+                '<b>Реклама</b>',
+                noPermission
+                    ? 'Нужен токен с правом читать статистику кабинета (META_ADS_TOKEN)'
+                    : 'Кабинет не ответил — цифры будут в следующей сводке',
+            ];
         }
 
         const json = await res.json();
