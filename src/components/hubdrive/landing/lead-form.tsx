@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Loader2, Send } from "lucide-react";
 import { handlePhoneInput, isPhoneComplete, formatPhone } from "@/lib/phone";
 import { metaTrack } from "@/lib/meta/pixel";
+import { readUtm } from "@/lib/utm";
 
 /**
  * Заявка на расчёт прямо с сайта.
@@ -58,6 +59,7 @@ export function LeadForm() {
                     eventId,
                     fbp: readCookie("_fbp"),
                     fbc: readCookie("_fbc"),
+                    utm: readUtm(),
                 }),
             });
             const data = await res.json().catch(() => ({}));

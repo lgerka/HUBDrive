@@ -18,6 +18,7 @@ interface LandingLead {
     comment: string | null;
     processed: boolean;
     fromAd: boolean;
+    ad: string | null;
     createdAt: string;
 }
 
@@ -100,6 +101,9 @@ export default function LandingLeadsPage() {
                                     </div>
                                     <p className="mt-1 font-mono text-sm text-slate-700">{lead.phone}</p>
                                     {lead.comment && <p className="mt-1 text-sm text-slate-600">{lead.comment}</p>}
+                                    {lead.ad && (
+                                        <p className="mt-1 text-xs text-slate-500">Объявление: {lead.ad}</p>
+                                    )}
                                     <p className="mt-1 text-xs text-slate-400">
                                         {new Date(lead.createdAt).toLocaleString("ru-RU")}
                                     </p>
