@@ -3,6 +3,7 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
 import { Loader2, TrendingUp, TrendingDown, Filter, Flame, Car, Calendar, ChevronRight, Eye, Heart, PhoneCall } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DashboardLead {
   id: string;
@@ -27,6 +28,8 @@ interface DashboardStats {
   vehiclesInStock: number;
   vehicleStatuses: Record<string, number>;
   events: { vehicleViews: number; favorites: number; contactClicks: number };
+  sources?: Record<string, number>;
+  landingLeads?: { total: number; fromAds: number };
   newUsersDaily: { day: string; count: number }[];
   topVehicle: { id: string; brand: string; model: string; year: number; priceKeyTurnKZT: number; powerHp: number | null; views: number } | null;
   latestLeads?: DashboardLead[];
@@ -65,6 +68,22 @@ function buildChartPath(daily: { day: string; count: number }[]): { line: string
   const area = `${line} L1000,300 L0,300 Z`;
   return { line, area, max };
 }
+
+const SOURCE_ORDER = ['ads', 'landing', 'app', 'telegram'] as const;
+
+const SOURCE_TITLE: Record<string, string> = {
+    ads: 'Реклама Meta',
+    landing: 'Сайт',
+    app: 'Приложение',
+    telegram: 'Telegram-бот',
+};
+
+const SOURCE_STYLE: Record<string, string> = {
+    ads: 'bg-orange-100 text-orange-700',
+    landing: 'bg-sky-100 text-sky-700',
+    app: 'bg-violet-100 text-violet-700',
+    telegram: 'bg-slate-100 text-slate-600',
+};
 
 export default function AdminDashboard() {
   const { initData } = useTelegram();
@@ -223,6 +242,36 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Откуда приходят люди */}
+      {stats.sources && (
+        <section className="bg-surface-container-lowest p-8 rounded-xl shadow-sm shadow-slate-200/50">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold font-headline">Откуда приходят</h3>
+            <p className="text-sm text-on-surface-variant">
+              Все люди в базе по первому касанию
+              {stats.landingLeads && stats.landingLeads.total > 0
+                ? ` · заявок с сайта: ${stats.landingLeads.total}${stats.landingLeads.fromAds > 0 ? ` (из рекламы ${stats.landingLeads.fromAds})` : ''}`
+                : ''}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {SOURCE_ORDER.map(key => {
+              const value = stats.sources?.[key] ?? 0;
+              const total = Object.values(stats.sources ?? {}).reduce((a, b) => a + b, 0) || 1;
+              return (
+                <div key={key} className="rounded-xl border border-surface-container p-4">
+                  <div className={cn("inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold mb-2", SOURCE_STYLE[key])}>
+                    {SOURCE_TITLE[key]}
+                  </div>
+                  <p className="text-2xl font-extrabold font-headline text-on-surface">{value}</p>
+                  <p className="text-xs text-on-surface-variant mt-1">{Math.round((value / total) * 100)}% от всех</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 3. Chart Section & Top Vehicle */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">

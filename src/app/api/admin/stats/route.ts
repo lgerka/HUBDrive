@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
+import { resolveUserSource } from '@/lib/server/userSource';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -8,7 +9,36 @@ export async function GET(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            // Откуда приходят люди: считаем по всем, кто есть в базе
+        const usersForSource = await prisma.user.findMany({
+            select: {
+                id: true,
+                events: {
+                    select: { type: true, meta: true, createdAt: true },
+                    orderBy: { createdAt: 'desc' },
+                    take: 30,
+                },
+            },
+        });
+        const attributedIds = new Set(
+            (await prisma.metaAttribution.findMany({ select: { userId: true } }))
+                .map(a => a.userId)
+                .filter((id): id is string => Boolean(id))
+        );
+        const sources: Record<string, number> = { ads: 0, landing: 0, app: 0, telegram: 0, unknown: 0 };
+        for (const u of usersForSource) {
+            sources[resolveUserSource(attributedIds.has(u.id), u.events)] += 1;
+        }
+
+        // Заявки с сайта — отдельная сущность, в счётчик людей не попадают
+        const [landingLeadsTotal, landingLeadsFromAds] = await Promise.all([
+            prisma.landingLead.count(),
+            prisma.landingLead.count({ where: { OR: [{ fbc: { not: null } }, { fbp: { not: null } }] } }),
+        ]);
+
+        return NextResponse.json({
+            sources,
+            landingLeads: { total: landingLeadsTotal, fromAds: landingLeadsFromAds }, error: 'Unauthorized' }, { status: 401 });
         }
 
         const now = Date.now();

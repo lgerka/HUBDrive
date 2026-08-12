@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { calculateLeadScore } from '@/lib/services/leadScoring';
 import { verifyAdmin } from '@/lib/server/admin';
+import { resolveUserSource } from '@/lib/server/userSource';
 
 export async function GET(request: Request) {
     try {
@@ -26,6 +27,15 @@ export async function GET(request: Request) {
             }
         });
 
+        // Кто пришёл по рекламе — берём одним запросом, чтобы не дёргать базу
+        // на каждого лида
+        const attributed = new Set(
+            (await prisma.metaAttribution.findMany({
+                where: { userId: { in: allUsers.map(u => u.id) } },
+                select: { userId: true },
+            })).map(a => a.userId).filter((id): id is string => Boolean(id))
+        );
+
         // Calculate score for each user
         const leads = allUsers.map((u: any) => {
             const scoring = calculateLeadScore(u);
@@ -42,6 +52,7 @@ export async function GET(request: Request) {
                 filtersCount: u.filters.length,
                 assignedManagerId: u.assignedManagerId,
                 assignedManagerName: u.assignedManager?.name ?? null,
+                source: resolveUserSource(attributed.has(u.id), u.events),
             };
         });
 
