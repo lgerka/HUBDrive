@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/server/prisma";
 import { WEBAPP_ORIGIN } from "@/constants/contacts";
+import { slugForBrand, MIN_VEHICLES_FOR_INDEX } from "@/lib/brands";
 
 export const revalidate = 3600;
 
@@ -36,7 +37,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             take: 500,
         });
 
-        return base.concat(
+        // Страницы марок: зовём поисковик только туда, где есть из чего выбрать
+        const byBrand = await prisma.vehicle.groupBy({
+            by: ["brand"],
+            where: { status: { notIn: ["hidden", "sold", "delivered"] } },
+            _count: true,
+        });
+        const brandPages: MetadataRoute.Sitemap = byBrand
+            .filter(b => b._count >= MIN_VEHICLES_FOR_INDEX)
+            .map(b => ({
+                url: `${WEBAPP_ORIGIN}/brands/${slugForBrand(b.brand)}`,
+                lastModified: new Date(),
+                changeFrequency: "weekly" as const,
+                priority: 0.8,
+            }));
+
+        return base.concat(brandPages).concat(
             vehicles.map(v => ({
                 url: `${WEBAPP_ORIGIN}/vehicles/${v.id}`,
                 lastModified: v.updatedAt,
