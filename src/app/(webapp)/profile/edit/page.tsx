@@ -22,15 +22,15 @@ export default function EditProfilePage() {
 
     const tgName = user 
         ? `${user.first_name} ${user.last_name || ""}`.trim() 
-        : "Александр Петров"; 
+        : "Имя не указано"; 
         
     const tgPhone = user?.username 
         ? `@${user.username}` 
-        : "+7 (999) 123-45-67"; 
+        : "Номер не указан"; 
 
     const displayName = profile?.name || tgName;
     const displayPhone = profile?.phone || tgPhone;
-    const displayCity = profile?.city || "Алматы";
+    const displayCity = profile?.city || "Город не указан";
 
     const handleSubmit = async (data: any) => {
         try {

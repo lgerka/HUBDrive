@@ -121,7 +121,7 @@ export function LeadForm() {
                         type="tel"
                         inputMode="numeric"
                         value={phone}
-                        onChange={e => setPhone(handlePhoneInput(e.target.value, phone))}
+                        onChange={e => setPhone(handlePhoneInput(phone, e.target.value))}
                         placeholder="(700) 000-00-00"
                         autoComplete="tel"
                         className="w-full bg-transparent py-3.5 text-base text-slate-900 outline-none placeholder:text-slate-400"
