@@ -21,6 +21,7 @@ export async function GET(request: Request) {
             comment: l.comment,
             processed: l.processed,
             fromAd: Boolean(l.fbc || l.fbp),
+            ad: [l.utmCampaign, l.utmContent].filter(Boolean).join(' · ') || null,
             createdAt: l.createdAt,
         })),
     });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { captureUtm } from "@/lib/utm";
 
 /**
  * Ловит метку клика по объявлению из адреса страницы.
@@ -22,6 +23,9 @@ function readCookie(name: string): string | undefined {
 
 export function FbclidCapture() {
     useEffect(() => {
+        // Метки объявления запоминаем всегда, даже если клик не от Meta
+        captureUtm();
+
         try {
             const fbclid = new URLSearchParams(window.location.search).get("fbclid");
             if (!fbclid) return;

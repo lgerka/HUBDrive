@@ -374,6 +374,10 @@ model LandingLead {
   phone     String
   comment   String?
   source    String?
+  /// Метки объявления: по ним видно, какой креатив принёс заявку
+  utmSource   String?
+  utmCampaign String?
+  utmContent  String?
   fbp       String?
   fbc       String?
   ip        String?

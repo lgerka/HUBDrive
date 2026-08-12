@@ -180,6 +180,20 @@ export async function GET(request: Request) {
             `Установок приложения: ${byType.app_installed ?? 0}`,
         ];
 
+        // Какие объявления принесли заявки за сутки
+        const byAd = await prisma.landingLead.groupBy({
+            by: ['utmContent'],
+            where: { createdAt: range, utmContent: { not: null } },
+            _count: true,
+            orderBy: { _count: { utmContent: 'desc' } },
+            take: 5,
+        }).catch(() => []);
+
+        if (byAd.length > 0) {
+            lines.push('', '<b>Заявки по объявлениям</b>',
+                ...byAd.map(a => `• ${a.utmContent}: ${a._count}`));
+        }
+
         if (vehicleNames.length > 0) {
             lines.push('', '<b>Смотрят чаще всего</b>', ...vehicleNames);
         }

@@ -56,6 +56,10 @@ export async function POST(request: Request) {
         const eventId = typeof body.eventId === 'string' ? body.eventId : `landing-${Date.now()}`;
         const fbp = typeof body.fbp === 'string' ? body.fbp : undefined;
         const fbc = typeof body.fbc === 'string' ? body.fbc : undefined;
+        const utm = (body.utm && typeof body.utm === 'object') ? body.utm : {};
+        const utmSource = typeof utm.source === 'string' ? utm.source.slice(0, 60) : null;
+        const utmCampaign = typeof utm.campaign === 'string' ? utm.campaign.slice(0, 80) : null;
+        const utmContent = typeof utm.content === 'string' ? utm.content.slice(0, 80) : null;
 
         if (!name || name.length < 2) {
             return NextResponse.json({ error: 'Напишите, как к вам обращаться' }, { status: 400 });
@@ -65,7 +69,10 @@ export async function POST(request: Request) {
         }
 
         const lead = await prisma.landingLead.create({
-            data: { name, phone, comment: comment || null, source: 'landing', fbp, fbc, ip, userAgent },
+            data: {
+                name, phone, comment: comment || null, source: 'landing',
+                fbp, fbc, ip, userAgent, utmSource, utmCampaign, utmContent,
+            },
         });
 
         // Заявка менеджеру и отметка в Meta не должны задерживать ответ человеку
@@ -76,6 +83,7 @@ export async function POST(request: Request) {
                 `<b>Имя:</b> ${name}`,
                 `<b>Телефон:</b> ${phone}`,
                 comment ? `<b>Комментарий:</b> ${comment}` : '',
+                utmContent || utmCampaign ? `<b>Объявление:</b> ${[utmCampaign, utmContent].filter(Boolean).join(' · ')}` : '',
                 '',
                 '<i>Человек пришёл с сайта и ждёт расчёт цены под ключ.</i>',
             ].filter(Boolean).join('\n');
