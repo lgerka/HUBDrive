@@ -19,6 +19,18 @@ interface BeforeInstallPromptEvent extends Event {
 const DISMISS_KEY = "pwaPromptDismissedAt";
 const DISMISS_DAYS = 3;
 
+/**
+ * Человек, пришедший по объявлению, ещё не знает нас — предложение поставить
+ * приложение в первую же минуту он воспринимает как помеху и уходит. Поэтому
+ * рекламному трафику показываем модалку только когда он реально заинтересовался:
+ * дочитал до середины страницы и провёл на ней хотя бы минуту.
+ */
+function cameFromAd(): boolean {
+    if (typeof window === "undefined") return false;
+    if (new URLSearchParams(window.location.search).has("fbclid")) return true;
+    return document.cookie.split("; ").some(c => c.startsWith("_fbc="));
+}
+
 export function isStandalone() {
     if (typeof window === "undefined") return false;
     return (
@@ -68,10 +80,28 @@ export function InstallPrompt({ requireOnboarding = true }: { requireOnboarding?
         };
         window.addEventListener("beforeinstallprompt", onBeforeInstall);
 
-        // Даём осмотреться, потом предлагаем установку
-        const t = setTimeout(() => setOpen(true), 12000);
+        // Обычному посетителю даём осмотреться 12 секунд; пришедшему по рекламе —
+        // ждём и времени, и интереса, иначе модалка перебивает первое знакомство
+        const fromAd = cameFromAd();
+        const delay = fromAd ? 60000 : 12000;
+
+        let scrolledEnough = !fromAd;
+        const onScroll = () => {
+            const seen = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+            if (seen > 0.5) {
+                scrolledEnough = true;
+                window.removeEventListener("scroll", onScroll);
+            }
+        };
+        if (fromAd) window.addEventListener("scroll", onScroll, { passive: true });
+
+        const t = setTimeout(() => {
+            if (scrolledEnough) setOpen(true);
+        }, delay);
+
         return () => {
             window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+            window.removeEventListener("scroll", onScroll);
             clearTimeout(t);
         };
     }, [requireOnboarding]);
