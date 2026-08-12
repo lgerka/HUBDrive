@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/server/prisma";
 import { WEBAPP_ORIGIN } from "@/constants/contacts";
-import { slugForBrand, MIN_VEHICLES_FOR_INDEX } from "@/lib/brands";
+import { slugForBrand, brandBySlug, MIN_VEHICLES_FOR_INDEX } from "@/lib/brands";
 
 export const revalidate = 3600;
 
@@ -45,6 +45,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
         const brandPages: MetadataRoute.Sitemap = byBrand
             .filter(b => b._count >= MIN_VEHICLES_FOR_INDEX)
+            // Марку, для которой ещё не написан текст, в карту не зовём:
+            // страницы по такому адресу нет, и робот получит 404
+            .filter(b => brandBySlug(slugForBrand(b.brand)))
             .map(b => ({
                 url: `${WEBAPP_ORIGIN}/brands/${slugForBrand(b.brand)}`,
                 lastModified: new Date(),

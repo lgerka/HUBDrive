@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/server/prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { VehicleDetailClient } from './vehicle-detail-client';
+import { slugForBrand, brandBySlug } from '@/lib/brands';
 
 /**
  * Карточка автомобиля.
@@ -159,6 +160,11 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                 {vehicle.mileage ? <p>Пробег: {vehicle.mileage.toLocaleString('ru-RU')} км.</p> : null}
                 {vehicle.powerHp ? <p>Мощность: {vehicle.powerHp} л.с.</p> : null}
                 {vehicle.description ? <p>{vehicle.description}</p> : null}
+                {brandBySlug(slugForBrand(vehicle.brand)) ? (
+                    <a href={`/brands/${slugForBrand(vehicle.brand)}`}>
+                        Все {vehicle.brand} из Китая в Казахстане
+                    </a>
+                ) : null}
                 {cover ? <img src={cover} alt={name} /> : null}
             </div>
             <VehicleDetailClient initialVehicle={vehicle} />
