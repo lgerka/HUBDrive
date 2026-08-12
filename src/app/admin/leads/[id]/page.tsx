@@ -6,6 +6,14 @@ import { useRouter } from "next/navigation";
 import { Bell, CircleHelp, Phone, MapPin, SlidersHorizontal, Eye, Filter as FilterIcon, LogIn, Send, PhoneForwarded, Calendar, ArrowLeft, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Как называем каналы в карточке — те же слова, что в списке лидов. */
+const LEAD_SOURCE_LABEL: Record<string, string> = {
+    ads: 'Реклама Meta',
+    landing: 'Сайт',
+    app: 'Приложение',
+    telegram: 'Telegram-бот',
+};
+
 export default function AdminLeadProfile({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const { initData } = useTelegram();
@@ -140,6 +148,15 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Оценка ИИ</p>
                   <p className="text-primary font-bold">{lead.score} баллов</p>
                 </div>
+                {lead.source && lead.source !== 'unknown' && (
+                  <div className="bg-surface-container-low px-4 py-2 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Откуда пришёл</p>
+                    <p className="text-on-surface font-bold">
+                      {LEAD_SOURCE_LABEL[lead.source] ?? lead.source}
+                      {lead.adClickAt ? ` · ${new Date(lead.adClickAt).toLocaleDateString('ru-RU')}` : ''}
+                    </p>
+                  </div>
+                )}
                 <div className="bg-surface-container-low px-4 py-2 rounded-2xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Активных фильтров</p>
                   <p className="text-on-surface font-bold">{lead.filters?.length || 0}</p>

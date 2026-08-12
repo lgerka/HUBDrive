@@ -3,6 +3,7 @@ import { LeadStatus } from '@prisma/client';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { calculateLeadScore } from '@/lib/services/leadScoring';
+import { resolveUserSource } from '@/lib/server/userSource';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
     try {
@@ -61,12 +62,21 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
             return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
         }
 
+        // Метка рекламного клика: по ней видно, что человек пришёл из Meta
+        const attribution = await prisma.metaAttribution.findFirst({
+            where: { userId: userLead.id },
+            orderBy: { createdAt: 'desc' },
+            select: { fbc: true, fbp: true, createdAt: true },
+        });
+
         const scoring = calculateLeadScore(userLead as any);
         const enhancedLead = {
             ...userLead,
             score: scoring.score,
             level: scoring.level,
-            reasons: scoring.reasons
+            reasons: scoring.reasons,
+            source: resolveUserSource(Boolean(attribution), userLead.events),
+            adClickAt: attribution?.createdAt ?? null,
         };
         
         return NextResponse.json(enhancedLead);

@@ -17,6 +17,7 @@ interface UserLead {
     phone: string | null;
     leadStatus: LeadStatus;
     score: number;
+    source?: 'ads' | 'landing' | 'app' | 'telegram' | 'unknown';
     level: ScoreLevel;
     reasons: string[];
     createdAt: string;
@@ -31,6 +32,21 @@ const statusMap: Record<LeadStatus, { label: string; bg: string; text: string }>
     converted: { label: "Закрыта успешно", bg: "bg-green-100", text: "text-green-700" },
     closed_lost: { label: "Закрыта без результата", bg: "bg-slate-100", text: "text-slate-600" },
     rejected: { label: "Отменено", bg: "bg-red-100", text: "text-red-600" },
+};
+
+/** Откуда пришёл человек — видно прямо в списке, без захода в карточку. */
+const SOURCE_LABEL: Record<string, string> = {
+    ads: 'реклама',
+    landing: 'сайт',
+    app: 'приложение',
+    telegram: 'бот',
+};
+
+const SOURCE_STYLE: Record<string, string> = {
+    ads: 'bg-orange-100 text-orange-700',
+    landing: 'bg-sky-100 text-sky-700',
+    app: 'bg-violet-100 text-violet-700',
+    telegram: 'bg-slate-100 text-slate-600',
 };
 
 export default function LeadsPage() {
@@ -147,7 +163,17 @@ export default function LeadsPage() {
                                 >
                                     <td className="px-6 py-5 align-top">
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-on-surface text-[15px]">{lead.name}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-on-surface text-[15px]">{lead.name}</span>
+                                                {lead.source && lead.source !== 'unknown' && (
+                                                    <span className={cn(
+                                                        "px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap",
+                                                        SOURCE_STYLE[lead.source]
+                                                    )}>
+                                                        {SOURCE_LABEL[lead.source]}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="text-sm text-on-surface-variant mt-0.5">{lead.phone || "Телефон не указан"}</span>
                                             <span className="text-xs text-outline mt-1">{new Date(lead.createdAt).toLocaleDateString()}</span>
                                         </div>
