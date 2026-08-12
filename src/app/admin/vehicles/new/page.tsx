@@ -3,8 +3,9 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Trash2, ImagePlus, Video, UploadCloud, ChevronRight, Check, Camera, Settings2, Wallet, FileText, Send } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Video, UploadCloud, ChevronRight, Check, Camera, Settings2, Wallet, FileText, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 
 // Мастер создания карточки авто — шаги по PRD §19.4
 const STEPS = [
@@ -84,9 +85,6 @@ export default function AdminNewVehiclePage() {
     }
   };
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({ ...prev, media: prev.media.filter((_, i) => i !== index) }));
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -300,33 +298,10 @@ export default function AdminNewVehiclePage() {
                 {isUploading ? "Загрузка..." : "Загрузить с устройства"}
               </button>
 
-              {formData.media.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 pt-2">
-                  {formData.media.map((img, i) => (
-                    <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img} alt={`Preview ${i + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                          type="button"
-                          onClick={() => removeImage(i)}
-                          className="bg-white p-3 rounded-full shadow-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="w-full aspect-[21/9] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 bg-slate-50/50">
-                  <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">
-                    <ImagePlus className="w-8 h-8 text-slate-300" />
-                  </div>
-                  <span className="font-headline font-bold text-sm tracking-wide">Добавьте фотографии</span>
-                  <span className="font-body text-xs text-slate-400 px-6 text-center">Через ссылку или загрузите с устройства. Минимум 1 фото для публикации в каталог.</span>
-                </div>
-              )}
+              <MediaGalleryEditor
+                media={formData.media}
+                onChange={media => setFormData(prev => ({ ...prev, media }))}
+              />
             </div>
           )}
 

@@ -3,8 +3,9 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, Save, Plus, Trash2, ChevronRight, ImagePlus, Info, Video, UploadCloud } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Plus, ChevronRight, Info, Video, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 
 // Деньги: только цифры в состоянии, разделители на экране; объём: цифры и одна точка
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
@@ -137,9 +138,6 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     }
   };
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({ ...prev, media: prev.media.filter((_, i) => i !== index) }));
-  };
 
   const handleGalleryFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -451,34 +449,11 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                   {isUploading ? "Загрузка..." : "Загрузить с устройства"}
                 </button>
 
-                {formData.media.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 pt-4">
-                    {formData.media.map((img, i) => (
-                      <div key={i} className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img} alt={`Preview ${i+1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
-                            type="button" 
-                            onClick={() => removeImage(i)}
-                            className="bg-white p-3 rounded-full shadow-xl hover:bg-red-50 text-slate-400 hover:text-error transition-colors"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="w-full aspect-[21/9] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 mt-4 bg-slate-50/50">
-                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">
-                      <ImagePlus className="w-8 h-8 text-slate-300" />
-                    </div>
-                    <span className="font-headline font-bold text-sm tracking-wide">Добавьте URL фотографий</span>
-                    <span className="font-body text-xs mt-1 text-slate-400 px-6 text-center">Изображения 16:9 или 4:3. Избегайте использования сторонних обложек.</span>
-                  </div>
-                )}
-                
+                <MediaGalleryEditor
+                  media={formData.media}
+                  onChange={media => setFormData(prev => ({ ...prev, media }))}
+                />
+
                 <div className="mt-8 pt-6 border-t border-slate-100">
                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2 block">
                       <Video className="w-3.5 h-3.5" /> Ссылка на Видеообзор (YouTube)
