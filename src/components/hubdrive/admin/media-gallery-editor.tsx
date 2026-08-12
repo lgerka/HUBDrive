@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, ImagePlus, GripVertical, ArrowLeft, ArrowRight, Star } from "lucide-react";
+import { Trash2, ImagePlus, ArrowLeft, ArrowRight, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { moveItem } from "@/lib/reorder";
 
@@ -79,7 +79,12 @@ export function MediaGalleryEditor({ media, onChange }: MediaGalleryEditorProps)
                     >
                         <div className="aspect-square cursor-grab active:cursor-grabbing">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={img} alt={`Фото ${i + 1}`} className="w-full h-full object-cover" />
+                            <img
+                                src={img}
+                                alt={`Фото ${i + 1}`}
+                                draggable={false}
+                                className="w-full h-full object-cover select-none"
+                            />
                         </div>
 
                         {i === 0 && (
@@ -92,7 +97,7 @@ export function MediaGalleryEditor({ media, onChange }: MediaGalleryEditorProps)
                         </span>
 
                         {/* Управление: видно при наведении, на телефоне — всегда */}
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/55 p-1.5 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/55 p-1.5">
                             <div className="flex gap-1">
                                 <button
                                     type="button"
@@ -137,7 +142,6 @@ export function MediaGalleryEditor({ media, onChange }: MediaGalleryEditorProps)
                             </div>
                         </div>
 
-                        <GripVertical className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 text-white/0 transition-colors group-hover:text-white/40" />
                     </div>
                 ))}
             </div>
