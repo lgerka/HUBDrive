@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/server/prisma";
+import { slugForBrand, brandBySlug, MIN_VEHICLES_FOR_INDEX } from "@/lib/brands";
 
 export const metadata: Metadata = {
     title: "Каталог авто из Китая в наличии — цены под ключ в Казахстане",
@@ -22,6 +23,40 @@ export const revalidate = 3600;
  * них попросту не узнавал. Этот блок закрывает дыру и заодно помогает
  * человеку быстро найти нужную модель.
  */
+/** Ссылки на страницы марок — оттуда человек попадает в подборку по марке. */
+async function BrandLinks() {
+    try {
+        const byBrand = await prisma.vehicle.groupBy({
+            by: ["brand"],
+            where: { status: { notIn: ["hidden", "sold", "delivered"] } },
+            _count: true,
+        });
+        const links = byBrand
+            .filter(b => b._count >= MIN_VEHICLES_FOR_INDEX && brandBySlug(slugForBrand(b.brand)))
+            .sort((a, b) => b._count - a._count);
+        if (links.length === 0) return null;
+
+        return (
+            <nav aria-label="Марки" className="px-5 pt-8">
+                <h2 className="mb-3 font-headline text-base font-bold text-on-surface">Марки в наличии</h2>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {links.map(b => (
+                        <Link
+                            key={b.brand}
+                            href={`/brands/${slugForBrand(b.brand)}`}
+                            className="text-sm text-on-surface-variant underline-offset-2 hover:text-primary hover:underline"
+                        >
+                            {b.brand} из Китая ({b._count})
+                        </Link>
+                    ))}
+                </div>
+            </nav>
+        );
+    } catch {
+        return null;
+    }
+}
+
 async function AllVehiclesIndex() {
     let vehicles: Array<{ id: string; brand: string; model: string; year: number; priceUSD: number | null }> = [];
 
@@ -64,6 +99,7 @@ export default function CatalogLayout({ children }: { children: React.ReactNode 
     return (
         <>
             {children}
+            <BrandLinks />
             <AllVehiclesIndex />
         </>
     );
