@@ -14,6 +14,14 @@ interface Analytics {
     sessions: { period: number; last24h: number; bySource: Record<string, number> };
     leads: { total: number; fromAds: number; contactClicks: number; callClicks: number };
     engagement: { catalogViews: number; newsViews: number };
+    interest: {
+        shares: number;
+        favorites: number;
+        whatsappClicks: number;
+        telegramClicks: number;
+        supportOpened: number;
+        topShared: { id: string; brand: string; model: string; year: number; count: number }[];
+    };
     topVehicles: { id: string; brand: string; model: string; year: number; views: number }[];
     daily: { day: string; source: string; count: number }[];
 }
@@ -180,6 +188,54 @@ export default function AppAnalyticsPage() {
                         <p className="mt-1 text-xs text-slate-400">нажали «позвонить»</p>
                     </div>
                 </div>
+            </section>
+
+            {/* Интерес и обращения */}
+            <section className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm border border-slate-100">
+                <div className="mb-6">
+                    <h2 className="font-headline font-extrabold text-xl tracking-tight">Интерес и обращения</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Что люди делают до заявки: сохраняют, показывают знакомым, пишут в мессенджеры
+                    </p>
+                </div>
+                <div className="grid grid-cols-2 gap-6 lg:grid-cols-5">
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.interest.favorites}</p>
+                        <p className="mt-1 text-xs text-slate-400">сохранили в избранное</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.interest.shares}</p>
+                        <p className="mt-1 text-xs text-slate-400">поделились машиной</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-[#128C7E]">{data.interest.whatsappClicks}</p>
+                        <p className="mt-1 text-xs text-slate-400">написали в WhatsApp</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-sky-600">{data.interest.telegramClicks}</p>
+                        <p className="mt-1 text-xs text-slate-400">написали в Telegram</p>
+                    </div>
+                    <div>
+                        <p className="font-headline text-3xl font-extrabold text-on-surface">{data.interest.supportOpened}</p>
+                        <p className="mt-1 text-xs text-slate-400">открыли поддержку</p>
+                    </div>
+                </div>
+
+                {data.interest.topShared.length > 0 && (
+                    <div className="mt-8 border-t border-slate-100 pt-6">
+                        <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                            Чаще сохраняют и пересылают
+                        </h3>
+                        <ul className="space-y-2">
+                            {data.interest.topShared.map(v => (
+                                <li key={v.id} className="flex items-center justify-between text-sm">
+                                    <span className="text-on-surface">{v.brand} {v.model} {v.year}</span>
+                                    <span className="font-bold text-slate-500">{v.count}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </section>
 
             {/* По каналам */}

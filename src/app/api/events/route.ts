@@ -15,6 +15,10 @@ const CLIENT_EVENT_TYPES = [
     'app_installed',
     'landing_opened',
     'push_clicked',
+    // действия, которые раньше видел только пиксель Meta
+    'vehicle_shared',
+    'whatsapp_clicked',
+    'telegram_clicked',
 ] as const;
 
 type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];
@@ -44,8 +48,25 @@ export async function GET(request: Request) {
     }
 }
 
-// Эти события приходят и от неавторизованных: лендинг и первый запуск приложения
-const ANONYMOUS_ALLOWED: ClientEventType[] = ['landing_opened', 'app_opened', 'app_installed'];
+/**
+ * События, которые приходят и от неавторизованных.
+ *
+ * Лендинг и карточки авто открыты всем, вход там не требуется — если резать
+ * такие события, статистика показывает только тех, кто дошёл до Telegram,
+ * а это малая часть посетителей. Именно поэтому клики в WhatsApp с сайта
+ * не попадали в аналитику вовсе.
+ */
+const ANONYMOUS_ALLOWED: ClientEventType[] = [
+    'landing_opened',
+    'app_opened',
+    'app_installed',
+    'vehicle_opened',
+    'catalog_opened',
+    'vehicle_shared',
+    'whatsapp_clicked',
+    'telegram_clicked',
+    'call_clicked',
+];
 
 export async function POST(request: Request) {
     try {

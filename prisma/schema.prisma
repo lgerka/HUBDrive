@@ -81,6 +81,9 @@ enum EventType {
   vehicle_status_changed
   support_opened
   filter_deleted
+  vehicle_shared
+  whatsapp_clicked
+  telegram_clicked
   webapp_opened
   app_installed
   app_opened

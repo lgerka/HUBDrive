@@ -55,6 +55,8 @@ export async function GET(request: Request) {
             topVehicles, sessionsPeriod, sessions24h,
             catalogViews, newsViews,
             leadsPeriod, leadsFromAds, contactClicks, callClicks,
+            shares, favorites, whatsappClicks, telegramClicks, supportOpened,
+            topShared,
         ] = await Promise.all([
             prisma.event.count({ where: { type: 'app_installed' } }),
             prisma.event.count({ where: { type: 'app_installed', createdAt: { gte: since } } }),
@@ -109,6 +111,23 @@ export async function GET(request: Request) {
             }),
             prisma.event.count({ where: { type: 'contact_clicked', createdAt: { gte: since } } }),
             prisma.event.count({ where: { type: 'call_clicked', createdAt: { gte: since } } }),
+
+            // Интерес без обращения: репост показывает машину близким,
+            // избранное — возврат к ней позже
+            prisma.event.count({ where: { type: 'vehicle_shared', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'favorite_added', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'whatsapp_clicked', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'telegram_clicked', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'support_opened', createdAt: { gte: since } } }),
+
+            // Какими машинами делятся чаще всего
+            prisma.$queryRaw<{ id: string; brand: string; model: string; year: number; shares: bigint }[]>`
+                select v.id, v.brand, v.model, v.year, count(*)::bigint as shares
+                from "Event" e join "Vehicle" v on v.id = e."vehicleId"
+                where e.type in ('vehicle_shared', 'favorite_added') and e."createdAt" >= ${since}
+                group by v.id, v.brand, v.model, v.year
+                order by shares desc limit 5
+            `,
         ]);
 
         const asMap = (rows: { source: string | null; count: bigint }[]) =>
@@ -139,6 +158,16 @@ export async function GET(request: Request) {
                 callClicks,
             },
             engagement: { catalogViews, newsViews },
+            interest: {
+                shares,
+                favorites,
+                whatsappClicks,
+                telegramClicks,
+                supportOpened,
+                topShared: topShared.map(v => ({
+                    id: v.id, brand: v.brand, model: v.model, year: v.year, count: Number(v.shares),
+                })),
+            },
             topVehicles: topVehicles.map(v => ({
                 id: v.id, brand: v.brand, model: v.model, year: v.year, views: Number(v.views),
             })),
