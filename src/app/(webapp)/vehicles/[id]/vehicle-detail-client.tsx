@@ -123,6 +123,11 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
     };
 
     const handleShare = async () => {
+        // Репост — сильный сигнал интереса: человек показывает машину близким
+        trackEvent('vehicle_shared', {
+            vehicleId: vehicle.id,
+            meta: { brand: vehicle.brand, model: vehicle.model },
+        });
         const shareData = {
             title: `${vehicle.brand} ${vehicle.model}`,
             text: `Посмотри этот автомобиль: ${vehicle.brand} ${vehicle.model}`,

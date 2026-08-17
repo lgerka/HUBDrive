@@ -3,7 +3,8 @@
 export type TrackableEvent =
     | 'webapp_opened' | 'catalog_opened' | 'vehicle_opened' | 'call_clicked'
     | 'news_opened' | 'support_opened'
-    | 'app_opened' | 'app_installed' | 'landing_opened' | 'push_clicked';
+    | 'app_opened' | 'app_installed' | 'landing_opened' | 'push_clicked'
+    | 'vehicle_shared' | 'whatsapp_clicked' | 'telegram_clicked' | 'favorite_added';
 
 /**
  * Откуда открыли: установленное приложение, мини-приложение Telegram,

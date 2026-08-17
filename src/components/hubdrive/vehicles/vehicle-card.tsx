@@ -13,6 +13,7 @@ import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { BestMatchResult } from '@/lib/matching/pickBestMatch';
 import { metaTrack } from '@/lib/meta/pixel';
+import { trackEvent } from '@/lib/api/track';
 
 interface VehicleCardProps {
     vehicle: Vehicle;
@@ -83,6 +84,10 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                                 // Сохранил в избранное — сильный сигнал интереса,
                                 // по нему собирается аудитория для ретаргетинга
                                 if (added) {
+                                    trackEvent('favorite_added', {
+                                        vehicleId: vehicle.id,
+                                        meta: { brand: vehicle.brand, model: vehicle.model },
+                                    });
                                     metaTrack('AddToWishlist', {
                                         content_ids: [vehicle.id],
                                         content_name: `${vehicle.brand} ${vehicle.model}`,
@@ -144,6 +149,10 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                             e.stopPropagation();
                             const added = await toggleFavorite(vehicle.id, initData);
                             if (added) {
+                                trackEvent('favorite_added', {
+                                    vehicleId: vehicle.id,
+                                    meta: { brand: vehicle.brand, model: vehicle.model },
+                                });
                                 metaTrack('AddToWishlist', {
                                     content_ids: [vehicle.id],
                                     content_name: `${vehicle.brand} ${vehicle.model}`,

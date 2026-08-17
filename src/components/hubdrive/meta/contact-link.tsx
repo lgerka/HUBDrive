@@ -1,6 +1,7 @@
 "use client";
 
 import { metaTrack, type MetaEvent } from "@/lib/meta/pixel";
+import { trackEvent } from "@/lib/api/track";
 
 /**
  * Ссылка на способ связи (WhatsApp, Telegram, звонок), которая заодно
@@ -41,7 +42,15 @@ export function ContactLink({
             className={className}
             aria-label={ariaLabel}
             {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            onClick={() => metaTrack(event, { content_category: channel, content_name: place })}
+            onClick={() => {
+                metaTrack(event, { content_category: channel, content_name: place });
+                // Своя аналитика: в админке видно, сколько людей ушло в WhatsApp,
+                // в Telegram и сколько нажали «позвонить»
+                const own = channel === "whatsapp" ? "whatsapp_clicked"
+                    : channel === "telegram" ? "telegram_clicked"
+                    : "call_clicked";
+                trackEvent(own, { meta: { place } });
+            }}
         >
             {children}
         </a>
