@@ -68,6 +68,29 @@ const ANONYMOUS_ALLOWED: ClientEventType[] = [
     'call_clicked',
 ];
 
+/**
+ * Город и страна посетителя.
+ *
+ * Vercel определяет их сам по IP и кладёт в заголовки запроса. Сам IP мы
+ * не храним: город — это всё, что нужно, чтобы понять, куда бьёт реклама,
+ * а личные данные хранить без нужды не стоит.
+ */
+function geoFromRequest(request: Request): { city?: string; country?: string; region?: string } {
+    const h = request.headers;
+    const raw = h.get('x-vercel-ip-city');
+    // Города приходят в процентной кодировке: Almaty, но Karagandy как Karagandy,
+    // а «Алматы» с кириллицей приехал бы как %D0%90...
+    let city: string | undefined;
+    if (raw) {
+        try { city = decodeURIComponent(raw); } catch { city = raw; }
+    }
+    return {
+        city: city || undefined,
+        country: h.get('x-vercel-ip-country') ?? undefined,
+        region: h.get('x-vercel-ip-country-region') ?? undefined,
+    };
+}
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
@@ -81,12 +104,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const geo = geoFromRequest(request);
+        const clientMeta = body.meta && typeof body.meta === 'object' ? body.meta : {};
+
         await prisma.event.create({
             data: {
                 type,
                 userId: user?.id ?? null,
                 vehicleId: typeof body.vehicleId === 'string' ? body.vehicleId : null,
-                meta: body.meta && typeof body.meta === 'object' ? body.meta : undefined,
+                meta: { ...clientMeta, ...geo },
             },
         });
 

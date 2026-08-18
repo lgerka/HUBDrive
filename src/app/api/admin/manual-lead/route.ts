@@ -3,7 +3,8 @@ import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { normalizePhone } from '@/lib/server/phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
-import { LEAD_VALUE_USD } from '@/constants/contacts';
+import { LEAD_VALUE_USD, WEBAPP_ORIGIN } from '@/constants/contacts';
+import { getChatIds } from '@/lib/server/telegram/targets';
 
 /**
  * Обращение, которое случилось вне сайта: человек написал в WhatsApp,
@@ -32,6 +33,32 @@ const CHANNELS = {
     instagram: { label: 'Instagram', actionSource: 'chat' as const },
     other: { label: 'Другое', actionSource: 'system_generated' as const },
 };
+
+
+/**
+ * Обращение в чат продаж.
+ *
+ * Менеджер сам его и внёс, но в группе сидит не только он: остальные видят,
+ * что заявка зарегистрирована, и её не берут второй раз. Плюс в чате остаётся
+ * единая лента всех заявок, откуда бы они ни пришли.
+ */
+async function announceToTeam(text: string): Promise<void> {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) return;
+    const chatIds = await getChatIds('leads').catch(() => [] as string[]);
+    for (const chatId of chatIds) {
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text,
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
+            }),
+        }).catch(err => console.error('[обращение] не ушло в чат:', err));
+    }
+}
 
 export async function POST(request: Request) {
     const isAdmin = await verifyAdmin(request, prisma);
@@ -105,6 +132,16 @@ export async function POST(request: Request) {
     });
 
     if (existingLead) {
+        await announceToTeam([
+            '📝 <b>Обращение записано вручную</b>',
+            '',
+            `<b>Клиент:</b> ${name || 'без имени'}`,
+            `<b>Телефон:</b> ${phone}`,
+            `<b>Канал:</b> ${channel.label}`,
+            '',
+            '<i>В рекламу не отправляли: с этого номера уже была заявка</i>',
+        ].join('\n'));
+
         return NextResponse.json({
             ok: true,
             id: lead.id,
@@ -132,6 +169,23 @@ export async function POST(request: Request) {
             currency: 'USD',
         },
     });
+
+    await announceToTeam([
+        '📝 <b>Обращение записано вручную</b>',
+        '',
+        `<b>Клиент:</b> ${name || 'без имени'}`,
+        `<b>Телефон:</b> ${phone}`,
+        `<b>Канал:</b> ${channel.label}`,
+        vehicle ? `<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}` : '',
+        (body.comment ?? '').trim() ? `<b>Просит:</b> ${(body.comment ?? '').trim()}` : '',
+        '',
+        `<a href="tel:${phone.replace(/[^\d+]/g, '')}">Позвонить</a>`,
+        `<a href="${WEBAPP_ORIGIN}/admin/landing-leads">Все заявки</a>`,
+        '',
+        sent
+            ? '<i>Отправлено в рекламный кабинет как заявка</i>'
+            : '<i>В рекламный кабинет не ушло</i>',
+    ].filter(Boolean).join('\n'));
 
     return NextResponse.json({
         ok: true,
