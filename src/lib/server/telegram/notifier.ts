@@ -162,7 +162,7 @@ export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, sc
     let sentAtLeastOnce = false;
     for (const adminId of adminIds) {
         try {
-            await bot.api.sendMessage(adminId, text, { parse_mode: 'Markdown' });
+            await bot.api.sendMessage(adminId, text, { parse_mode: 'HTML', link_preview_options: { is_disabled: true } });
             sentAtLeastOnce = true;
         } catch (err) {
             console.error(`Failed to notify admin ${adminId}:`, err);
@@ -189,11 +189,28 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
     const adminIds = await getChatIds('leads');
     if (adminIds.length === 0) return;
 
-    const text = `🚨 **Новый Горячий Лид!**\n\n` +
-                 `Клиент: ${user.name || user.username || user.telegramId}\n` +
-                 `Телефон: ${user.phone || 'Не указан'}\n` +
-                 `Запрос: ${filterTitle || 'Автомобиль'}\n\n` +
-                 `Статус: Готов купить сейчас.\nПроверьте очередь лидов: ${WEBAPP_URL}/admin/leads/${user.id}`;
+    // Первым делом — как связаться: менеджеру нужен контакт, а не описание
+    const chatLink = user.username
+        ? `https://t.me/${user.username}`
+        : `tg://user?id=${user.telegramId}`;
+    const contactLine = user.phone
+        ? `<b>Телефон:</b> ${user.phone}`
+        : user.username
+            ? `<b>Telegram:</b> @${user.username}`
+            : '<b>Контакт:</b> не оставил ни номера, ни ника';
+
+    const text = [
+        '🔥 <b>Горячий лид</b>',
+        '',
+        `<b>Клиент:</b> ${user.name || user.username || 'без имени'}`,
+        contactLine,
+        `<b>Запрос:</b> ${filterTitle || 'Автомобиль'}`,
+        '<b>Готовность:</b> покупает сейчас',
+        '',
+        `<a href="${chatLink}">Написать в Telegram</a>`,
+        user.phone ? `<a href="tel:${String(user.phone).replace(/[^\d+]/g, '')}">Позвонить</a>` : '',
+        `<a href="${WEBAPP_URL}/admin/leads/${user.id}">Открыть карточку лида</a>`,
+    ].filter(Boolean).join('\n');
 
     for (const adminId of adminIds) {
         try {
@@ -213,5 +230,45 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
         } catch (err) {
             console.error(`Failed to notify admin ${adminId}:`, err);
         }
+    }
+}
+
+/**
+ * Проверяет, не стал ли человек горячим лидом, и если да — зовёт менеджеров.
+ *
+ * Раньше уведомление о горячем лиде существовало, но его никто не вызывал:
+ * менеджеры узнавали о готовом покупателе, только если сами открывали админку.
+ * Теперь проверка идёт после каждого действия, которое поднимает оценку —
+ * создания фильтра и отправки заявки.
+ *
+ * Повторно за сутки не беспокоим: человек может нажать несколько кнопок подряд.
+ */
+export async function notifyIfHotLead(userId: string, reason?: string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                filters: true,
+                events: { orderBy: { createdAt: 'desc' }, take: 100 },
+            },
+        });
+        if (!user) return;
+
+        const { calculateLeadScore } = await import('@/lib/services/leadScoring');
+        const { level } = calculateLeadScore(user as any);
+        if (level !== 'HOT') return;
+
+        const alreadyToday = await prisma.notification.findFirst({
+            where: {
+                userId,
+                type: 'hot_filter',
+                createdAt: { gte: new Date(Date.now() - 86_400_000) },
+            },
+        });
+        if (alreadyToday) return;
+
+        await notifyManagerAboutHotLead(user, reason);
+    } catch (error) {
+        console.error('[notifier] не удалось проверить горячего лида:', error);
     }
 }

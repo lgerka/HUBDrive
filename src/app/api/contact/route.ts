@@ -5,6 +5,7 @@ import { resolveWebUser } from '@/lib/server/webUser';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
+import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // Единая точка правды по адресу приложения — см. constants/contacts
@@ -118,6 +119,10 @@ export async function POST(request: Request) {
         // Событие уходит с сервера, поэтому доходит и из Telegram, где
         // браузерного пикселя нет.
         const { ip, userAgent } = requestSignals(request);
+        // Если после этой заявки человек стал горячим — зовём менеджеров сразу,
+        // не дожидаясь, пока кто-то откроет админку
+        after(() => notifyIfHotLead(dbUser.id, 'Заявка по конкретной машине'));
+
         after(async () => {
             try {
                 const attribution = await attributionForUser(dbUser.id);

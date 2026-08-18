@@ -53,6 +53,11 @@ export async function GET(request: Request) {
                 assignedManagerId: u.assignedManagerId,
                 assignedManagerName: u.assignedManager?.name ?? null,
                 source: resolveUserSource(attributed.has(u.id), u.events),
+                username: u.username ?? null,
+                // Способ связи: телефон, ник в Telegram — или ничего.
+                // Ссылка по числовому id открывается только в приложении
+                // Telegram, поэтому это отдельный, худший случай
+                contact: u.phone ? 'phone' : (u.username ? 'telegram' : 'none'),
             };
         });
 

@@ -5,6 +5,7 @@ import { getChatIds } from '@/lib/server/telegram/targets';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
+import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -81,6 +82,10 @@ export async function POST(request: Request) {
         // Заявка «подобрать похожий» — такая же ценная конверсия, как обычная:
         // человек оставил телефон и ждёт звонка
         const { ip, userAgent } = requestSignals(request);
+        // Если после этой заявки человек стал горячим — зовём менеджеров сразу,
+        // не дожидаясь, пока кто-то откроет админку
+        after(() => notifyIfHotLead(dbUser.id, 'Заявка: подобрать похожий'));
+
         after(async () => {
             try {
                 const attribution = await attributionForUser(dbUser.id);
