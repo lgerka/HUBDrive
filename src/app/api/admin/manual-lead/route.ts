@@ -123,6 +123,13 @@ export async function POST(request: Request) {
 
     const author = await adminIdentity(request, prisma);
 
+    // Страна выводится из кода номера: +996 — Киргизия, остальное Казахстан.
+    // Реклама идёт на оба рынка, и неверная страна мешает Meta узнать человека
+    const country = phone.startsWith('+996') ? 'kg' : 'kz';
+
+    // Человека связываем с базой, если такой номер уже известен
+    const linkedUserId = existingUser?.id ?? null;
+
     const lead = await prisma.landingLead.create({
         data: {
             name: name || 'Без имени',
@@ -130,6 +137,7 @@ export async function POST(request: Request) {
             comment,
             source: `manual_${channelKey}`,
             createdBy: author,
+            userId: linkedUserId,
             createdAt: happenedAt,
         },
     });
@@ -163,8 +171,10 @@ export async function POST(request: Request) {
             phone,
             firstName: name || existingUser?.name || undefined,
             city: existingUser?.city ?? undefined,
-            country: 'kz',
-            externalId: existingUser?.id ?? lead.id,
+            country,
+            // Только если человек уже известен: свежий случайный идентификатор
+            // Meta видит впервые, сопоставить по нему нечего
+            externalId: existingUser?.id ?? undefined,
         },
         customData: {
             content_name: `обращение — ${channel.label}`,

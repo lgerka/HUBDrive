@@ -44,6 +44,25 @@ function dayBounds(): { since: Date; until: Date; label: string } {
     return { since, until, label };
 }
 
+/** Понятные названия каналов для сводки. */
+const MANUAL_LABELS: Record<string, string> = {
+    manual_whatsapp: 'WhatsApp',
+    manual_telegram: 'Telegram',
+    manual_call: 'звонки',
+    manual_instagram: 'Instagram',
+    manual_other: 'другое',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    new: 'новые',
+    in_progress: 'в работе',
+    awaiting_reply: 'ждут ответа',
+    qualified: 'квалифицированы',
+    converted: 'купили',
+    closed_lost: 'слились',
+    rejected: 'отказ',
+};
+
 function plural(n: number, one: string, few: string, many: string): string {
     const mod10 = n % 10;
     const mod100 = n % 100;
@@ -132,6 +151,8 @@ export async function GET(request: Request) {
     try {
         const [
             landingLeads,
+            manualByChannel,
+            statusRows,
             fromAds,
             newUsers,
             usersWithPhone,
@@ -140,7 +161,17 @@ export async function GET(request: Request) {
             pushDevices,
             totalUsers,
         ] = await Promise.all([
-            prisma.landingLead.count({ where: { createdAt: range } }),
+            prisma.landingLead.count({ where: { createdAt: range, OR: [{ source: null }, { source: { notIn: ['manual_whatsapp','manual_telegram','manual_call','manual_instagram','manual_other'] } }] } }),
+            prisma.landingLead.groupBy({
+                by: ['source'],
+                where: { createdAt: range, source: { startsWith: 'manual_' } },
+                _count: true,
+            }),
+            prisma.landingLead.groupBy({
+                by: ['status'],
+                where: { createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } },
+                _count: true,
+            }),
             prisma.landingLead.count({ where: { createdAt: range, OR: [{ fbc: { not: null } }, { fbp: { not: null } }] } }),
             prisma.user.count({ where: { createdAt: range } }),
             prisma.user.count({ where: { createdAt: range, phone: { not: null } } }),
@@ -177,6 +208,10 @@ export async function GET(request: Request) {
             '',
             '<b>Заявки</b>',
             `С сайта: ${landingLeads}${fromAds > 0 ? ` (из рекламы ${fromAds})` : ''}`,
+            ...(manualByChannel.length > 0
+                ? [`Из мессенджеров и звонков: ${manualByChannel.reduce((n, r) => n + r._count, 0)}`
+                    + ` (${manualByChannel.map(r => `${MANUAL_LABELS[r.source ?? ''] ?? 'другое'} ${r._count}`).join(', ')})`]
+                : []),
             `Из приложения: ${byType.contact_clicked ?? 0}`,
             `Звонки: ${byType.call_clicked ?? 0}`,
             '',
@@ -204,6 +239,15 @@ export async function GET(request: Request) {
         if (byAd.length > 0) {
             lines.push('', '<b>Заявки по объявлениям</b>',
                 ...byAd.map(a => `• ${a.utmContent}: ${a._count}`));
+        }
+
+        // Воронка за 30 дней: ради этого статусы и заводились
+        const withStatus = statusRows.filter(r => r._count > 0);
+        if (withStatus.length > 0) {
+            lines.push('', '<b>Заявки по стадиям, за 30 дней</b>',
+                ...withStatus
+                    .sort((a, b) => b._count - a._count)
+                    .map(r => `• ${STATUS_LABELS[r.status] ?? r.status}: ${r._count}`));
         }
 
         if (vehicleNames.length > 0) {

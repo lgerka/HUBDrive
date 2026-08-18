@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send } from "lucide-react";
+import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send, Pencil } from "lucide-react";
 import { whatsappLink } from "@/constants/contacts";
 
 /**
@@ -11,6 +11,29 @@ import { whatsappLink } from "@/constants/contacts";
  * кому уже позвонили, а кто ещё ждёт. Пометка «из рекламы» показывает,
  * что человек пришёл по объявлению Meta.
  */
+type LeadStatus = "new" | "in_progress" | "awaiting_reply" | "qualified" | "converted" | "closed_lost" | "rejected";
+
+/** Та же воронка, что у людей в очереди лидов — чтобы стадии не разъезжались. */
+const STATUSES: { key: LeadStatus; label: string; tone: string }[] = [
+    { key: "new", label: "Новая", tone: "bg-orange-100 text-orange-700" },
+    { key: "in_progress", label: "В работе", tone: "bg-sky-100 text-sky-700" },
+    { key: "awaiting_reply", label: "Ждём ответа", tone: "bg-amber-100 text-amber-700" },
+    { key: "qualified", label: "Квалифицирован", tone: "bg-violet-100 text-violet-700" },
+    { key: "converted", label: "Купил", tone: "bg-green-100 text-green-700" },
+    { key: "closed_lost", label: "Слился", tone: "bg-slate-200 text-slate-600" },
+    { key: "rejected", label: "Отказ", tone: "bg-red-100 text-red-700" },
+];
+
+const CHANNEL_LABELS: Record<string, string> = {
+    manual_whatsapp: "WhatsApp",
+    manual_telegram: "Telegram",
+    manual_call: "Звонок",
+    manual_instagram: "Instagram",
+    manual_other: "Другое",
+    landing: "Форма на сайте",
+    vehicle: "Карточка авто",
+};
+
 interface LandingLead {
     id: string;
     name: string;
@@ -19,6 +42,10 @@ interface LandingLead {
     processed: boolean;
     fromAd: boolean;
     createdBy: string | null;
+    status: LeadStatus;
+    managerComment: string | null;
+    channel: string | null;
+    person: { id: string; name: string | null; username: string | null } | null;
     ad: string | null;
     createdAt: string;
 }
@@ -29,6 +56,7 @@ export default function LandingLeadsPage() {
     const [saving, setSaving] = useState<string | null>(null);
     // Обращение, случившееся вне сайта: WhatsApp, звонок, личка
     const [logging, setLogging] = useState(false);
+    const [editing, setEditing] = useState<LandingLead | null>(null);
 
     const load = useCallback(async () => {
         try {
@@ -45,15 +73,17 @@ export default function LandingLeadsPage() {
 
     useEffect(() => { void load(); }, [load]);
 
-    const toggle = async (lead: LandingLead) => {
+    const setStatus = async (lead: LandingLead, status: LeadStatus) => {
         setSaving(lead.id);
         try {
             await fetch("/api/admin/landing-leads", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: lead.id, processed: !lead.processed }),
+                body: JSON.stringify({ id: lead.id, status }),
             });
-            setLeads(prev => prev.map(l => (l.id === lead.id ? { ...l, processed: !l.processed } : l)));
+            setLeads(prev => prev.map(l =>
+                l.id === lead.id ? { ...l, status, processed: status !== "new" } : l
+            ));
         } finally {
             setSaving(null);
         }
@@ -85,6 +115,14 @@ export default function LandingLeadsPage() {
 
             {logging && (
                 <ManualLeadForm onClose={() => setLogging(false)} onSaved={load} />
+            )}
+
+            {editing && (
+                <EditLeadForm
+                    lead={editing}
+                    onClose={() => setEditing(null)}
+                    onSaved={() => { setEditing(null); void load(); }}
+                />
             )}
 
             {isLoading ? (
@@ -120,8 +158,14 @@ export default function LandingLeadsPage() {
                                     {lead.ad && (
                                         <p className="mt-1 text-xs text-slate-500">Объявление: {lead.ad}</p>
                                     )}
+                                    {lead.managerComment && (
+                                        <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                            {lead.managerComment}
+                                        </p>
+                                    )}
                                     <p className="mt-1 text-xs text-slate-400">
                                         {new Date(lead.createdAt).toLocaleString("ru-RU")}
+                                        {lead.channel && CHANNEL_LABELS[lead.channel] && ` · ${CHANNEL_LABELS[lead.channel]}`}
                                         {/* Заявка с сайта приходит сама, у неё автора нет */}
                                         {lead.createdBy && ` · записал ${lead.createdBy}`}
                                     </p>
@@ -148,17 +192,26 @@ export default function LandingLeadsPage() {
                                         <MessageCircle className="h-4 w-4" />
                                     </a>
                                     <button
-                                        onClick={() => toggle(lead)}
+                                        onClick={() => setEditing(lead)}
+                                        aria-label="Изменить заявку"
+                                        title="Изменить"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </button>
+                                    <select
+                                        value={lead.status}
+                                        onChange={e => setStatus(lead, e.target.value as LeadStatus)}
                                         disabled={saving === lead.id}
-                                        className={`flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition-colors disabled:opacity-60 ${
-                                            lead.processed
-                                                ? "bg-slate-200 text-slate-600"
-                                                : "bg-green-600 text-white hover:bg-green-700"
+                                        aria-label="Стадия"
+                                        className={`h-9 rounded-full px-3 text-xs font-bold outline-none transition-colors disabled:opacity-60 ${
+                                            STATUSES.find(x => x.key === lead.status)?.tone ?? "bg-slate-100 text-slate-600"
                                         }`}
                                     >
-                                        <Check className="h-3.5 w-3.5" />
-                                        {lead.processed ? "Вернуть" : "Обработана"}
-                                    </button>
+                                        {STATUSES.map(x => (
+                                            <option key={x.key} value={x.key}>{x.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -287,6 +340,145 @@ function ManualLeadForm({ onClose, onSaved }: { onClose: () => void; onSaved: ()
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     Сохранить
                 </button>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Правка заявки.
+ *
+ * Подробности выясняются по ходу разговора: человек называет имя, уточняет
+ * марку, передумывает. Раньше карточка была неизменяемой, и всё выясненное
+ * оставалось у менеджера в голове. Заметка отделена от текста обращения:
+ * в первом — что человек попросил, во второй — что менеджер выяснил.
+ */
+function EditLeadForm({ lead, onClose, onSaved }: {
+    lead: LandingLead;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const [name, setName] = useState(lead.name);
+    const [phone, setPhone] = useState(lead.phone);
+    const [comment, setComment] = useState(lead.comment ?? "");
+    const [managerComment, setManagerComment] = useState(lead.managerComment ?? "");
+    const [status, setStatus] = useState<LeadStatus>(lead.status);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const save = async () => {
+        if (saving) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const res = await fetch("/api/admin/landing-leads", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: lead.id, name, phone, comment, managerComment, status }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || "Не удалось сохранить");
+                return;
+            }
+            onSaved();
+        } catch {
+            setError("Сеть не ответила — попробуйте ещё раз");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={onClose}>
+            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+                <div className="mb-5 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="font-headline text-lg font-bold text-slate-900">Заявка</h2>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {new Date(lead.createdAt).toLocaleString("ru-RU")}
+                            {lead.channel && CHANNEL_LABELS[lead.channel] && ` · ${CHANNEL_LABELS[lead.channel]}`}
+                        </p>
+                    </div>
+                    <button onClick={onClose} aria-label="Закрыть" className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100">
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Имя</span>
+                            <input
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+                            />
+                        </label>
+                        <label className="block">
+                            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Телефон</span>
+                            <input
+                                value={phone}
+                                onChange={e => setPhone(e.target.value)}
+                                className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+                            />
+                        </label>
+                    </div>
+
+                    <label className="block">
+                        <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Что просит</span>
+                        <textarea
+                            value={comment}
+                            onChange={e => setComment(e.target.value)}
+                            rows={2}
+                            className="w-full resize-none rounded-xl border border-slate-200 p-4 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+                        />
+                    </label>
+
+                    <label className="block">
+                        <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Заметка менеджера</span>
+                        <textarea
+                            value={managerComment}
+                            onChange={e => setManagerComment(e.target.value)}
+                            rows={3}
+                            placeholder="Ответил, просит перезвонить в пятницу. Бюджет до 20 млн."
+                            className="w-full resize-none rounded-xl border border-slate-200 p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+                        />
+                    </label>
+
+                    <div>
+                        <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">Стадия</span>
+                        <div className="flex flex-wrap gap-2">
+                            {STATUSES.map(x => (
+                                <button
+                                    key={x.key}
+                                    onClick={() => setStatus(x.key)}
+                                    className={`h-9 rounded-lg px-3 text-xs font-bold transition-colors ${
+                                        status === x.key ? x.tone : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                                    }`}
+                                >
+                                    {x.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+                <div className="mt-6 flex justify-end gap-2">
+                    <button onClick={onClose} className="h-11 rounded-xl px-4 text-sm font-bold text-slate-500 hover:bg-slate-100">
+                        Отмена
+                    </button>
+                    <button
+                        onClick={save}
+                        disabled={saving}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white disabled:opacity-40"
+                    >
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        Сохранить
+                    </button>
+                </div>
             </div>
         </div>
     );
