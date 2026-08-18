@@ -22,6 +22,8 @@ interface UserLead {
     reasons: string[];
     createdAt: string;
     filtersCount: number;
+    username?: string | null;
+    contact?: 'phone' | 'telegram' | 'none';
 }
 
 const statusMap: Record<LeadStatus, { label: string; bg: string; text: string }> = {
@@ -55,6 +57,7 @@ export default function LeadsPage() {
     const [leads, setLeads] = useState<UserLead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [tab, setTab] = useState<'work' | 'hot' | 'warm' | 'cold' | 'unreachable' | 'done'>('work');
 
     useEffect(() => {
         async function loadLeads() {
@@ -75,10 +78,47 @@ export default function LeadsPage() {
         loadLeads();
     }, [initData]);
 
+    const canReach = (l: UserLead) => l.contact !== 'none';
+
+    /**
+     * Вкладки решают главную боль: в общей куче лиды, с которыми нельзя
+     * связаться, и уже отработанные мешали видеть тех, кому нужно звонить
+     * сегодня. По умолчанию открыта «В работе» — только достижимые и незакрытые.
+     */
+    const byTab = (l: UserLead) => {
+        switch (tab) {
+            case 'work':
+                return canReach(l) && l.leadStatus !== 'converted' && l.leadStatus !== 'rejected';
+            case 'hot':
+                return l.level === 'HOT';
+            case 'warm':
+                return l.level === 'WARM';
+            case 'cold':
+                return l.level === 'COLD';
+            case 'unreachable':
+                return !canReach(l);
+            case 'done':
+                return l.leadStatus === 'converted' || l.leadStatus === 'rejected';
+        }
+    };
+
     const filteredLeads = leads.filter((lead) => {
-        const term = search.toLowerCase();
-        return lead.name.toLowerCase().includes(term) || (lead.phone && lead.phone.includes(term));
+        if (!byTab(lead)) return false;
+        const term = search.trim().toLowerCase();
+        if (!term) return true;
+        return lead.name.toLowerCase().includes(term)
+            || (lead.phone && lead.phone.includes(term))
+            || (lead.username && lead.username.toLowerCase().includes(term));
     });
+
+    const TABS: { key: typeof tab; label: string; count: number }[] = [
+        { key: 'work', label: 'В работе', count: leads.filter(l => canReach(l) && l.leadStatus !== 'converted' && l.leadStatus !== 'rejected').length },
+        { key: 'hot', label: 'Горячие', count: leads.filter(l => l.level === 'HOT').length },
+        { key: 'warm', label: 'Тёплые', count: leads.filter(l => l.level === 'WARM').length },
+        { key: 'cold', label: 'Холодные', count: leads.filter(l => l.level === 'COLD').length },
+        { key: 'unreachable', label: 'Без контактов', count: leads.filter(l => !canReach(l)).length },
+        { key: 'done', label: 'Закрытые', count: leads.filter(l => l.leadStatus === 'converted' || l.leadStatus === 'rejected').length },
+    ];
 
     if (isLoading) {
         return (
@@ -140,6 +180,38 @@ export default function LeadsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Вкладки: убираем с глаз тех, кто сейчас не в работе */}
+            <div className="flex flex-wrap gap-2">
+                {TABS.map(t => (
+                    <button
+                        key={t.key}
+                        onClick={() => setTab(t.key)}
+                        className={cn(
+                            "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors",
+                            tab === t.key
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                        )}
+                    >
+                        {t.label}
+                        <span className={cn(
+                            "rounded-full px-2 py-0.5 text-[11px]",
+                            tab === t.key ? "bg-white/20" : "bg-surface-container"
+                        )}>
+                            {t.count}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
+            {tab === 'unreachable' && (
+                <p className="rounded-2xl bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                    С этими людьми связаться нечем: они запустили бота, но не оставили номер
+                    и не имеют ника в Telegram. Писать им можно только если открыть переписку
+                    по идентификатору в приложении Telegram.
+                </p>
+            )}
 
             {/* Leads Table */}
             <div className="bg-surface-container-lowest border border-surface-container rounded-3xl overflow-hidden shadow-sm">
@@ -245,11 +317,33 @@ export default function LeadsPage() {
                                         <div className="flex items-center justify-end gap-2">
                                             {/* Fallback to telegramId logic or a direct copy click if username absent */}
                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${lead.telegramId}`, '_blank'); }}
-                                                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-bold text-sm bg-surface-container-high hover:bg-surface-container-highest transition-colors text-on-surface"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    // По нику ссылка открывается везде. Без ника остаётся
+                                                    // только переход по идентификатору, и он работает
+                                                    // лишь в приложении Telegram — честно предупреждаем
+                                                    if (lead.username) {
+                                                        window.open(`https://t.me/${lead.username}`, '_blank');
+                                                    } else if (lead.phone) {
+                                                        window.location.href = `tel:${lead.phone.replace(/[^\d+]/g, '')}`;
+                                                    } else {
+                                                        window.location.href = `tg://user?id=${lead.telegramId}`;
+                                                    }
+                                                }}
+                                                title={
+                                                    lead.username ? `Написать @${lead.username}`
+                                                        : lead.phone ? `Позвонить ${lead.phone}`
+                                                        : 'Ника и телефона нет — откроется только в приложении Telegram'
+                                                }
+                                                className={cn(
+                                                    "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-bold text-sm transition-colors",
+                                                    lead.contact === 'none'
+                                                        ? "bg-surface-container text-outline"
+                                                        : "bg-surface-container-high hover:bg-surface-container-highest text-on-surface"
+                                                )}
                                             >
                                                 <ExternalLink className="w-4 h-4" />
-                                                Telegram
+                                                {lead.username ? 'Telegram' : lead.phone ? 'Позвонить' : 'Нет контакта'}
                                             </button>
                                             <button 
                                                 onClick={async (e) => { 
