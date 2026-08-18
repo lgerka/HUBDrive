@@ -22,6 +22,7 @@ interface Analytics {
         supportOpened: number;
         topShared: { id: string; brand: string; model: string; year: number; count: number }[];
     };
+    cities: { city: string | null; country: string | null; visits: number; people: number }[];
     topVehicles: { id: string; brand: string; model: string; year: number; views: number }[];
     daily: { day: string; source: string; count: number }[];
 }
@@ -292,11 +293,11 @@ export default function AppAnalyticsPage() {
                     </div>
                     <div>
                         <p className="font-headline text-3xl font-extrabold text-[#128C7E]">{data.interest.whatsappClicks}</p>
-                        <p className="mt-1 text-xs text-slate-400">написали в WhatsApp</p>
+                        <p className="mt-1 text-xs text-slate-400">нажали «написать в WhatsApp»</p>
                     </div>
                     <div>
                         <p className="font-headline text-3xl font-extrabold text-sky-600">{data.interest.telegramClicks}</p>
-                        <p className="mt-1 text-xs text-slate-400">написали в Telegram</p>
+                        <p className="mt-1 text-xs text-slate-400">перешли в Telegram</p>
                     </div>
                     <div>
                         <p className="font-headline text-3xl font-extrabold text-on-surface">{data.interest.supportOpened}</p>
@@ -389,6 +390,36 @@ export default function AppAnalyticsPage() {
                                 <div className="flex items-center gap-2 text-sm font-bold text-on-surface">
                                     <Eye className="h-4 w-4 text-slate-400" />
                                     {v.views}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            {/* Откуда люди: город определяет Vercel по IP, сам IP мы не храним */}
+            <section className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm border border-slate-100">
+                <h2 className="font-headline font-extrabold text-xl tracking-tight mb-2">Из каких городов</h2>
+                <p className="mb-6 text-sm text-slate-400">
+                    Определяется по адресу подключения. Если города нет — человек через VPN
+                    или оператор не отдаёт город; такие заходы просто не попадают в список.
+                </p>
+                {data.cities.length === 0 ? (
+                    <p className="text-sm text-slate-400">
+                        Пока пусто — города пишутся только для заходов после сегодняшнего обновления.
+                    </p>
+                ) : (
+                    <div className="space-y-3">
+                        {data.cities.map((c, i) => (
+                            <div key={`${c.city}-${c.country}-${i}`} className="flex items-center gap-4 rounded-2xl bg-surface-container-low px-5 py-4">
+                                <span className="w-5 text-sm font-bold text-slate-400">{i + 1}</span>
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-headline font-bold text-on-surface truncate">{c.city}</p>
+                                    <p className="text-xs text-slate-400">{c.country ?? "страна не определена"}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-headline font-bold text-on-surface tabular-nums">{c.people}</p>
+                                    <p className="text-xs text-slate-400">человек · {c.visits} заходов</p>
                                 </div>
                             </div>
                         ))}

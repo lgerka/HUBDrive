@@ -74,6 +74,7 @@ export async function GET(request: Request) {
             catalogViews, newsViews,
             leadsPeriod, leadsFromAds, contactClicks, callClicks,
             shares, favorites, whatsappClicks, telegramClicks, supportOpened,
+            cityRows,
             topShared,
         ] = await Promise.all([
             prisma.event.count({ where: { type: 'app_installed' } }),
@@ -138,6 +139,19 @@ export async function GET(request: Request) {
             prisma.event.count({ where: { type: 'telegram_clicked', createdAt: { gte: since, lte: until } } }),
             prisma.event.count({ where: { type: 'support_opened', createdAt: { gte: since, lte: until } } }),
 
+            // Откуда люди: город определяет Vercel по IP, мы храним только его
+            prisma.$queryRaw<{ city: string | null; country: string | null; visits: bigint; people: bigint }[]>`
+                select meta->>'city' as city,
+                       meta->>'country' as country,
+                       count(*)::bigint as visits,
+                       count(distinct coalesce("userId", meta->>'path'))::bigint as people
+                from "Event"
+                where type in ('app_opened','landing_opened','webapp_opened','vehicle_opened')
+                  and "createdAt" >= ${since} and "createdAt" <= ${until}
+                  and meta->>'city' is not null
+                group by 1, 2 order by 3 desc limit 12
+            `,
+
             // Какими машинами делятся чаще всего
             prisma.$queryRaw<{ id: string; brand: string; model: string; year: number; shares: bigint }[]>`
                 select v.id, v.brand, v.model, v.year, count(*)::bigint as shares
@@ -194,6 +208,10 @@ export async function GET(request: Request) {
                     id: v.id, brand: v.brand, model: v.model, year: v.year, count: Number(v.shares),
                 })),
             },
+            cities: cityRows.map(c => ({
+                city: c.city, country: c.country,
+                visits: Number(c.visits), people: Number(c.people),
+            })),
             topVehicles: topVehicles.map(v => ({
                 id: v.id, brand: v.brand, model: v.model, year: v.year, views: Number(v.views),
             })),
