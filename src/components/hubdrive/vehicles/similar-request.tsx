@@ -104,6 +104,31 @@ export function SimilarRequestSheet({
                 body: JSON.stringify({ vehicleId, name: name.trim(), phone: formatPhone(phone) }),
             });
             const data = await res.json();
+
+            // Человек пришёл из рекламы или поиска, Telegram у него не открыт —
+            // сервер такую заявку не принимает. Раньше на этом всё обрывалось,
+            // и введённый номер просто пропадал. Теперь сохраняем его тем же
+            // путём, что и заявку с лендинга
+            if (res.status === 401) {
+                const fallback = await fetch("/api/landing-lead", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        vehicleId,
+                        name: name.trim(),
+                        phone: formatPhone(phone),
+                        comment: mode === "similar" ? `Просит похожий на ${brand} ${model}` : "",
+                    }),
+                });
+                if (fallback.ok) {
+                    setDone(true);
+                    setTimeout(onClose, 2200);
+                } else {
+                    setError("Не удалось отправить заявку. Позвоните нам, пожалуйста");
+                }
+                return;
+            }
+
             if (res.ok && data.success) {
                 setDone(true);
                 setTimeout(onClose, 2200);

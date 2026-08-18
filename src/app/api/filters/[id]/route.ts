@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 
 import { verifyInitData } from '@/lib/telegram/verifyInitData';
+import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -109,6 +110,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 meta: { purchasePlan: updatedFilter.purchasePlan },
             },
         }).catch(err => console.error('Error logging filter_updated:', err));
+
+        // Человек сам переключил себя в «готов купить сейчас» — это самый
+        // сильный сигнал в воронке. Раньше о нём узнавал только тот, кто
+        // вручную открывал админку
+        if (updatedFilter.purchasePlan === 'ready_now'
+            && filterToUpdate.purchasePlan !== 'ready_now') {
+            notifyIfHotLead(filterToUpdate.userId, updatedFilter.title || updatedFilter.brand || 'Автомобиль')
+                .catch(err => console.error('Не удалось позвать менеджеров:', err));
+        }
 
         return NextResponse.json(updatedFilter);
     } catch (error) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { resolveWebUser } from '@/lib/server/webUser';
+import { normalizePhone } from '@/lib/server/phone';
 
 const NEEDS_AUTH = { error: 'Подтвердите вход через Telegram — так мы узнаем, кто вы' };
 
@@ -23,11 +24,25 @@ export async function PATCH(request: Request) {
 
         const body = await request.json();
 
+        // Номер сохраняем только если по нему реально можно позвонить:
+        // поле в личном кабинете без маски, и туда попадало что угодно
+        let phone = user.phone;
+        if (body.phone !== undefined) {
+            const normalized = normalizePhone(body.phone);
+            if (body.phone && !normalized) {
+                return NextResponse.json(
+                    { error: 'Проверьте номер телефона' },
+                    { status: 400 }
+                );
+            }
+            phone = normalized;
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id: user.id },
             data: {
                 name: body.name !== undefined ? body.name : user.name,
-                phone: body.phone !== undefined ? body.phone : user.phone,
+                phone,
                 city: body.city !== undefined ? body.city : user.city,
             },
         });
