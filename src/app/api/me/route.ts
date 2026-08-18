@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { normalizePhone } from '@/lib/server/phone';
+import { notifyManagerAboutNewContact } from '@/lib/server/telegram/notifier';
 
 const NEEDS_AUTH = { error: 'Подтвердите вход через Telegram — так мы узнаем, кто вы' };
 
@@ -46,6 +47,13 @@ export async function PATCH(request: Request) {
                 city: body.city !== undefined ? body.city : user.city,
             },
         });
+
+        // Человеку обещано, что с ним свяжется менеджер, — значит менеджер
+        // должен об этом узнать. Зовём только когда номер появился впервые:
+        // при правке имени или города дёргать никого не нужно
+        if (!user.phone && updatedUser.phone) {
+            after(() => notifyManagerAboutNewContact(updatedUser.id));
+        }
 
         return NextResponse.json({ ok: true, user: updatedUser });
     } catch (error) {

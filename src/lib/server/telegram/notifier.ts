@@ -197,7 +197,7 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
         ? `<b>Телефон:</b> ${user.phone}`
         : user.username
             ? `<b>Telegram:</b> @${user.username}`
-            : '<b>Контакт:</b> не оставил ни номера, ни ника';
+            : '<b>Контакт:</b> ника и номера нет — напишите ему ботом из карточки';
 
     const text = [
         '🔥 <b>Горячий лид</b>',
@@ -270,5 +270,56 @@ export async function notifyIfHotLead(userId: string, reason?: string) {
         await notifyManagerAboutHotLead(user, reason);
     } catch (error) {
         console.error('[notifier] не удалось проверить горячего лида:', error);
+    }
+}
+
+/**
+ * Человек оставил имя и телефон в профиле.
+ *
+ * На этом экране обещано, что с ним свяжется персональный менеджер, но узнать
+ * о нём было неоткуда: заявки он не отправлял, фильтр мог не заводить. Теперь
+ * контакт сразу уходит в чат продаж — по таким людям перезванивают в тот же день.
+ */
+export async function notifyManagerAboutNewContact(userId: string) {
+    try {
+        if (!process.env.TELEGRAM_BOT_TOKEN) return;
+        const chatIds = await getChatIds('leads');
+        if (chatIds.length === 0) return;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, name: true, phone: true, username: true, city: true, telegramId: true },
+        });
+        if (!user?.phone) return;
+
+        const text = [
+            '📇 <b>Оставил контакты</b>',
+            '',
+            `<b>Клиент:</b> ${user.name || 'без имени'}`,
+            `<b>Телефон:</b> ${user.phone}`,
+            user.city ? `<b>Город:</b> ${user.city}` : '',
+            user.username ? `<b>Telegram:</b> @${user.username}` : '',
+            '',
+            `<a href="tel:${String(user.phone).replace(/[^\d+]/g, '')}">Позвонить</a>`,
+            user.username ? `<a href="https://t.me/${user.username}">Написать в Telegram</a>` : '',
+            `<a href="${WEBAPP_URL}/admin/leads/${user.id}">Карточка клиента</a>`,
+            '',
+            '<i>Заполнил профиль в приложении — ему обещан звонок менеджера</i>',
+        ].filter(Boolean).join('\n');
+
+        for (const chatId of chatIds) {
+            await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text,
+                    parse_mode: 'HTML',
+                    disable_web_page_preview: true,
+                }),
+            }).catch(err => console.error('[notifier] контакт не ушёл в чат:', err));
+        }
+    } catch (error) {
+        console.error('[notifier] не удалось сообщить о новом контакте:', error);
     }
 }

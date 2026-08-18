@@ -38,9 +38,15 @@ function NewFilterContent() {
         }
 
         try {
-            if (initData) {
-                await addFilterAsync(data, initData);
+            // Без данных Telegram фильтр сохранить некуда. Раньше в этом случае
+            // человек всё равно видел «готово» и уходил на список, где фильтра
+            // не было — молча теряли и подбор, и самого человека
+            if (!initData) {
+                sessionStorage.setItem('pendingFilter', JSON.stringify(data));
+                router.push('/onboarding/profile?returnUrl=/filters');
+                return;
             }
+            await addFilterAsync(data, initData);
             // Сохранённый фильтр — человек назвал, что ищет: для рекламы это
             // заявка о намерении, по ней хорошо собирать похожие аудитории
             metaTrack('Search', {

@@ -2,7 +2,7 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
-import { Loader2, Search, ExternalLink, Star, Flame, ThermometerSun, Snowflake, Info, Trash2 } from "lucide-react";
+import { Loader2, Search, ExternalLink, Star, Flame, ThermometerSun, Snowflake, Info, Trash2, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ interface UserLead {
     createdAt: string;
     filtersCount: number;
     username?: string | null;
-    contact?: 'phone' | 'telegram' | 'none';
+    contact?: 'phone' | 'telegram' | 'bot' | 'none';
 }
 
 const statusMap: Record<LeadStatus, { label: string; bg: string; text: string }> = {
@@ -58,6 +58,8 @@ export default function LeadsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [tab, setTab] = useState<'work' | 'hot' | 'warm' | 'cold' | 'unreachable' | 'done'>('work');
+    // Кому пишем ботом: человек без ника, до которого иначе не достучаться
+    const [writingTo, setWritingTo] = useState<UserLead | null>(null);
 
     useEffect(() => {
         async function loadLeads() {
@@ -319,31 +321,37 @@ export default function LeadsPage() {
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    // По нику ссылка открывается везде. Без ника остаётся
-                                                    // только переход по идентификатору, и он работает
-                                                    // лишь в приложении Telegram — честно предупреждаем
+                                                    // Ник есть — открывается ссылка. Ника нет, но человек
+                                                    // приходил из Telegram — пишем ему ботом: идентификатор
+                                                    // мы знаем, а t.me на него не построить
                                                     if (lead.username) {
                                                         window.open(`https://t.me/${lead.username}`, '_blank');
+                                                    } else if (lead.contact === 'bot') {
+                                                        setWritingTo(lead);
                                                     } else if (lead.phone) {
                                                         window.location.href = `tel:${lead.phone.replace(/[^\d+]/g, '')}`;
-                                                    } else {
-                                                        window.location.href = `tg://user?id=${lead.telegramId}`;
                                                     }
                                                 }}
+                                                disabled={lead.contact === 'none'}
                                                 title={
                                                     lead.username ? `Написать @${lead.username}`
+                                                        : lead.contact === 'bot' ? 'Ника нет — сообщение придёт от бота'
                                                         : lead.phone ? `Позвонить ${lead.phone}`
-                                                        : 'Ника и телефона нет — откроется только в приложении Telegram'
+                                                        : 'Связаться не получится'
                                                 }
                                                 className={cn(
                                                     "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-bold text-sm transition-colors",
                                                     lead.contact === 'none'
-                                                        ? "bg-surface-container text-outline"
+                                                        ? "bg-surface-container text-outline cursor-not-allowed"
                                                         : "bg-surface-container-high hover:bg-surface-container-highest text-on-surface"
                                                 )}
                                             >
-                                                <ExternalLink className="w-4 h-4" />
-                                                {lead.username ? 'Telegram' : lead.phone ? 'Позвонить' : 'Нет контакта'}
+                                                {lead.contact === 'bot'
+                                                    ? <Send className="w-4 h-4" />
+                                                    : <ExternalLink className="w-4 h-4" />}
+                                                {lead.username ? 'Telegram'
+                                                    : lead.contact === 'bot' ? 'Написать'
+                                                    : lead.phone ? 'Позвонить' : 'Нет контакта'}
                                             </button>
                                             <button 
                                                 onClick={async (e) => { 
@@ -387,6 +395,118 @@ export default function LeadsPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {writingTo && (
+                <MessageToLead
+                    lead={writingTo}
+                    initData={initData}
+                    onClose={() => setWritingTo(null)}
+                />
+            )}
+        </div>
+    );
+}
+
+/**
+ * Сообщение человеку, у которого нет ни ника, ни телефона.
+ *
+ * Такой лид не тупик: он открывал приложение, значит бот может ему написать.
+ * Менеджер набирает текст здесь, человек получает его в Telegram и отвечает
+ * боту — переписка продолжается в чате поддержки.
+ */
+function MessageToLead({ lead, initData, onClose }: {
+    lead: UserLead;
+    initData: string | null;
+    onClose: () => void;
+}) {
+    const [text, setText] = useState("");
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [sent, setSent] = useState(false);
+
+    const send = async () => {
+        if (!text.trim() || sending) return;
+        setSending(true);
+        setError(null);
+        try {
+            const res = await fetch('/api/admin/leads/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-telegram-init-data': initData || '',
+                },
+                body: JSON.stringify({ userId: lead.id, text: text.trim() }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || 'Не удалось отправить');
+                return;
+            }
+            setSent(true);
+            setTimeout(onClose, 1200);
+        } catch {
+            setError('Сеть не ответила — попробуйте ещё раз');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                        <h3 className="font-headline text-lg font-bold text-on-surface">
+                            Написать {lead.name || 'клиенту'}
+                        </h3>
+                        <p className="mt-1 font-body text-xs text-outline">
+                            Ника и телефона нет — сообщение придёт от бота HUBDrive
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        aria-label="Закрыть"
+                        className="rounded-full p-1.5 text-outline transition-colors hover:bg-surface-container"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <textarea
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    rows={5}
+                    autoFocus
+                    placeholder="Здравствуйте! Меня зовут… Вы смотрели у нас автомобиль — подскажите, что подобрать?"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-surface-container-low p-4 font-body text-sm text-on-surface placeholder:text-outline focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+
+                {error && <p className="mt-3 font-body text-sm text-red-600">{error}</p>}
+                {sent && <p className="mt-3 font-body text-sm text-green-600">Отправлено</p>}
+
+                <div className="mt-5 flex justify-end gap-2">
+                    <button
+                        onClick={onClose}
+                        className="h-11 rounded-xl px-5 font-body text-sm font-bold text-outline transition-colors hover:bg-surface-container"
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        onClick={send}
+                        disabled={!text.trim() || sending || sent}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 font-body text-sm font-bold text-primary-foreground transition-opacity disabled:opacity-40"
+                    >
+                        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        Отправить
+                    </button>
                 </div>
             </div>
         </div>
