@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { BOT_APP_URL } from "@/constants/contacts";
 import { metaTrack } from "@/lib/meta/pixel";
+import { trackEvent } from "@/lib/api/track";
 
 /**
  * Ссылка в Telegram-бота, которая не теряет рекламную метку.
@@ -27,13 +28,21 @@ interface BotLinkProps {
     className?: string;
     /** chat — обычный чат с ботом, app — сразу мини-приложение с каталогом. */
     target?: "chat" | "app";
-    /** Что засчитать в Meta при переходе. */
+    /**
+     * Что засчитать в Meta при переходе.
+     *
+     * По умолчанию ничего: открыть приложение — это клик, а не обращение.
+     * Пока «Контакт» вешался и сюда, событие означало сразу и «ушёл в WhatsApp»,
+     * и «нажал кнопку на лендинге» — на такой смеси алгоритм учится приводить
+     * тех, кто нажимает, а не тех, кто пишет. Переходы Meta и так считает
+     * сама, как клики по ссылке.
+     */
     event?: "Contact" | "Lead" | "none";
     /** Откуда нажали — попадёт в статистику события. */
     place?: string;
 }
 
-export function BotLink({ children, className, target = "app", event = "Contact", place }: BotLinkProps) {
+export function BotLink({ children, className, target = "app", event = "none", place }: BotLinkProps) {
     const handleClick = useCallback(
         async (e: React.MouseEvent<HTMLAnchorElement>) => {
             // новая вкладка по Ctrl/Cmd — не мешаем привычному поведению
@@ -43,6 +52,7 @@ export function BotLink({ children, className, target = "app", event = "Contact"
             if (event !== "none") {
                 metaTrack(event, { content_category: place ?? "telegram" });
             }
+            trackEvent("telegram_clicked", { meta: { place: place ?? "кнопка бота", target } });
 
             let url = BOT_APP_URL;
             try {
