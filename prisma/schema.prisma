@@ -109,6 +109,7 @@ model User {
   role           Role       @default(user)
   leadStatus     LeadStatus @default(new)
   managerComment String?
+  landingLeads   LandingLead[]
 
   assignedManagerId String?
   assignedManager   Manager? @relation(fields: [assignedManagerId], references: [id], onDelete: SetNull)
@@ -389,8 +390,16 @@ model LandingLead {
   processed Boolean  @default(false)
   /// Кто завёл заявку руками через админку. Пусто — пришла с сайта сама
   createdBy String?
+  /// Та же воронка, что у людей: одной галочки «обработана» менеджеру мало
+  status    LeadStatus @default(new)
+  managerComment String?
+  /// Если номер совпал с человеком в базе — видна вся его история
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([phone])
+  @@index([status])
+  @@index([userId])
 }
