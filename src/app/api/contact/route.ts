@@ -7,6 +7,7 @@ import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
 import { normalizePhone } from '@/lib/server/phone';
+import { LEAD_VALUE_USD } from '@/constants/contacts';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // Единая точка правды по адресу приложения — см. constants/contacts
@@ -149,8 +150,11 @@ export async function POST(request: Request) {
                         content_ids: [vehicle.id],
                         content_name: `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
                         content_type: 'product',
-                        value: vehicle.priceUSD ?? undefined,
+                        value: LEAD_VALUE_USD,
                         currency: 'USD',
+                        // Цена машины интересна для отчётов, но ценность
+                        // конверсии — это ожидаемая выручка с заявки
+                        vehicle_price_usd: vehicle.priceUSD ?? undefined,
                     },
                 });
             } catch (err) {

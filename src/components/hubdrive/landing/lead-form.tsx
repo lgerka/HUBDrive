@@ -42,6 +42,11 @@ export function LeadForm() {
         }
 
         setStatus("sending");
+
+        // Форма прошла проверку — это отдельный шаг воронки, а не «контакт»:
+        // смешивать его с уходом в WhatsApp значит учить рекламу на кликах
+        metaTrack("SubmitApplication", { content_category: "форма", content_name: "заявка с сайта" }, { serverSide: false });
+
         // Общий идентификатор для браузерного и серверного события — Meta
         // склеит их и не посчитает одну заявку дважды
         const eventId = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -144,7 +149,6 @@ export function LeadForm() {
             <button
                 type="submit"
                 disabled={status === "sending"}
-                onClick={() => metaTrack("Contact", { content_category: "форма", content_name: "начал заполнять" }, { serverSide: false })}
                 className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98] disabled:opacity-70"
             >
                 {status === "sending" ? (

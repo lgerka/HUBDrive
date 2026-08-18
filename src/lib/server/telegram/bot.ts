@@ -2,6 +2,8 @@ import { Bot } from 'grammy';
 import { prisma } from '../prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { linkAttribution } from '@/lib/server/meta/attribution';
+import { saveSharedContact } from './contact';
+import { SUPPORT_PHONE } from '@/constants/contacts';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -115,6 +117,44 @@ export function initChatDiscovery() {
     });
 }
 
+
+/**
+ * Номер телефона, которым человек поделился нажатием кнопки.
+ *
+ * Обслуживает оба пути: кнопку в мини-приложении (requestContact) и кнопку
+ * на клавиатуре в чате с ботом — Telegram в обоих случаях присылает боту
+ * обычное сообщение с контактом.
+ */
+export function initContactSharing() {
+    bot.on('message:contact', async (ctx) => {
+        const contact = ctx.message.contact;
+        const result = await saveSharedContact({
+            contactUserId: contact.user_id,
+            fromId: ctx.from.id,
+            phoneNumber: contact.phone_number,
+            firstName: contact.first_name,
+            lastName: contact.last_name,
+            username: ctx.from.username,
+        });
+
+        if (!result.ok) {
+            const text = result.reason === 'foreign'
+                ? 'Это чужая визитка. Нажмите кнопку «Отправить мой номер» — Telegram подставит ваш собственный.'
+                : `Не разобрали номер. Напишите его сообщением в виде ${SUPPORT_PHONE} — или позвоните нам сами.`;
+            await ctx.reply(text, { reply_markup: { remove_keyboard: true } }).catch(() => null);
+            return;
+        }
+
+        await ctx.reply(
+            result.alreadyKnown
+                ? 'Этот номер у нас уже записан — менеджер свяжется с вами по нему.'
+                : 'Записали, спасибо. Менеджер посчитает цену под ключ и позвонит вам в рабочее время.',
+            { reply_markup: { remove_keyboard: true } }
+        ).catch(() => null);
+    });
+}
+
 // Initializing commands so they are registered
 initBotCommands();
 initChatDiscovery();
+initContactSharing();

@@ -22,6 +22,7 @@ const ALLOWED_EVENTS = new Set([
     'Lead',
     'Contact',
     'CompleteRegistration',
+    'SubmitApplication',
 ]);
 
 /** В custom_data пропускаем только поля из каталога Meta — чужое там не нужно. */

@@ -71,6 +71,18 @@ export interface IWebApp {
     close: () => void;
     disableVerticalSwipes?: () => void;
     enableVerticalSwipes?: () => void;
+    /**
+     * Запрос номера телефона одним нажатием: человек видит стандартное окно
+     * Telegram и подтверждает, ничего не набирая. Появился в Bot API 6.9 —
+     * на старых клиентах метод БРОСАЕТ ошибку, а не молчит, поэтому перед
+     * вызовом обязательно isVersionAtLeast('6.9').
+     *
+     * Номер приходит не сюда: согласившись, человек отправляет боту обычное
+     * сообщение с контактом, и номер сохраняет уже сервер. Здесь мы узнаём
+     * только сам факт согласия.
+     */
+    requestContact?: (callback?: (shared: boolean) => void) => void;
+    isVersionAtLeast?: (version: string) => boolean;
 }
 
 declare global {
