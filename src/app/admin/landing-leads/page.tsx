@@ -18,6 +18,7 @@ interface LandingLead {
     comment: string | null;
     processed: boolean;
     fromAd: boolean;
+    createdBy: string | null;
     ad: string | null;
     createdAt: string;
 }
@@ -121,6 +122,8 @@ export default function LandingLeadsPage() {
                                     )}
                                     <p className="mt-1 text-xs text-slate-400">
                                         {new Date(lead.createdAt).toLocaleString("ru-RU")}
+                                        {/* Заявка с сайта приходит сама, у неё автора нет */}
+                                        {lead.createdBy && ` · записал ${lead.createdBy}`}
                                     </p>
                                 </div>
 
