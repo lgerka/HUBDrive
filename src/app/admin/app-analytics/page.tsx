@@ -3,11 +3,11 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useEffect, useState } from "react";
 import {
-    Loader2, Smartphone, Send, Globe, BellRing, Users, Download, Eye, MousePointerClick,
+    Loader2, Smartphone, Send, Globe, BellRing, Users, Download, Eye, MousePointerClick, CalendarDays,
 } from "lucide-react";
 
 interface Analytics {
-    period: { key: string; days: number | null; groupBy: 'day' | 'week' };
+    period: { key: string; days: number | null; groupBy: 'day' | 'week'; from: string; to: string };
     installs: { total: number; period: number };
     push: { devices: number; clicks: number; sent: number; ctr: number };
     online: { total: number; bySource: Record<string, number>; windowMinutes: number };
@@ -48,13 +48,51 @@ export default function AppAnalyticsPage() {
     const { initData } = useTelegram();
     const [data, setData] = useState<Analytics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [period, setPeriod] = useState('30d');
+    // Выбор хранится в адресе страницы: он переживает обновление, а ссылкой
+    // на нужный отрезок можно поделиться
+    const [period, setPeriodState] = useState('30d');
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
+    const [showCalendar, setShowCalendar] = useState(false);
+
+    // Читаем выбор из адреса при первом открытии
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const f = params.get('from');
+        const t = params.get('to');
+        if (f && t) {
+            setFrom(f);
+            setTo(t);
+            setPeriodState('custom');
+            setShowCalendar(true);
+        } else {
+            const p = params.get('period');
+            if (p) setPeriodState(p);
+        }
+    }, []);
+
+    const query = period === 'custom' && from && to
+        ? `from=${from}&to=${to}`
+        : `period=${period}`;
+
+    // Запоминаем выбор в адресе, не добавляя записей в историю браузера
+    useEffect(() => {
+        if (period === 'custom' && !(from && to)) return;
+        const next = `${window.location.pathname}?${query}`;
+        window.history.replaceState(null, '', next);
+    }, [query, period, from, to]);
+
+    const setPeriod = (key: string) => {
+        setPeriodState(key);
+        if (key !== 'custom') setShowCalendar(false);
+    };
 
     useEffect(() => {
         let alive = true;
+        if (period === 'custom' && !(from && to)) return;
         async function load() {
             try {
-                const res = await fetch(`/api/admin/app-analytics?period=${period}`, {
+                const res = await fetch(`/api/admin/app-analytics?${query}`, {
                     headers: { "x-telegram-init-data": initData || "" },
                 });
                 if (res.ok && alive) setData(await res.json());
@@ -68,7 +106,7 @@ export default function AppAnalyticsPage() {
         // Онлайн-счётчик обновляем сам, чтобы не жать F5
         const timer = setInterval(load, 60_000);
         return () => { alive = false; clearInterval(timer); };
-    }, [initData, period]);
+    }, [initData, query, period, from, to]);
 
     if (isLoading || !data) {
         return (
@@ -91,7 +129,9 @@ export default function AppAnalyticsPage() {
     // иначе столбики становятся неразличимыми
     const allDays = [...byDay.entries()];
     const days = allDays.length > 30 ? allDays.slice(-30) : allDays;
-    const periodLabel = PERIODS.find(p => p.key === period)?.label.toLowerCase() ?? 'период';
+    const periodLabel = period === 'custom'
+        ? 'выбранный период'
+        : (PERIODS.find(p => p.key === period)?.label.toLowerCase() ?? 'период');
 
     return (
         <div className="space-y-8 max-w-[1400px] w-full px-8 pt-8 pb-12">
@@ -117,6 +157,17 @@ export default function AppAnalyticsPage() {
                                 {p.label}
                             </button>
                         ))}
+                        <button
+                            onClick={() => { setShowCalendar(v => !v); setPeriodState('custom'); }}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                                period === 'custom'
+                                    ? 'bg-white text-on-surface shadow-sm'
+                                    : 'text-slate-500 hover:text-on-surface'
+                            }`}
+                        >
+                            <CalendarDays className="h-3.5 w-3.5" />
+                            Свой период
+                        </button>
                     </div>
                 <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2">
                     <span className="relative flex h-2.5 w-2.5">
@@ -130,6 +181,38 @@ export default function AppAnalyticsPage() {
                 </div>
                 </div>
             </header>
+
+            {showCalendar && (
+                <section className="flex flex-wrap items-end gap-4 rounded-2xl bg-surface-container-lowest p-5 shadow-sm border border-slate-100">
+                    <label className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">С какого дня</span>
+                        <input
+                            type="date"
+                            value={from}
+                            max={to || undefined}
+                            onChange={e => { setFrom(e.target.value); setPeriodState('custom'); }}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                        />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">По какой</span>
+                        <input
+                            type="date"
+                            value={to}
+                            min={from || undefined}
+                            onChange={e => { setTo(e.target.value); setPeriodState('custom'); }}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                        />
+                    </label>
+                    {from && to ? (
+                        <p className="pb-2 text-xs text-slate-500">
+                            Показаны данные с {new Date(from).toLocaleDateString('ru-RU')} по {new Date(to).toLocaleDateString('ru-RU')}
+                        </p>
+                    ) : (
+                        <p className="pb-2 text-xs text-slate-400">Выберите обе даты</p>
+                    )}
+                </section>
+            )}
 
             {/* Ключевые цифры */}
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

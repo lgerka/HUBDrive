@@ -34,14 +34,32 @@ export async function GET(request: Request) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const url = new URL(request.url);
-    const periodKey = url.searchParams.get('period') ?? '30d';
-    const days = periodKey in PERIODS ? PERIODS[periodKey] : 30;
-
     const now = Date.now();
+    const sinceOnline = new Date(now - ONLINE_MINUTES * 60 * 1000);
+
+    // Произвольный отрезок из календаря имеет приоритет над готовым периодом
+    const fromParam = url.searchParams.get('from');
+    const toParam = url.searchParams.get('to');
+    // Даты из календаря — это дни по времени Казахстана, а сервер живёт в UTC.
+    // Без явного смещения отрезок уезжал бы на пять часов назад, и утренние
+    // события попадали бы в предыдущий день
+    const customFrom = fromParam ? new Date(`${fromParam}T00:00:00+05:00`) : null;
+    const customTo = toParam ? new Date(`${toParam}T23:59:59.999+05:00`) : null;
+    const hasCustom = Boolean(
+        customFrom && customTo && !isNaN(customFrom.getTime()) && !isNaN(customTo.getTime())
+    );
+
+    const periodKey = hasCustom ? 'custom' : (url.searchParams.get('period') ?? '30d');
+    const days = hasCustom
+        ? Math.max(1, Math.round((customTo!.getTime() - customFrom!.getTime()) / 86_400_000))
+        : (periodKey in PERIODS ? PERIODS[periodKey] : 30);
+
     // Для «всего времени» берём заведомо раннюю дату — так один и тот же
     // запрос работает и с периодом, и без него
-    const since = days === null ? new Date('2020-01-01') : new Date(now - days * 86_400_000);
-    const sinceOnline = new Date(now - ONLINE_MINUTES * 60 * 1000);
+    const since = hasCustom
+        ? customFrom!
+        : (days === null ? new Date('2020-01-01') : new Date(now - days * 86_400_000));
+    const until = hasCustom ? customTo! : new Date(now);
 
     // По дням график читается максимум за квартал; дальше группируем по неделям,
     // иначе на экране каша из трёхсот столбиков
@@ -59,11 +77,11 @@ export async function GET(request: Request) {
             topShared,
         ] = await Promise.all([
             prisma.event.count({ where: { type: 'app_installed' } }),
-            prisma.event.count({ where: { type: 'app_installed', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'app_installed', createdAt: { gte: since, lte: until } } }),
 
             prisma.$queryRaw<{ count: bigint }[]>`select count(*)::bigint as count from "PushSubscription"`,
-            prisma.event.count({ where: { type: 'push_clicked', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: { in: ['push_sent_web', 'notification_sent_user'] }, createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'push_clicked', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: { in: ['push_sent_web', 'notification_sent_user'] }, createdAt: { gte: since, lte: until } } }),
 
             // Онлайн: уникальные посетители с событиями за последние минуты
             prisma.$queryRaw<{ source: string | null; count: bigint }[]>`
@@ -75,7 +93,7 @@ export async function GET(request: Request) {
             prisma.$queryRaw<{ source: string | null; count: bigint }[]>`
                 select coalesce(meta->>'source', 'unknown') as source, count(*)::bigint as count
                 from "Event"
-                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since}
+                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since} and "createdAt" <= ${until}
                 group by 1 order by 2 desc
             `,
 
@@ -85,7 +103,7 @@ export async function GET(request: Request) {
                        coalesce(meta->>'source', 'unknown') as source,
                        count(*)::bigint as count
                 from "Event"
-                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since}
+                where type in ('app_opened','landing_opened','webapp_opened') and "createdAt" >= ${since} and "createdAt" <= ${until}
                 group by 1, 2 order by 1
             `,
 
@@ -93,38 +111,38 @@ export async function GET(request: Request) {
             prisma.$queryRaw<{ id: string; brand: string; model: string; year: number; views: bigint }[]>`
                 select v.id, v.brand, v.model, v.year, count(*)::bigint as views
                 from "Event" e join "Vehicle" v on v.id = e."vehicleId"
-                where e.type = 'vehicle_opened' and e."createdAt" >= ${since}
+                where e.type = 'vehicle_opened' and e."createdAt" >= ${since} and e."createdAt" <= ${until}
                 group by v.id, v.brand, v.model, v.year
                 order by views desc limit 8
             `,
 
-            prisma.event.count({ where: { type: { in: VISIT_TYPES }, createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: { in: VISIT_TYPES }, createdAt: { gte: since, lte: until } } }),
             prisma.event.count({ where: { type: { in: VISIT_TYPES }, createdAt: { gte: new Date(now - 86_400_000) } } }),
 
-            prisma.event.count({ where: { type: 'catalog_opened', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'news_opened', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'catalog_opened', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'news_opened', createdAt: { gte: since, lte: until } } }),
 
             // Заявки — то, ради чего всё остальное
-            prisma.landingLead.count({ where: { createdAt: { gte: since } } }),
+            prisma.landingLead.count({ where: { createdAt: { gte: since, lte: until } } }),
             prisma.landingLead.count({
-                where: { createdAt: { gte: since }, OR: [{ fbc: { not: null } }, { fbp: { not: null } }] },
+                where: { createdAt: { gte: since, lte: until }, OR: [{ fbc: { not: null } }, { fbp: { not: null } }] },
             }),
-            prisma.event.count({ where: { type: 'contact_clicked', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'call_clicked', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'contact_clicked', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'call_clicked', createdAt: { gte: since, lte: until } } }),
 
             // Интерес без обращения: репост показывает машину близким,
             // избранное — возврат к ней позже
-            prisma.event.count({ where: { type: 'vehicle_shared', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'favorite_added', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'whatsapp_clicked', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'telegram_clicked', createdAt: { gte: since } } }),
-            prisma.event.count({ where: { type: 'support_opened', createdAt: { gte: since } } }),
+            prisma.event.count({ where: { type: 'vehicle_shared', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'favorite_added', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'whatsapp_clicked', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'telegram_clicked', createdAt: { gte: since, lte: until } } }),
+            prisma.event.count({ where: { type: 'support_opened', createdAt: { gte: since, lte: until } } }),
 
             // Какими машинами делятся чаще всего
             prisma.$queryRaw<{ id: string; brand: string; model: string; year: number; shares: bigint }[]>`
                 select v.id, v.brand, v.model, v.year, count(*)::bigint as shares
                 from "Event" e join "Vehicle" v on v.id = e."vehicleId"
-                where e.type in ('vehicle_shared', 'favorite_added') and e."createdAt" >= ${since}
+                where e.type in ('vehicle_shared', 'favorite_added') and e."createdAt" >= ${since} and e."createdAt" <= ${until}
                 group by v.id, v.brand, v.model, v.year
                 order by shares desc limit 5
             `,
@@ -137,7 +155,15 @@ export async function GET(request: Request) {
         const bySource = asMap(sourceRows);
 
         return NextResponse.json({
-            period: { key: periodKey, days, groupBy },
+            period: {
+                key: periodKey,
+                days,
+                groupBy,
+                // Отдаём выбранные дни как есть, чтобы подпись на странице
+                // совпадала с тем, что человек выбрал в календаре
+                from: hasCustom ? fromParam! : since.toISOString().slice(0, 10),
+                to: hasCustom ? toParam! : until.toISOString().slice(0, 10),
+            },
             installs: { total: installsTotal, period: installsPeriod },
             push: {
                 devices: Number(pushDevices[0]?.count ?? 0),
