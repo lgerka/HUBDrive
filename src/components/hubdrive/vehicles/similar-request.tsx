@@ -69,7 +69,8 @@ export function SimilarRequestSheet({
     brand,
     model,
     onClose,
-}: SimilarRequestProps & { onClose: () => void }) {
+    mode = "similar",
+}: SimilarRequestProps & { onClose: () => void; mode?: "similar" | "contact" }) {
     const { user, initData } = useTelegram();
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
@@ -97,7 +98,7 @@ export function SimilarRequestSheet({
 
         setIsSending(true);
         try {
-            const res = await fetch("/api/requests/similar", {
+            const res = await fetch(mode === "contact" ? "/api/contact" : "/api/requests/similar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "x-telegram-init-data": initData || "" },
                 body: JSON.stringify({ vehicleId, name: name.trim(), phone: formatPhone(phone) }),
@@ -135,13 +136,17 @@ export function SimilarRequestSheet({
                 ) : (
                     <>
                         <div className="flex items-start justify-between gap-4 mb-1">
-                            <h3 className="font-headline font-bold text-xl text-on-surface">Подобрать похожий</h3>
+                            <h3 className="font-headline font-bold text-xl text-on-surface">
+                                {mode === "contact" ? "Оставьте контакты" : "Подобрать похожий"}
+                            </h3>
                             <button onClick={onClose} className="p-2 -mr-2 -mt-1 rounded-full text-on-surface-variant hover:bg-surface-container active:scale-95">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <p className="text-sm text-on-surface-variant mb-6">
-                            Проверьте контакты — по ним менеджер пришлёт варианты как {brand} {model}.
+                            {mode === "contact"
+                                ? `По этому номеру менеджер свяжется с вами по ${brand} ${model}.`
+                                : `Проверьте контакты — по ним менеджер пришлёт варианты как ${brand} ${model}.`}
                         </p>
 
                         <div className="space-y-4">

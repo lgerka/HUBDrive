@@ -36,6 +36,7 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
     }, [id]);
 
     const [similarOpen, setSimilarOpen] = useState(false);
+    const [sheetMode, setSheetMode] = useState<'similar' | 'contact'>('similar');
     const vehicle = initialVehicle;
     const [isSending, setIsSending] = useState(false);
 
@@ -87,9 +88,10 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
 
             const data = await res.json().catch(() => ({}));
 
-            if (res.status === 401) {
-                // Приложение открыто вне Telegram — просим подтвердить, кто это,
-                // в той же шторке (там есть вход через Telegram и поля контактов)
+            if (res.status === 401 || res.status === 428 || data.needsPhone) {
+                // Либо человек не вошёл, либо в профиле нет телефона. И то и другое
+                // решается одной шторкой: там есть поля имени и номера
+                setSheetMode('contact');
                 setSimilarOpen(true);
                 return;
             }
@@ -252,7 +254,8 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
                     vehicleId={vehicle.id}
                     brand={vehicle.brand}
                     model={vehicle.model}
-                    onClose={() => setSimilarOpen(false)}
+                    mode={sheetMode}
+                    onClose={() => { setSimilarOpen(false); setSheetMode('similar'); }}
                 />
             )}
 
