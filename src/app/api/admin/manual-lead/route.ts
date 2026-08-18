@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
-import { verifyAdmin } from '@/lib/server/admin';
+import { verifyAdmin, adminIdentity } from '@/lib/server/admin';
 import { normalizePhone } from '@/lib/server/phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { LEAD_VALUE_USD, WEBAPP_ORIGIN } from '@/constants/contacts';
@@ -121,12 +121,15 @@ export async function POST(request: Request) {
         (body.comment ?? '').trim(),
     ].filter(Boolean).join('. ');
 
+    const author = await adminIdentity(request, prisma);
+
     const lead = await prisma.landingLead.create({
         data: {
             name: name || 'Без имени',
             phone,
             comment,
             source: `manual_${channelKey}`,
+            createdBy: author,
             createdAt: happenedAt,
         },
     });
@@ -138,6 +141,7 @@ export async function POST(request: Request) {
             `<b>Клиент:</b> ${name || 'без имени'}`,
             `<b>Телефон:</b> ${phone}`,
             `<b>Канал:</b> ${channel.label}`,
+            `<b>Записал:</b> ${author}`,
             '',
             '<i>В рекламу не отправляли: с этого номера уже была заявка</i>',
         ].join('\n'));
@@ -176,6 +180,7 @@ export async function POST(request: Request) {
         `<b>Клиент:</b> ${name || 'без имени'}`,
         `<b>Телефон:</b> ${phone}`,
         `<b>Канал:</b> ${channel.label}`,
+        `<b>Записал:</b> ${author}`,
         vehicle ? `<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}` : '',
         (body.comment ?? '').trim() ? `<b>Просит:</b> ${(body.comment ?? '').trim()}` : '',
         '',

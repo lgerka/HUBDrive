@@ -387,6 +387,8 @@ model LandingLead {
   ip        String?
   userAgent String?
   processed Boolean  @default(false)
+  /// Кто завёл заявку руками через админку. Пусто — пришла с сайта сама
+  createdBy String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])

@@ -20,6 +20,7 @@ export async function GET(request: Request) {
             phone: l.phone,
             comment: l.comment,
             processed: l.processed,
+            createdBy: l.createdBy ?? null,
             fromAd: Boolean(l.fbc || l.fbp),
             ad: [l.utmCampaign, l.utmContent].filter(Boolean).join(' · ') || null,
             createdAt: l.createdAt,
