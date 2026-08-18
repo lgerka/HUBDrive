@@ -4,6 +4,7 @@ import { getChatIds } from '@/lib/server/telegram/targets';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { prisma as db } from '@/lib/server/prisma';
+import { normalizePhone } from '@/lib/server/phone';
 
 /**
  * Заявка с лендинга — «рассчитать цену под ключ».
@@ -28,15 +29,6 @@ function rateLimited(key: string): boolean {
     }
     entry.count += 1;
     return entry.count > RATE_LIMIT;
-}
-
-/** Казахстанский номер: 10 цифр после кода страны. */
-function normalizePhone(raw: string): string | null {
-    let digits = raw.replace(/\D/g, '');
-    if (digits.length === 11 && digits.startsWith('8')) digits = `7${digits.slice(1)}`;
-    if (digits.length === 10) digits = `7${digits}`;
-    if (digits.length !== 11 || !digits.startsWith('7')) return null;
-    return `+${digits}`;
 }
 
 export async function POST(request: Request) {

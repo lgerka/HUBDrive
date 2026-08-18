@@ -6,6 +6,7 @@ import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
+import { normalizePhone } from '@/lib/server/phone';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -26,12 +27,12 @@ export async function POST(request: Request) {
         const body = await request.json().catch(() => ({}));
         const vehicleId: string | undefined = body.vehicleId;
         const name = String(body.name || '').trim();
-        const phone = String(body.phone || '').trim();
+        const phone = normalizePhone(body.phone);
 
         if (!name) {
             return NextResponse.json({ error: 'Укажите имя' }, { status: 400 });
         }
-        if (phone.replace(/\D/g, '').length < 11) {
+        if (!phone) {
             return NextResponse.json({ error: 'Укажите корректный номер телефона' }, { status: 400 });
         }
 
