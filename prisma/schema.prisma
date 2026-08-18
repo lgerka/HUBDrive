@@ -47,6 +47,7 @@ enum NotificationType {
   hot_match
   contact_clicked
   reengagement
+  manager_message
 }
 
 enum DeliveryStatus {

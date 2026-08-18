@@ -111,14 +111,41 @@ export async function POST(request: Request) {
 
             const token = process.env.TELEGRAM_BOT_TOKEN;
             const chatIds = await getChatIds('leads').catch(() => [] as string[]);
+            let delivered = 0;
             if (token) {
                 for (const chatId of chatIds) {
-                    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }),
-                    }).catch(err => console.error('[API] Заявка с сайта не ушла в чат:', err));
+                    }).catch(err => {
+                        console.error('[API] Заявка с сайта не ушла в чат:', err);
+                        return null;
+                    });
+                    if (res?.ok) delivered++;
                 }
+            }
+
+            // Заявка сохранена, но никто о ней не узнал: нет токена, не задан
+            // чат или Telegram не принял. Раньше это проходило бесследно —
+            // человек ждал звонка, которого никто не собирался делать
+            if (delivered === 0) {
+                console.error(
+                    `[API] КРИТИЧНО: заявка ${lead.id} (${phone}) не доставлена никому.`
+                    + ` Токен: ${token ? 'есть' : 'нет'}, чатов: ${chatIds.length}`
+                );
+                await prisma.notification.create({
+                    data: {
+                        dedupKey: `landing-lead-undelivered-${lead.id}`,
+                        channel: 'manager',
+                        type: 'contact_clicked',
+                        text: message,
+                        deliveryStatus: 'failed',
+                        error: token
+                            ? (chatIds.length === 0 ? 'Не задан чат для заявок' : 'Telegram не принял сообщение')
+                            : 'Не настроен бот',
+                    },
+                }).catch(() => null);
             }
 
             await sendMetaEvent({

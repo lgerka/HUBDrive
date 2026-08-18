@@ -57,7 +57,7 @@ export async function GET(request: Request) {
                 // Способ связи: телефон, ник в Telegram — или ничего.
                 // Ссылка по числовому id открывается только в приложении
                 // Telegram, поэтому это отдельный, худший случай
-                contact: u.phone ? 'phone' : (u.username ? 'telegram' : 'none'),
+                contact: u.phone ? 'phone' : u.username ? 'telegram' : u.telegramId ? 'bot' : 'none',
             };
         });
 
