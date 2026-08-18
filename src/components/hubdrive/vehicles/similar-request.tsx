@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Check, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
+import { readUtm } from "@/lib/utm";
 import { formatPhone, maskLocal, isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "@/components/hubdrive/common/phone-input";
 import { useScrollReveal } from "@/lib/hooks/use-scroll-reveal";
@@ -19,6 +20,13 @@ interface SimilarRequestProps {
  * дотягивает страницу до него, и по клику открывает подтверждение контактов.
  * Фильтр не создаёт — заявка сразу уходит менеджеру.
  */
+/** Куки пикселя: связывают заявку с показом объявления. */
+function readCookie(name: string): string | undefined {
+    if (typeof document === "undefined") return undefined;
+    const hit = document.cookie.split("; ").find(row => row.startsWith(`${name}=`));
+    return hit?.split("=")[1];
+}
+
 export function SimilarRequestBlock({ vehicleId, brand, model }: SimilarRequestProps) {
     const [open, setOpen] = useState(false);
     const { ref: blockRef, visible } = useScrollReveal();
@@ -110,6 +118,9 @@ export function SimilarRequestSheet({
             // и введённый номер просто пропадал. Теперь сохраняем его тем же
             // путём, что и заявку с лендинга
             if (res.status === 401) {
+                const eventId = typeof crypto !== "undefined" && "randomUUID" in crypto
+                    ? crypto.randomUUID()
+                    : String(Date.now());
                 const fallback = await fetch("/api/landing-lead", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -118,8 +129,17 @@ export function SimilarRequestSheet({
                         name: name.trim(),
                         phone: formatPhone(phone),
                         comment: mode === "similar" ? `Просит похожий на ${brand} ${model}` : "",
+                        eventId,
+                        fbp: readCookie("_fbp"),
+                        fbc: readCookie("_fbc"),
+                        utm: readUtm(),
                     }),
                 });
+                if (fallback.ok) {
+                    // Тот же идентификатор, что ушёл на сервер, — Meta склеит
+                    // браузерное и серверное событие в одну конверсию
+                    window.fbq?.("track", "Lead", { content_name: "заявка с карточки" }, { eventID: eventId });
+                }
                 if (fallback.ok) {
                     setDone(true);
                     setTimeout(onClose, 2200);

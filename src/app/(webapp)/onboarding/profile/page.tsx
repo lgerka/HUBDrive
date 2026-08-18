@@ -12,6 +12,7 @@ import { formatPhone, isPhoneComplete } from '@/lib/phone';
 import { PhoneInput } from '@/components/hubdrive/common/phone-input';
 import { TelegramLoginButton } from '@/components/hubdrive/telegram/telegram-login-button';
 import { metaTrack } from '@/lib/meta/pixel';
+import { ShareContactButton } from '@/components/hubdrive/telegram/share-contact-button';
 
 export default function OnboardingProfilePage() {
     const { user, initData } = useTelegram();
@@ -105,13 +106,20 @@ export default function OnboardingProfilePage() {
             <div className="relative z-10 flex flex-col flex-1 max-w-lg mx-auto w-full pt-16">
                 <div className="mb-12">
                     <h1 className="text-4xl font-extrabold mb-4 tracking-tight text-foreground" style={{ fontFamily: 'var(--font-manrope)' }}>
-                        Давайте <br />
-                        <span className="text-[#9d4300] dark:text-[#f97316]">познакомимся</span>
+                        Куда прислать <br />
+                        <span className="text-[#9d4300] dark:text-[#f97316]">расчёт под ключ</span>
                     </h1>
                     <p className="text-muted-foreground text-base leading-relaxed max-w-[280px]">
-                        Эти данные нужны, чтобы ваш персональный менеджер мог связаться с вами для подтверждения заказа. Никакого спама.
+                        Посчитаем итоговую цену в Казахстане: машина, доставка, растаможка,
+                        утильсбор и оформление — одной суммой, без доплат в конце. Менеджер
+                        позвонит по конкретному поводу, рассылок нет.
                     </p>
                 </div>
+
+                <ShareContactButton
+                    className="mb-8"
+                    onShared={() => router.push('/filters')}
+                />
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-8 flex-1">
                     <div className="flex flex-col gap-6">
@@ -135,7 +143,7 @@ export default function OnboardingProfilePage() {
 
                         <div className="space-y-3 relative">
                             <Label htmlFor="phone" className="text-sm uppercase tracking-widest text-muted-foreground font-semibold px-1">
-                                Номер телефона
+                                Или введите номер вручную
                             </Label>
                             <PhoneInput
                                 id="phone"
@@ -177,8 +185,8 @@ export default function OnboardingProfilePage() {
                         >
                             {isSubmitting ? 'Сохранение...' : 'Продолжить'}
                         </Button>
-                        <p className="text-center text-[10px] uppercase tracking-widest text-muted-foreground/60 mt-6 font-semibold">
-                            Secure Profile Creation
+                        <p className="text-center text-xs text-muted-foreground/70 mt-6">
+                            Номер видит только менеджер HUBDrive
                         </p>
                     </div>
                 </form>

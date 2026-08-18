@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Phone, MessageCircle, Megaphone, Loader2 } from "lucide-react";
+import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send } from "lucide-react";
 import { whatsappLink } from "@/constants/contacts";
 
 /**
@@ -26,6 +26,8 @@ export default function LandingLeadsPage() {
     const [leads, setLeads] = useState<LandingLead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState<string | null>(null);
+    // Обращение, случившееся вне сайта: WhatsApp, звонок, личка
+    const [logging, setLogging] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -60,16 +62,29 @@ export default function LandingLeadsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="font-headline text-2xl font-bold text-slate-900">Заявки с сайта</h1>
-                <p className="mt-1 text-sm text-slate-500">
-                    {isLoading
-                        ? "Загружаем…"
-                        : leads.length === 0
-                            ? "Пока ни одной заявки"
-                            : `Всего ${leads.length}, ждут звонка — ${waiting}`}
-                </p>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 className="font-headline text-2xl font-bold text-slate-900">Заявки</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        {isLoading
+                            ? "Загружаем…"
+                            : leads.length === 0
+                                ? "Пока ни одной заявки"
+                                : `Всего ${leads.length}, ждут звонка — ${waiting}`}
+                    </p>
+                </div>
+                <button
+                    onClick={() => setLogging(true)}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                >
+                    <PhoneIncoming className="h-4 w-4" />
+                    Записать обращение
+                </button>
             </div>
+
+            {logging && (
+                <ManualLeadForm onClose={() => setLogging(false)} onSaved={load} />
+            )}
 
             {isLoading ? (
                 <div className="flex items-center gap-2 text-slate-400">
@@ -147,6 +162,129 @@ export default function LandingLeadsPage() {
                     ))}
                 </div>
             )}
+        </div>
+    );
+}
+
+/**
+ * Обращение, которое пришло мимо сайта.
+ *
+ * Человек написал в WhatsApp, позвонил или ответил в личку — для рекламного
+ * кабинета этого не произошло: там, где это случилось, нашего кода нет.
+ * Менеджер записывает обращение здесь, и телефон уходит в Meta как конверсия,
+ * чтобы кампания училась на всех заявках, а не только на форме с сайта.
+ */
+function ManualLeadForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+    const [phone, setPhone] = useState("");
+    const [name, setName] = useState("");
+    const [channel, setChannel] = useState("whatsapp");
+    const [comment, setComment] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [note, setNote] = useState<string | null>(null);
+
+    const submit = async () => {
+        if (!phone.trim() || saving) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const res = await fetch("/api/admin/manual-lead", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone, name, channel, comment }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || "Не удалось сохранить");
+                return;
+            }
+            setNote(data.note ?? "Сохранено");
+            onSaved();
+            setTimeout(onClose, 2500);
+        } catch {
+            setError("Сеть не ответила — попробуйте ещё раз");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const channels = [
+        { key: "whatsapp", label: "WhatsApp" },
+        { key: "telegram", label: "Telegram" },
+        { key: "call", label: "Звонок" },
+        { key: "instagram", label: "Instagram" },
+        { key: "other", label: "Другое" },
+    ];
+
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                    <h2 className="font-headline text-lg font-bold text-slate-900">Записать обращение</h2>
+                    <p className="mt-1 text-xs text-slate-500">
+                        Телефон уйдёт в рекламный кабинет как заявка — так реклама узнает
+                        про тех, кто написал вам напрямую
+                    </p>
+                </div>
+                <button onClick={onClose} aria-label="Закрыть" className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100">
+                    <X className="h-5 w-5" />
+                </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="Телефон, например +7 705 420 19 54"
+                    autoFocus
+                    className="h-12 rounded-xl border border-slate-200 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+                />
+                <input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Имя, если знаете"
+                    className="h-12 rounded-xl border border-slate-200 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+                />
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+                {channels.map(c => (
+                    <button
+                        key={c.key}
+                        onClick={() => setChannel(c.key)}
+                        className={`h-9 rounded-lg px-3 text-xs font-bold transition-colors ${
+                            channel === c.key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                    >
+                        {c.label}
+                    </button>
+                ))}
+            </div>
+
+            <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                rows={2}
+                placeholder="Что просил: марка, бюджет, город"
+                className="mt-3 w-full resize-none rounded-xl border border-slate-200 p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+            />
+
+            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {note && <p className="mt-3 text-sm text-green-600">{note}</p>}
+
+            <div className="mt-4 flex justify-end gap-2">
+                <button onClick={onClose} className="h-11 rounded-xl px-4 text-sm font-bold text-slate-500 hover:bg-slate-100">
+                    Отмена
+                </button>
+                <button
+                    onClick={submit}
+                    disabled={!phone.trim() || saving || Boolean(note)}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white disabled:opacity-40"
+                >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Сохранить
+                </button>
+            </div>
         </div>
     );
 }

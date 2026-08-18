@@ -5,6 +5,7 @@ import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { prisma as db } from '@/lib/server/prisma';
 import { normalizePhone } from '@/lib/server/phone';
+import { LEAD_VALUE_USD } from '@/constants/contacts';
 
 /**
  * Заявка с лендинга — «рассчитать цену под ключ».
@@ -145,7 +146,8 @@ export async function POST(request: Request) {
                 eventId,
                 sourceUrl: `${WEBAPP_ORIGIN}/`,
                 userData: { fbp, fbc, phone, firstName: name, externalId: lead.id, country: 'kz', ip, userAgent },
-                customData: { content_name: 'заявка с сайта', currency: 'USD' },
+                // Без value Meta игнорирует валюту целиком
+                customData: { content_name: 'заявка с сайта', value: LEAD_VALUE_USD, currency: 'USD' },
             });
         });
 

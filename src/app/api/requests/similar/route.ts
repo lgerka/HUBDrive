@@ -7,6 +7,7 @@ import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
 import { normalizePhone } from '@/lib/server/phone';
+import { LEAD_VALUE_USD } from '@/constants/contacts';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -109,8 +110,9 @@ export async function POST(request: Request) {
                         content_name: vehicle ? `${vehicle.brand} ${vehicle.model}` : 'подбор похожего',
                         content_ids: vehicle ? [vehicle.id] : undefined,
                         content_type: 'product',
-                        value: vehicle?.priceUSD ?? undefined,
+                        value: LEAD_VALUE_USD,
                         currency: 'USD',
+                        vehicle_price_usd: vehicle?.priceUSD ?? undefined,
                     },
                 });
             } catch (err) {

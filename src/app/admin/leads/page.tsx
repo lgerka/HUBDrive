@@ -140,6 +140,7 @@ export default function LeadsPage() {
                     </h1>
                     <p className="text-on-surface-variant font-body">Встроенный скоринг подбирает самых горячих клиентов.</p>
                 </div>
+
                 <div className="flex items-center gap-3 w-full md:w-80">
                     <div className="relative w-full">
                         <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
