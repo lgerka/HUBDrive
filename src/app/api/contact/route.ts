@@ -6,6 +6,7 @@ import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyIfHotLead } from '@/lib/server/telegram/notifier';
+import { normalizePhone } from '@/lib/server/phone';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // Единая точка правды по адресу приложения — см. constants/contacts
@@ -36,10 +37,13 @@ export async function POST(request: Request) {
 
         // Заявка без телефона бесполезна: менеджеру некуда звонить, а Telegram
         // без username не открывается. Поэтому просим номер до отправки
-        const providedPhone = typeof body.phone === 'string' ? body.phone.trim() : '';
+        // Клиентская маска не защита: запрос можно послать напрямую
+        const providedPhone = normalizePhone(typeof body.phone === 'string' ? body.phone : '') ?? '';
         const providedName = typeof body.name === 'string' ? body.name.trim() : '';
 
-        if (!dbUser.phone && !providedPhone) {
+        // Мусор в профиле считаем отсутствием номера, иначе проверка обходится
+        const profilePhone = normalizePhone(dbUser.phone);
+        if (!profilePhone && !providedPhone) {
             return NextResponse.json(
                 { needsPhone: true, error: 'Оставьте номер — менеджер перезвонит' },
                 { status: 428 }
@@ -47,7 +51,7 @@ export async function POST(request: Request) {
         }
 
         // Новый номер запоминаем в профиле, чтобы больше не спрашивать
-        if (providedPhone && providedPhone !== dbUser.phone) {
+        if (providedPhone && providedPhone !== profilePhone) {
             dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
                 data: {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/server/prisma';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { prisma as db } from '@/lib/server/prisma';
 
 /**
  * Заявка с лендинга — «рассчитать цену под ключ».
@@ -53,6 +54,9 @@ export async function POST(request: Request) {
         const name = typeof body.name === 'string' ? body.name.trim().slice(0, 80) : '';
         const phone = typeof body.phone === 'string' ? normalizePhone(body.phone) : null;
         const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
+        // Заявка может прийти из карточки авто — тогда менеджеру важно знать,
+        // какая машина заинтересовала
+        const vehicleId = typeof body.vehicleId === 'string' ? body.vehicleId : null;
         const eventId = typeof body.eventId === 'string' ? body.eventId : `landing-${Date.now()}`;
         const fbp = typeof body.fbp === 'string' ? body.fbp : undefined;
         const fbc = typeof body.fbc === 'string' ? body.fbc : undefined;
@@ -68,9 +72,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Проверьте номер телефона' }, { status: 400 });
         }
 
+        // Подмешиваем машину в комментарий: отдельного поля нет, а менеджеру
+        // нужно понимать, о чём разговор
+        let vehicleNote = '';
+        if (vehicleId) {
+            const car = await prisma.vehicle.findUnique({
+                where: { id: vehicleId },
+                select: { brand: true, model: true, year: true },
+            }).catch(() => null);
+            if (car) vehicleNote = `${car.brand} ${car.model} ${car.year}`;
+        }
+
         const lead = await prisma.landingLead.create({
             data: {
-                name, phone, comment: comment || null, source: 'landing',
+                name,
+                phone,
+                comment: [vehicleNote && `Интересует: ${vehicleNote}`, comment].filter(Boolean).join('. ') || null,
+                source: vehicleId ? 'vehicle' : 'landing',
                 fbp, fbc, ip, userAgent, utmSource, utmCampaign, utmContent,
             },
         });
@@ -82,10 +100,13 @@ export async function POST(request: Request) {
                 '',
                 `<b>Имя:</b> ${name}`,
                 `<b>Телефон:</b> ${phone}`,
+                vehicleNote ? `<b>Машина:</b> ${vehicleNote}` : '',
                 comment ? `<b>Комментарий:</b> ${comment}` : '',
                 utmContent || utmCampaign ? `<b>Объявление:</b> ${[utmCampaign, utmContent].filter(Boolean).join(' · ')}` : '',
                 '',
-                '<i>Человек пришёл с сайта и ждёт расчёт цены под ключ.</i>',
+                vehicleId
+                    ? '<i>Заявка из карточки автомобиля. Человек не в Telegram — звоните.</i>'
+                    : '<i>Человек пришёл с сайта и ждёт расчёт цены под ключ.</i>',
             ].filter(Boolean).join('\n');
 
             const token = process.env.TELEGRAM_BOT_TOKEN;

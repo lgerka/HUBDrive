@@ -215,7 +215,7 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
     for (const adminId of adminIds) {
         try {
             const dedupKey = `hot_${user.id}_${Date.now()}_${adminId}`;
-            await bot.api.sendMessage(adminId, text, { parse_mode: 'Markdown' });
+            await bot.api.sendMessage(adminId, text, { parse_mode: 'HTML', link_preview_options: { is_disabled: true } });
 
             await prisma.notification.create({
                 data: {
