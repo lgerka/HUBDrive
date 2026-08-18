@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useFavoritesStore } from "@/lib/state/favorites.store";
 import { useFiltersStore } from "@/lib/state/filters.store";
 import { useUserStore } from "@/lib/state/user.store";
+import { ShareContactButton } from "@/components/hubdrive/telegram/share-contact-button";
 
 interface HistoryEvent {
     id: string;
@@ -94,6 +95,33 @@ export default function ProfilePage() {
                     avatarUrl={user?.photo_url}
                     onEdit={handleEditProfile}
                 />
+
+                {/* Номера нет — предлагаем отдать его одним нажатием.
+                    Печатать одиннадцать цифр на телефоне соглашаются единицы */}
+                {!profile?.phone && (
+                    <section className="rounded-3xl bg-surface-container-lowest p-6 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] space-y-4">
+                        <div>
+                            <h3 className="font-headline font-bold text-base text-on-surface">
+                                Посчитаем цену под ключ
+                            </h3>
+                            <p className="mt-1 text-sm text-on-surface-variant leading-relaxed">
+                                Итог в Казахстане: машина, доставка, растаможка, утильсбор
+                                и оформление — одной суммой, без доплат в конце.
+                            </p>
+                        </div>
+                        <ShareContactButton
+                            label="Отправить мой номер"
+                            fallback={
+                                <button
+                                    onClick={handleEditProfile}
+                                    className="flex h-14 w-full items-center justify-center rounded-2xl bg-primary font-bold text-white shadow-lg shadow-primary/20 transition-transform active:scale-[0.98]"
+                                >
+                                    Оставить номер
+                                </button>
+                            }
+                        />
+                    </section>
+                )}
 
                 {/* "Мои подборки" Section */}
                 <section className="space-y-4">

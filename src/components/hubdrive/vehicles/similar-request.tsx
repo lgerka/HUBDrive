@@ -8,6 +8,7 @@ import { readUtm } from "@/lib/utm";
 import { formatPhone, maskLocal, isPhoneComplete } from "@/lib/phone";
 import { PhoneInput } from "@/components/hubdrive/common/phone-input";
 import { useScrollReveal } from "@/lib/hooks/use-scroll-reveal";
+import { ShareContactButton } from "@/components/hubdrive/telegram/share-contact-button";
 
 interface SimilarRequestProps {
     vehicleId: string;
@@ -193,6 +194,20 @@ export function SimilarRequestSheet({
                                 ? `По этому номеру менеджер свяжется с вами по ${brand} ${model}.`
                                 : `Проверьте контакты — по ним менеджер пришлёт варианты как ${brand} ${model}.`}
                         </p>
+
+                        <ShareContactButton
+                            className="mb-5"
+                            label="Отправить мой номер"
+                            onShared={() => {
+                                // Номер уже у нас — подставляем его в поле,
+                                // чтобы человек видел, что именно уходит
+                                if (!initData) return;
+                                fetch("/api/me", { headers: { "x-telegram-init-data": initData } })
+                                    .then(r => (r.ok ? r.json() : null))
+                                    .then(d => { if (d?.user?.phone) setPhone(maskLocal(d.user.phone)); })
+                                    .catch(() => { });
+                            }}
+                        />
 
                         <div className="space-y-4">
                             <div>
