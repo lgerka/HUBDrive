@@ -58,6 +58,14 @@ function isInTelegram() {
     return Boolean(tg?.initData) || (tg?.platform !== undefined && tg.platform !== "unknown");
 }
 
+/**
+ * Предложение поставить приложение на домашний экран.
+ *
+ * Живёт только внутри приложения, где человек уже освоился и прошёл
+ * знакомство. На лендинг его ставить нельзя: там окно перекрывало форму
+ * заявки — человек приходил с рекламы, доходил до заявки и получал вместо
+ * неё инструкцию из пяти шагов.
+ */
 export function InstallPrompt({ requireOnboarding = true }: { requireOnboarding?: boolean } = {}) {
     const [open, setOpen] = useState(false);
     const [platform, setPlatform] = useState<Platform>("desktop");
