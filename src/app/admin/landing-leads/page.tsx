@@ -448,6 +448,10 @@ function EditLeadForm({ lead, onClose, onSaved }: {
 
                     <div>
                         <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">Стадия</span>
+                        <p className="mb-2 text-xs text-slate-500">
+                            «Квалифицирован» и «Купил» уходят в рекламный кабинет —
+                            по ним Meta учится искать похожих людей. Ставьте их честно.
+                        </p>
                         <div className="flex flex-wrap gap-2">
                             {STATUSES.map(x => (
                                 <button

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { normalizePhone } from '@/lib/server/phone';
-import type { LeadStatus } from '@prisma/client';
+import type { LeadStatus, LandingLead } from '@prisma/client';
+import { sendMetaEvent } from '@/lib/server/meta/capi';
+import { LEAD_VALUE_USD, DEAL_VALUE_USD } from '@/constants/contacts';
 
 /** Заявки: и оставленные на сайте, и записанные менеджером вручную. */
 export async function GET(request: Request) {
@@ -34,6 +36,60 @@ export async function GET(request: Request) {
             createdAt: l.createdAt,
         })),
     });
+}
+
+
+/**
+ * Качественные стадии уходят в рекламу отдельными событиями.
+ *
+ * Кампания сейчас оптимизируется на переписки — иначе при бюджете в двадцать
+ * долларов алгоритму не набрать объёма для обучения. Но переписки учат искать
+ * тех, кто любит открывать чаты, а не тех, кто покупает.
+ *
+ * Поэтому качество копим отдельно: когда менеджер отмечает «квалифицирован»
+ * или «купил», Meta получает своё событие. Набор данных копит их независимо
+ * от того, на что оптимизируется кампания, — и через несколько недель по ним
+ * можно будет собрать аудиторию покупателей, построить похожую и переключить
+ * оптимизацию на неё. Раньше не выйдет: Meta требует минимум сто человек
+ * в исходной аудитории.
+ *
+ * Отправляем только при ПЕРЕХОДЕ в стадию: менеджер правит карточку по многу
+ * раз, а конверсия должна засчитаться однажды.
+ */
+const QUALITY_EVENTS: Partial<Record<LeadStatus, { name: string; value: number; label: string }>> = {
+    qualified: { name: 'SubmitApplication', value: LEAD_VALUE_USD, label: 'квалифицированная заявка' },
+    converted: { name: 'Purchase', value: DEAL_VALUE_USD, label: 'сделка' },
+};
+
+async function reportQuality(lead: LandingLead, nextStatus: LeadStatus): Promise<void> {
+    const event = QUALITY_EVENTS[nextStatus];
+    if (!event || lead.status === nextStatus) return;
+
+    try {
+        await sendMetaEvent({
+            eventName: event.name,
+            // Одно событие на заявку и стадию: повторная правка не удвоит конверсию
+            eventId: `lead-${lead.id}-${nextStatus}`,
+            actionSource: lead.source?.startsWith('manual_') ? 'chat' : 'website',
+            userData: {
+                phone: lead.phone,
+                firstName: lead.name && lead.name !== 'Без имени' ? lead.name : undefined,
+                country: lead.phone.startsWith('+996') ? 'kg' : 'kz',
+                // У заявки с сайта есть метки клика — по ним Meta узнаёт человека
+                // куда надёжнее, чем по одному телефону
+                fbp: lead.fbp ?? undefined,
+                fbc: lead.fbc ?? undefined,
+                externalId: lead.userId ?? undefined,
+            },
+            customData: {
+                content_name: event.label,
+                value: event.value,
+                currency: 'USD',
+            },
+        });
+    } catch (error) {
+        console.error('[заявка] стадия не ушла в рекламу:', error);
+    }
 }
 
 const STATUSES: LeadStatus[] = [
@@ -105,7 +161,17 @@ export async function PATCH(request: Request) {
         data.userId = person?.id ?? null;
     }
 
+    // Читаем до правки: нужна прежняя стадия, чтобы поймать именно переход
+    const before = await prisma.landingLead.findUnique({ where: { id } });
+    if (!before) {
+        return NextResponse.json({ error: 'Заявка не найдена' }, { status: 404 });
+    }
+
     const updated = await prisma.landingLead.update({ where: { id }, data });
+
+    if (typeof data.status === 'string') {
+        after(() => reportQuality(before, data.status as LeadStatus));
+    }
 
     return NextResponse.json({ ok: true, lead: { id: updated.id, status: updated.status } });
 }
