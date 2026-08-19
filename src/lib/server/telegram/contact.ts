@@ -3,6 +3,7 @@ import { normalizePhone } from '../phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyManagerAboutNewContact } from './notifier';
+import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 /**
  * Человек поделился номером телефона через Telegram.
@@ -127,5 +128,114 @@ async function sendPhoneToMeta(
         });
     } catch (error) {
         console.error('[контакт] не удалось отдать номер рекламе:', error);
+    }
+}
+
+/**
+ * Человек написал боту в личку.
+ *
+ * Бот сам просит «напишите, что ищете» — и до этой правки написанное уходило
+ * в никуда: обработчика текста не было, менеджер ничего не узнавал, человек
+ * не получал ответа и уходил. Теперь сообщение попадает в чат продаж вместе
+ * со способом ответить.
+ *
+ * Уведомляем не чаще раза в час на человека: люди пишут очередями по три
+ * сообщения, и каждое не должно дёргать отдел продаж.
+ */
+export async function handleIncomingMessage(input: {
+    telegramId: string;
+    text: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+}): Promise<void> {
+    const text = input.text.trim();
+    if (!text) return;
+
+    const name = [input.firstName, input.lastName].filter(Boolean).join(' ').trim();
+
+    const user = await prisma.user.upsert({
+        where: { telegramId: input.telegramId },
+        update: { lastActiveAt: new Date(), username: input.username ?? undefined },
+        create: {
+            telegramId: input.telegramId,
+            firstName: input.firstName ?? null,
+            lastName: input.lastName ?? null,
+            username: input.username ?? null,
+            name: name || null,
+        },
+        select: { id: true, name: true, phone: true, username: true, telegramId: true },
+    });
+
+    await prisma.event.create({
+        data: {
+            type: 'contact_clicked',
+            userId: user.id,
+            meta: { source: 'bot_message', text: text.slice(0, 500) },
+        },
+    }).catch(() => null);
+
+    // Час — крупная единица: за это время диалог успевает состояться,
+    // а очередь из трёх сообщений схлопывается в одно оповещение
+    const hourBucket = Math.floor(Date.now() / 3_600_000);
+    try {
+        await prisma.notification.create({
+            data: {
+                dedupKey: `bot-msg-${user.id}-${hourBucket}`,
+                channel: 'manager',
+                type: 'contact_clicked',
+                userId: user.id,
+                text: text.slice(0, 500),
+                deliveryStatus: 'sent',
+            },
+        });
+    } catch {
+        return; // в этот час о нём уже сообщали
+    }
+
+    await notifyManagerAboutMessage(user, text);
+}
+
+async function notifyManagerAboutMessage(
+    user: { id: string; name: string | null; phone: string | null; username: string | null; telegramId: string | null },
+    text: string
+): Promise<void> {
+    try {
+        const token = process.env.TELEGRAM_BOT_TOKEN;
+        if (!token) return;
+        const { getChatIds } = await import('./targets');
+        const chatIds = await getChatIds('leads');
+        if (chatIds.length === 0) return;
+
+        const chatLink = user.username
+            ? `https://t.me/${user.username}`
+            : `tg://user?id=${user.telegramId}`;
+
+        const message = [
+            '💬 <b>Написали боту</b>',
+            '',
+            `<b>Клиент:</b> ${user.name || 'без имени'}`,
+            user.phone ? `<b>Телефон:</b> ${user.phone}` : '<b>Телефона нет</b> — ответьте в переписке',
+            '',
+            `<i>«${text.slice(0, 300)}»</i>`,
+            '',
+            `<a href="${chatLink}">Ответить в Telegram</a>`,
+            `<a href="${WEBAPP_ORIGIN}/admin/leads/${user.id}">Карточка клиента</a>`,
+        ].filter(Boolean).join('\n');
+
+        for (const chatId of chatIds) {
+            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message,
+                    parse_mode: 'HTML',
+                    disable_web_page_preview: true,
+                }),
+            }).catch(err => console.error('[бот] сообщение не ушло в чат:', err));
+        }
+    } catch (error) {
+        console.error('[бот] не удалось сообщить о письме:', error);
     }
 }

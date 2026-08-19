@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 
 import { verifyInitData } from '@/lib/telegram/verifyInitData';
-import { notifyManagerAboutHotLead } from '@/lib/server/telegram/notifier';
+import { notifyManagerAboutHotLead, notifyManagerAboutSearch } from '@/lib/server/telegram/notifier';
 
 export async function GET(request: Request) {
     try {
@@ -119,6 +119,11 @@ export async function POST(request: Request) {
 
         if (newFilter.purchasePlan === 'ready_now') {
             notifyManagerAboutHotLead(dbUser, newFilter.title || newFilter.brand).catch(console.error);
+        } else {
+            // Раньше подбор без пометки «покупаю сейчас» оседал в базе молча.
+            // А это и есть спрос на то, чего нет на складе: человек назвал
+            // марку, которой у нас не было, и уходил незамеченным
+            notifyManagerAboutSearch(dbUser, newFilter).catch(console.error);
         }
 
         return NextResponse.json(newFilter);
