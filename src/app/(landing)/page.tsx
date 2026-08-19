@@ -247,22 +247,27 @@ export default async function LandingPage() {
                                 <h2 className="font-headline text-3xl font-extrabold tracking-tight">Автомобили из Китая в наличии</h2>
                                 <p className="mt-2 text-slate-600">Цены указаны с доставкой и таможней</p>
                             </div>
-                            <Link
+                            <BotLink
+                                target="app"
+                                place="витрина — весь каталог"
                                 href="/catalog"
-                                className="flex items-center gap-2 text-sm font-bold text-orange-600"
+                                className="flex cursor-pointer items-center gap-2 text-sm font-bold text-orange-600"
                             >
                                 Весь каталог <ArrowRight className="h-4 w-4" />
-                            </Link>
+                            </BotLink>
                         </div>
 
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {vehicles.map(v => {
                                 const cover = Array.isArray(v.media) ? (v.media[0] as string | undefined) : undefined;
                                 return (
-                                    <Link
+                                    <BotLink
                                         key={v.id}
+                                        target="app"
+                                        vehicleId={v.id}
+                                        place="витрина — карточка"
                                         href={`/vehicles/${v.id}`}
-                                        className="group block overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
+                                        className="group block cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
                                     >
                                         <div className="aspect-[16/10] overflow-hidden bg-slate-100">
                                             {cover && (
@@ -284,7 +289,7 @@ export default async function LandingPage() {
                                                 <p className="mt-3 font-headline text-xl font-extrabold">{fmtUsd(v.priceUSD)}</p>
                                             ) : null}
                                         </div>
-                                    </Link>
+                                    </BotLink>
                                 );
                             })}
                         </div>

@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const fallback = `https://t.me/${BOT_USERNAME}?startapp=catalog`;
 
     try {
-        const { fbp, fbc, target } = await request.json().catch(() => ({}));
+        const { fbp, fbc, target, vehicleId } = await request.json().catch(() => ({}));
         const { ip, userAgent } = requestSignals(request);
 
         const token = await createAttributionToken({
@@ -25,10 +25,22 @@ export async function POST(request: Request) {
             userAgent,
         });
 
-        if (!token) return NextResponse.json({ url: fallback });
+        if (!token) {
+            // Метки нет — человек пришёл не по рекламе. Машину всё равно
+            // открываем: без неё карточка потеряется, а это главное действие
+            const plain = typeof vehicleId === 'string' && vehicleId
+                ? `https://t.me/${BOT_USERNAME}?startapp=v-${vehicleId}`
+                : fallback;
+            return NextResponse.json({ url: plain });
+        }
 
-        // startapp открывает мини-приложение сразу на каталоге, start — обычный чат
-        const param = `m_${token}`;
+        // К метке приклеиваем машину, если человек нажал на карточку: тогда
+        // приложение откроется сразу на ней, а не на общем каталоге.
+        // Разделитель «-v-» безопасен — в метке только шестнадцатеричные
+        // символы, в идентификаторе машины только буквы и цифры
+        const param = typeof vehicleId === 'string' && vehicleId
+            ? `m_${token}-v-${vehicleId}`
+            : `m_${token}`;
         const url = target === 'chat'
             ? `https://t.me/${BOT_USERNAME}?start=${param}`
             : `https://t.me/${BOT_USERNAME}?startapp=${param}`;

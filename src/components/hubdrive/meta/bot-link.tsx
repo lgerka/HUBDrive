@@ -40,9 +40,17 @@ interface BotLinkProps {
     event?: "Contact" | "Lead" | "none";
     /** Откуда нажали — попадёт в статистику события. */
     place?: string;
+    /** Открыть в приложении конкретную машину, а не общий каталог. */
+    vehicleId?: string;
+    /**
+     * Адрес для поисковых роботов и для тех, у кого нет Telegram.
+     * Карточки авто должны оставаться в индексе, поэтому ссылка настоящая,
+     * а перехват клика — только для людей с Telegram.
+     */
+    href?: string;
 }
 
-export function BotLink({ children, className, target = "app", event = "none", place }: BotLinkProps) {
+export function BotLink({ children, className, target = "app", event = "none", place, vehicleId, href }: BotLinkProps) {
     const handleClick = useCallback(
         async (e: React.MouseEvent<HTMLAnchorElement>) => {
             // новая вкладка по Ctrl/Cmd — не мешаем привычному поведению
@@ -63,6 +71,7 @@ export function BotLink({ children, className, target = "app", event = "none", p
                         fbp: readCookie("_fbp"),
                         fbc: readCookie("_fbc"),
                         target,
+                        vehicleId,
                     }),
                 });
                 if (res.ok) {
@@ -75,11 +84,11 @@ export function BotLink({ children, className, target = "app", event = "none", p
 
             window.location.href = url;
         },
-        [event, place, target]
+        [event, place, target, vehicleId]
     );
 
     return (
-        <a href={BOT_APP_URL} onClick={handleClick} target="_blank" rel="noopener noreferrer" className={className}>
+        <a href={href ?? BOT_APP_URL} onClick={handleClick} target="_blank" rel="noopener noreferrer" className={className}>
             {children}
         </a>
     );

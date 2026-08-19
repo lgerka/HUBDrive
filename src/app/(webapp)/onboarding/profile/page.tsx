@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,8 @@ import { ShareContactButton } from '@/components/hubdrive/telegram/share-contact
 export default function OnboardingProfilePage() {
     const { user, initData } = useTelegram();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnUrl = searchParams.get('returnUrl');
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
@@ -160,7 +162,20 @@ export default function OnboardingProfilePage() {
                                 Подтвердите, что это вы — через Telegram. Так менеджер будет знать,
                                 кому писать, а вам не придётся вводить код.
                             </p>
-                            <TelegramLoginButton onSuccess={() => { setError(''); handleSubmit(); }} />
+                            <TelegramLoginButton
+                                onSuccess={() => {
+                                    setError('');
+                                    // Форма заполнена — сохраняем её и уходим.
+                                    // Пустая — человек вошёл, чтобы попасть
+                                    // в приложение, и держать его на этом
+                                    // экране незачем
+                                    if (name.trim() && isPhoneComplete(phone)) {
+                                        handleSubmit();
+                                    } else {
+                                        router.push(returnUrl || '/app');
+                                    }
+                                }}
+                            />
                             <a
                                 href={BOT_APP_URL}
                                 target="_blank"
