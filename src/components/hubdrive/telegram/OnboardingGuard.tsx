@@ -24,6 +24,9 @@ const PUBLIC_PATHS = [
     /^\/news/,
     /^\/stories/,
     /^\/support/,
+    // Открывается инлайн-кнопкой из бота ради одного действия —
+    // заставка и знакомство тут только помешают
+    /^\/share-phone/,
 ];
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {

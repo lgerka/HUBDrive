@@ -209,15 +209,13 @@ export function initIncomingMessages() {
             [
                 'Принял, передал менеджеру.',
                 '',
-                '👇 Нажмите <b>«Отправить мой номер»</b> внизу — без него менеджер сможет ответить только здесь, в переписке.',
+                'Без номера ответить сможем только здесь, в переписке. Оставьте — и менеджер позвонит.',
             ].join('\n'),
             {
-                parse_mode: 'HTML',
                 reply_markup: {
-                    keyboard: [[{ text: '📱 Отправить мой номер', request_contact: true }]],
-                    resize_keyboard: true,
-                    is_persistent: true,
-                    input_field_placeholder: 'Нажмите кнопку ниже 👇',
+                    inline_keyboard: [[
+                        { text: '📱 Оставить номер', web_app: { url: `${WEBAPP_URL}/share-phone` } },
+                    ]],
                 },
             }
         ).catch(() => null);
@@ -254,16 +252,17 @@ export function initContactSharing() {
 
         await ctx.reply(
             [
-                result.alreadyKnown
-                    ? `Этот номер у нас уже записан: ${result.phone}`
-                    : `Записали: ${result.phone}. Менеджер позвонит в рабочее время.`,
+                `✅ Номер записали: ${result.phone}`,
                 '',
-                'Чтобы расчёт пришёл быстрее — напишите, что ищете: марку, бюджет или город.',
+                '<b>Теперь напишите, что ищете</b> — марку, бюджет или город.',
+                '',
+                '<i>Например: «Geely Monjaro до 20 млн, Алматы»</i>',
             ].join('\n'),
             {
+                parse_mode: 'HTML',
                 reply_markup: {
                     remove_keyboard: true,
-                    input_field_placeholder: 'Марка, бюджет или город',
+                    input_field_placeholder: 'Марка, бюджет, город',
                 },
             }
         ).catch(() => null);
@@ -285,19 +284,18 @@ export function initPriceRequest() {
             [
                 "Посчитаем цену под ключ: машина, доставка, растаможка, утильсбор и оформление — одной суммой.",
                 "",
-                "👇 Нажмите кнопку <b>«Отправить мой номер»</b> внизу экрана — и менеджер пришлёт расчёт.",
-                "",
-                "<i>Вводить цифры не нужно, Telegram подставит номер сам.</i>",
+                "Шаг 1 — оставьте номер, шаг 2 — скажете, что ищете.",
             ].join("\n"),
             {
                 parse_mode: "HTML",
+                // Кнопка живёт прямо в сообщении. Запрос контакта Telegram
+                // разрешает только на нижней клавиатуре, а она исчезает, стоит
+                // человеку начать печатать, — поэтому открываем мини-приложение,
+                // где тот же номер отдаётся одним нажатием и никуда не пропадает
                 reply_markup: {
-                    keyboard: [[{ text: "📱 Отправить мой номер", request_contact: true }]],
-                    resize_keyboard: true,
-                    // Без is_persistent Telegram сворачивает клавиатуру за иконку,
-                    // и человек её просто не находит
-                    is_persistent: true,
-                    input_field_placeholder: "Нажмите кнопку ниже 👇",
+                    inline_keyboard: [[
+                        { text: "📱 Оставить номер", web_app: { url: `${WEBAPP_URL}/share-phone` } },
+                    ]],
                 },
             }
         ).catch(err => console.error("Не удалось попросить номер:", err));

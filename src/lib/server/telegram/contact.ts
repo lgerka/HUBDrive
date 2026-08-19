@@ -232,13 +232,15 @@ async function notifyManagerAboutMessage(
             ? `<a href="https://wa.me/${String(user.phone).replace(/\D/g, '')}">Написать в WhatsApp</a>`
             : '';
 
+        // С номером это готовая заявка: и контакт, и что человек хочет.
+        // Без номера — пока только сообщение, и менеджеру надо это видеть
         const message = [
-            '💬 <b>Написали боту</b>',
+            user.phone ? '🚗 <b>Новая заявка</b>' : '💬 <b>Написали боту</b>',
             '',
             `<b>Клиент:</b> ${user.name || 'без имени'}`,
             phoneLine,
             '',
-            `<i>«${text.slice(0, 300)}»</i>`,
+            `<b>Что ищет:</b> ${text.slice(0, 300)}`,
             '',
             [waLink, `<a href="${chatLink}">Telegram</a>`, `<a href="${WEBAPP_ORIGIN}/admin/leads/${user.id}">Карточка</a>`]
                 .filter(Boolean).join(' · '),
