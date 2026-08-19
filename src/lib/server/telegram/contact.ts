@@ -3,6 +3,7 @@ import { normalizePhone } from '../phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyManagerAboutNewContact } from './notifier';
+import { reportMissingCar } from '../demand';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 /**
@@ -194,6 +195,17 @@ export async function handleIncomingMessage(input: {
     }
 
     await notifyManagerAboutMessage(user, text);
+
+    // Тот же текст — в чат пополнения, если просят машину, которой нет
+    await reportMissingCar({
+        request: text,
+        source: 'написал боту',
+        name: user.name,
+        phone: user.phone,
+        telegramId: user.telegramId,
+        username: user.username,
+        userId: user.id,
+    }).catch(err => console.error('[бот] спрос не отправлен:', err));
 }
 
 async function notifyManagerAboutMessage(
@@ -211,16 +223,25 @@ async function notifyManagerAboutMessage(
             ? `https://t.me/${user.username}`
             : `tg://user?id=${user.telegramId}`;
 
+        // Номер сразу под именем: менеджеру нужно позвонить или написать
+        // в WhatsApp, а не разбирать, чем этот человек отличается от других
+        const phoneLine = user.phone
+            ? `📞 <b>${user.phone}</b>`
+            : '⚠️ <b>Телефона нет</b> — только переписка в Telegram';
+        const waLink = user.phone
+            ? `<a href="https://wa.me/${String(user.phone).replace(/\D/g, '')}">Написать в WhatsApp</a>`
+            : '';
+
         const message = [
             '💬 <b>Написали боту</b>',
             '',
             `<b>Клиент:</b> ${user.name || 'без имени'}`,
-            user.phone ? `<b>Телефон:</b> ${user.phone}` : '<b>Телефона нет</b> — ответьте в переписке',
+            phoneLine,
             '',
             `<i>«${text.slice(0, 300)}»</i>`,
             '',
-            `<a href="${chatLink}">Ответить в Telegram</a>`,
-            `<a href="${WEBAPP_ORIGIN}/admin/leads/${user.id}">Карточка клиента</a>`,
+            [waLink, `<a href="${chatLink}">Telegram</a>`, `<a href="${WEBAPP_ORIGIN}/admin/leads/${user.id}">Карточка</a>`]
+                .filter(Boolean).join(' · '),
         ].filter(Boolean).join('\n');
 
         for (const chatId of chatIds) {

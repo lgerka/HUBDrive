@@ -189,15 +189,35 @@ export function initIncomingMessages() {
             username: ctx.from.username,
         }).catch(err => console.error('Не удалось принять сообщение:', err));
 
-        // Человек должен видеть, что его услышали, иначе он уходит
+        // Ответ зависит от того, знаем ли мы номер. Знаем — не пристаём;
+        // не знаем — просим, потому что без номера менеджер не дозвонится
+        const known = await prisma.user.findUnique({
+            where: { telegramId: String(ctx.from.id) },
+            select: { phone: true },
+        }).catch(() => null);
+
+        if (known?.phone) {
+            await ctx.reply(
+                'Принял. Менеджер посчитает цену под ключ и свяжется с вами по номеру '
+                + `${known.phone} в рабочее время.`,
+                { reply_markup: { remove_keyboard: true } }
+            ).catch(() => null);
+            return;
+        }
+
         await ctx.reply(
-            'Принял. Менеджер посчитает цену под ключ и ответит здесь же в рабочее время.\n\n'
-            + 'Если хотите, чтобы позвонили — нажмите «Отправить мой номер» под полем ввода.',
+            [
+                'Принял, передал менеджеру.',
+                '',
+                '👇 Нажмите <b>«Отправить мой номер»</b> внизу — без него менеджер сможет ответить только здесь, в переписке.',
+            ].join('\n'),
             {
+                parse_mode: 'HTML',
                 reply_markup: {
                     keyboard: [[{ text: '📱 Отправить мой номер', request_contact: true }]],
                     resize_keyboard: true,
                     is_persistent: true,
+                    input_field_placeholder: 'Нажмите кнопку ниже 👇',
                 },
             }
         ).catch(() => null);
@@ -233,10 +253,19 @@ export function initContactSharing() {
         }
 
         await ctx.reply(
-            result.alreadyKnown
-                ? 'Этот номер у нас уже записан — менеджер свяжется с вами по нему.'
-                : 'Записали, спасибо. Менеджер посчитает цену под ключ и позвонит вам в рабочее время.',
-            { reply_markup: { remove_keyboard: true } }
+            [
+                result.alreadyKnown
+                    ? `Этот номер у нас уже записан: ${result.phone}`
+                    : `Записали: ${result.phone}. Менеджер позвонит в рабочее время.`,
+                '',
+                'Чтобы расчёт пришёл быстрее — напишите, что ищете: марку, бюджет или город.',
+            ].join('\n'),
+            {
+                reply_markup: {
+                    remove_keyboard: true,
+                    input_field_placeholder: 'Марка, бюджет или город',
+                },
+            }
         ).catch(() => null);
     });
 }
@@ -254,11 +283,11 @@ export function initPriceRequest() {
         await ctx.answerCallbackQuery().catch(() => null);
         await ctx.reply(
             [
-                "Пришлём расчёт под ключ: цена в Казахстане с доставкой, растаможкой и утильсбором — без доплат в конце.",
+                "Посчитаем цену под ключ: машина, доставка, растаможка, утильсбор и оформление — одной суммой.",
                 "",
-                "Напишите, что ищете — марку, бюджет или город.",
+                "👇 Нажмите кнопку <b>«Отправить мой номер»</b> внизу экрана — и менеджер пришлёт расчёт.",
                 "",
-                "И нажмите <b>«Отправить мой номер»</b> внизу — кнопка под полем ввода. Вводить цифры не нужно, Telegram подставит номер сам.",
+                "<i>Вводить цифры не нужно, Telegram подставит номер сам.</i>",
             ].join("\n"),
             {
                 parse_mode: "HTML",
@@ -266,10 +295,9 @@ export function initPriceRequest() {
                     keyboard: [[{ text: "📱 Отправить мой номер", request_contact: true }]],
                     resize_keyboard: true,
                     // Без is_persistent Telegram сворачивает клавиатуру за иконку,
-                    // и человек её просто не находит. one_time_keyboard убран
-                    // по той же причине: он прячет кнопку после первого показа
+                    // и человек её просто не находит
                     is_persistent: true,
-                    input_field_placeholder: "Марка, бюджет или город",
+                    input_field_placeholder: "Нажмите кнопку ниже 👇",
                 },
             }
         ).catch(err => console.error("Не удалось попросить номер:", err));

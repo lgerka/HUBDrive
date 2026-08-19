@@ -5,6 +5,7 @@ import { normalizePhone } from '@/lib/server/phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { LEAD_VALUE_USD, WEBAPP_ORIGIN } from '@/constants/contacts';
 import { getChatIds } from '@/lib/server/telegram/targets';
+import { reportMissingCar } from '@/lib/server/demand';
 
 /**
  * Обращение, которое случилось вне сайта: человек написал в WhatsApp,
@@ -201,6 +202,16 @@ export async function POST(request: Request) {
             ? '<i>Отправлено в рекламный кабинет как заявка</i>'
             : '<i>В рекламный кабинет не ушло</i>',
     ].filter(Boolean).join('\n'));
+
+    // Если человек просит машину, которой нет в наличии, — это заявка
+    // на пополнение склада, а не только заявка в продажи
+    await reportMissingCar({
+        request: (body.comment ?? '').trim() || comment,
+        source: `${channel.label}, записал ${author}`,
+        name: name || existingUser?.name,
+        phone,
+        userId: existingUser?.id ?? null,
+    }).catch(err => console.error('[обращение] спрос не отправлен:', err));
 
     return NextResponse.json({
         ok: true,

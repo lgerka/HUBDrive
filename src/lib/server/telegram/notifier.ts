@@ -331,13 +331,14 @@ export async function notifyManagerAboutNewContact(userId: string) {
  * уходили люди, спрашивавшие Geely и BYD: машина не находилась, заявку никто
  * не видел, и о нехватке узнавали только из разговоров с менеджером.
  *
- * Уведомление тихое — без пометки «горячий», чтобы не обесценить настоящие
- * горячие лиды. Но менеджер видит, что ищут, и может предложить замену.
+ * Идёт в отдельный чат «Пополнение каталога»: там сидят те, кто решает,
+ * что везти из Китая. Накопится десяток таких сообщений — и будет видно,
+ * какие марки просят чаще всего, а каких у нас нет.
  */
 export async function notifyManagerAboutSearch(user: any, filter: any) {
     try {
         if (!process.env.TELEGRAM_BOT_TOKEN) return;
-        const chatIds = await getChatIds('leads');
+        const chatIds = await getChatIds('demand');
         if (chatIds.length === 0) return;
 
         const READINESS: Record<string, string> = {
@@ -354,19 +355,25 @@ export async function notifyManagerAboutSearch(user: any, filter: any) {
             ? `https://t.me/${user.username}`
             : `tg://user?id=${user.telegramId}`;
 
+        // Номер — первым делом: по нему звонят и пишут в WhatsApp.
+        // Если его нет, это надо видеть сразу, а не искать глазами
+        const phoneLine = user.phone
+            ? `📞 <b>${user.phone}</b>`
+            : '⚠️ <b>Телефона нет</b> — только переписка в Telegram';
+        const waLink = user.phone
+            ? `<a href="https://wa.me/${String(user.phone).replace(/\D/g, '')}">Написать в WhatsApp</a>`
+            : '';
+
         const text = [
-            '🔎 <b>Новый подбор</b>',
-            '',
-            `<b>Клиент:</b> ${user.name || user.username || 'без имени'}`,
-            user.phone ? `<b>Телефон:</b> ${user.phone}` : '<b>Телефона нет</b> — ответьте в переписке',
-            `<b>Ищет:</b> ${wanted}`,
+            `🚗 <b>Ищут: ${wanted}</b>`,
             budget ? `<b>Бюджет:</b> ${budget}` : '',
             `<b>Готовность:</b> ${READINESS[filter.purchasePlan] ?? filter.purchasePlan}`,
             '',
-            `<a href="${chatLink}">Написать в Telegram</a>`,
-            `<a href="${WEBAPP_URL}/admin/leads/${user.id}">Карточка клиента</a>`,
+            `<b>Клиент:</b> ${user.name || user.username || 'без имени'}`,
+            phoneLine,
             '',
-            '<i>Если такой машины нет в наличии — это спрос, которого мы не закрываем</i>',
+            [waLink, `<a href="${chatLink}">Telegram</a>`, `<a href="${WEBAPP_URL}/admin/demand">Весь спрос</a>`]
+                .filter(Boolean).join(' · '),
         ].filter(Boolean).join('\n');
 
         for (const chatId of chatIds) {
