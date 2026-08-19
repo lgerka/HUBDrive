@@ -13,6 +13,7 @@ import { InstallInstructions } from "@/components/hubdrive/landing/install-instr
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
 import { StructuredData } from "@/components/hubdrive/landing/structured-data";
 import { SessionTracker } from "@/components/hubdrive/analytics/session-tracker";
+import { ContactWays } from "@/components/hubdrive/landing/contact-ways";
 
 export const revalidate = 300;
 
@@ -216,6 +217,8 @@ export default async function LandingPage() {
                     <LeadForm />
                 </div>
             </section>
+
+            <ContactWays />
 
             {/* Гарантии */}
             <section className="bg-slate-50 py-16">

@@ -15,7 +15,18 @@ const WEBAPP_URL = WEBAPP_ORIGIN;
 
 export function initBotCommands() {
     bot.command("start", async (ctx) => {
-        const text = "👋 Добро пожаловать в HUBDrive!\nЗдесь вы можете найти лучшие автомобили из Китая.\n\nНажмите кнопку ниже, чтобы открыть наш каталог.";
+        // «Лучшие автомобили» — пустые слова, за которые никто не платит.
+        // Человек пришёл с одним вопросом: сколько будет стоить у меня в городе.
+        // Отвечаем на него сразу и даём три понятных шага вместо одной кнопки
+        const text = [
+            "🚗 <b>HUBDrive — авто из Китая под ключ</b>",
+            "",
+            "Считаем итоговую цену в Казахстане сразу: машина, доставка, растаможка с полной пошлиной, утильсбор и оформление. Без доплат в конце.",
+            "",
+            "В наличии 51 автомобиль, от $11 100. Срок — 4–8 недель.",
+            "",
+            "С чего начнём?",
+        ].join("\n");
 
         const telegramId = ctx.from?.id.toString();
         const username = ctx.from?.username;
@@ -58,13 +69,16 @@ export function initBotCommands() {
         }
 
         await ctx.reply(text, {
+            parse_mode: "HTML",
+            link_preview_options: { is_disabled: true },
             reply_markup: {
-                inline_keyboard: [[
-                    {
-                        text: "🚗 Открыть каталог",
-                        web_app: { url: `${WEBAPP_URL}/app` }
-                    }
-                ]]
+                inline_keyboard: [
+                    [{ text: "🚗 Смотреть каталог", web_app: { url: `${WEBAPP_URL}/app` } }],
+                    // Подбор — то, ради чего стоит остаться: нужной машины
+                    // сегодня может не быть, а через месяц она приедет
+                    [{ text: "🔔 Нет нужной машины — сообщите, когда приедет", web_app: { url: `${WEBAPP_URL}/filters/new` } }],
+                    [{ text: "💬 Рассчитать цену под ключ", callback_data: "calc_price" }],
+                ]
             }
         });
     });
@@ -154,7 +168,36 @@ export function initContactSharing() {
     });
 }
 
+
+/**
+ * «Рассчитать цену под ключ».
+ *
+ * Здесь человек обменивает номер на понятную ценность, а не отдаёт его
+ * просто так. Номер берём кнопкой Telegram — одно нажатие вместо
+ * одиннадцати цифр на телефонной клавиатуре.
+ */
+export function initPriceRequest() {
+    bot.callbackQuery("calc_price", async (ctx) => {
+        await ctx.answerCallbackQuery().catch(() => null);
+        await ctx.reply(
+            [
+                "Пришлём расчёт под ключ: цена в Казахстане с доставкой, растаможкой и утильсбором — без доплат в конце.",
+                "",
+                "Напишите, что ищете — марку, бюджет или город. И оставьте номер, чтобы менеджер прислал расчёт.",
+            ].join("\n"),
+            {
+                reply_markup: {
+                    keyboard: [[{ text: "📱 Отправить мой номер", request_contact: true }]],
+                    resize_keyboard: true,
+                    one_time_keyboard: true,
+                },
+            }
+        ).catch(err => console.error("Не удалось попросить номер:", err));
+    });
+}
+
 // Initializing commands so they are registered
 initBotCommands();
+initPriceRequest();
 initChatDiscovery();
 initContactSharing();
