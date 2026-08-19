@@ -65,6 +65,25 @@ async function reportQuality(lead: LandingLead, nextStatus: LeadStatus): Promise
     const event = QUALITY_EVENTS[nextStatus];
     if (!event || lead.status === nextStatus) return;
 
+    // Своя защита от повторной отправки. Meta склеивает одинаковые события
+    // по идентификатору лишь двое суток, а стадию могут откатить и поставить
+    // заново через неделю — тогда одна сделка засчиталась бы дважды.
+    // Уникальный ключ в базе не даст записи появиться второй раз
+    try {
+        await prisma.notification.create({
+            data: {
+                dedupKey: `meta-quality-${lead.id}-${nextStatus}`,
+                channel: 'manager',
+                type: 'contact_clicked',
+                text: `${event.label}: ${lead.name} ${lead.phone}`,
+                deliveryStatus: 'sent',
+            },
+        });
+    } catch {
+        // Ключ занят — эту стадию по этой заявке уже отправляли
+        return;
+    }
+
     try {
         await sendMetaEvent({
             eventName: event.name,
