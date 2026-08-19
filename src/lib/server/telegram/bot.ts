@@ -13,17 +13,51 @@ export const bot = new Bot(token || 'dummy_token');
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
 
+
+/** Русское склонение — иначе «51 автомобилей». */
+function plural(n: number, one: string, few: string, many: string): string {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
+}
+
+/**
+ * Сколько машин в наличии и от какой цены.
+ *
+ * Считаем на лету: каталог пополняется, и любая цифра в тексте протухает
+ * через неделю. Если база молчит — обходимся без цифр, а не врём.
+ */
+async function countStock(): Promise<{ total: number; fromPrice: number | null }> {
+    try {
+        const rows = await prisma.vehicle.findMany({
+            where: { status: { in: ["in_stock", "in_transit"] } },
+            select: { priceUSD: true },
+        });
+        const prices = rows.map(r => r.priceUSD).filter((p): p is number => typeof p === "number" && p > 0);
+        return { total: rows.length, fromPrice: prices.length > 0 ? Math.min(...prices) : null };
+    } catch {
+        return { total: 0, fromPrice: null };
+    }
+}
+
 export function initBotCommands() {
     bot.command("start", async (ctx) => {
-        // «Лучшие автомобили» — пустые слова, за которые никто не платит.
-        // Человек пришёл с одним вопросом: сколько будет стоить у меня в городе.
-        // Отвечаем на него сразу и даём три понятных шага вместо одной кнопки
+        // Цифры берём из каталога, а не из текста: склад пополняется каждую
+        // неделю, а зашитое «51 автомобиль» осталось бы враньём навсегда
+        const stock = await countStock();
+
         const text = [
-            "🚗 <b>HUBDrive — авто из Китая под ключ</b>",
+            "<b>HUBDrive</b> — авто из Китая под ключ 🇨🇳",
             "",
-            "Считаем итоговую цену в Казахстане сразу: машина, доставка, растаможка с полной пошлиной, утильсбор и оформление. Без доплат в конце.",
+            "Называем итоговую цену в Казахстане сразу — машина, доставка, растаможка, утильсбор, оформление.",
+            "<b>Без доплат в конце.</b>",
             "",
-            "В наличии 51 автомобиль, от $11 100. Срок — 4–8 недель.",
+            stock.total > 0
+                ? `🚗 В наличии <b>${stock.total} ${plural(stock.total, "автомобиль", "автомобиля", "автомобилей")}</b>${stock.fromPrice ? ` — от <b>$${stock.fromPrice.toLocaleString("ru-RU")}</b>` : ""}`
+                : "🚗 Привезём любую машину из Китая под заказ",
+            "⏱ Доставка 4–8 недель",
+            "🔍 Проверяем машину до оплаты, отчёт с фото",
             "",
             "С чего начнём?",
         ].join("\n");
@@ -72,12 +106,14 @@ export function initBotCommands() {
             parse_mode: "HTML",
             link_preview_options: { is_disabled: true },
             reply_markup: {
+                // Подписи короткие: Telegram обрезает длинные прямо посередине,
+                // и кнопка превращается в «Нет нужной машины — сообщите,...»
                 inline_keyboard: [
                     [{ text: "🚗 Смотреть каталог", web_app: { url: `${WEBAPP_URL}/app` } }],
+                    [{ text: "💰 Рассчитать цену", callback_data: "calc_price" }],
                     // Подбор — то, ради чего стоит остаться: нужной машины
                     // сегодня может не быть, а через месяц она приедет
-                    [{ text: "🔔 Нет нужной машины — сообщите, когда приедет", web_app: { url: `${WEBAPP_URL}/filters/new` } }],
-                    [{ text: "💬 Рассчитать цену под ключ", callback_data: "calc_price" }],
+                    [{ text: "🔔 Ищу другую машину", web_app: { url: `${WEBAPP_URL}/filters/new` } }],
                 ]
             }
         });
@@ -183,13 +219,20 @@ export function initPriceRequest() {
             [
                 "Пришлём расчёт под ключ: цена в Казахстане с доставкой, растаможкой и утильсбором — без доплат в конце.",
                 "",
-                "Напишите, что ищете — марку, бюджет или город. И оставьте номер, чтобы менеджер прислал расчёт.",
+                "Напишите, что ищете — марку, бюджет или город.",
+                "",
+                "И нажмите <b>«Отправить мой номер»</b> внизу — кнопка под полем ввода. Вводить цифры не нужно, Telegram подставит номер сам.",
             ].join("\n"),
             {
+                parse_mode: "HTML",
                 reply_markup: {
                     keyboard: [[{ text: "📱 Отправить мой номер", request_contact: true }]],
                     resize_keyboard: true,
-                    one_time_keyboard: true,
+                    // Без is_persistent Telegram сворачивает клавиатуру за иконку,
+                    // и человек её просто не находит. one_time_keyboard убран
+                    // по той же причине: он прячет кнопку после первого показа
+                    is_persistent: true,
+                    input_field_placeholder: "Марка, бюджет или город",
                 },
             }
         ).catch(err => console.error("Не удалось попросить номер:", err));
