@@ -6,6 +6,10 @@ import { prisma } from '../prisma';
  * Два независимых канала, чтобы не было путаницы:
  *  - LEADS  — заявки от клиентов («Связаться», горячие лиды). Обычно чат отдела продаж.
  *  - TECH   — технические оповещения (ошибки, статусы доставки, диагностика).
+ *  - DEMAND — что люди ищут: подборы и запросы на машины, которых нет в наличии.
+ *             Отдельный чат для тех, кто решает, что везти из Китая. Если он
+ *             не задан, такие сообщения идут в чат продаж — лучше туда,
+ *             чем никуда.
  *
  * Приоритет источников:
  *  1) настройка в админке (SystemSettings: telegramLeadsChatId / telegramTechChatId)
@@ -13,11 +17,12 @@ import { prisma } from '../prisma';
  *  3) общий список ADMIN_TELEGRAM_IDS — чтобы ничего не сломалось при переходе
  */
 
-export type NotifyChannel = 'leads' | 'tech';
+export type NotifyChannel = 'leads' | 'tech' | 'demand';
 
 const SETTINGS_KEY: Record<NotifyChannel, string> = {
     leads: 'telegramLeadsChatId',
     tech: 'telegramTechChatId',
+    demand: 'telegramDemandChatId',
 };
 
 export interface KnownChat {
@@ -35,13 +40,22 @@ function parseIds(raw?: string | null): string[] {
 function envIds(channel: NotifyChannel): string[] {
     const specific = channel === 'leads'
         ? process.env.TELEGRAM_LEADS_CHAT_ID
-        : process.env.TELEGRAM_TECH_CHAT_ID;
+        : channel === 'demand'
+            ? process.env.TELEGRAM_DEMAND_CHAT_ID
+            : process.env.TELEGRAM_TECH_CHAT_ID;
     const ids = parseIds(specific);
     return ids.length > 0 ? ids : parseIds(process.env.ADMIN_TELEGRAM_IDS);
 }
 
 /** Список chat_id для канала. Пустой массив = канал не настроен, отправку надо пропустить. */
 export async function getChatIds(channel: NotifyChannel): Promise<string[]> {
+    // Пока отдельный чат спроса не заведён, шлём в продажи: сообщение
+    // о том, какую машину просят, полезнее в неподходящем чате, чем нигде
+    if (channel === 'demand') {
+        const own = await ownChatIds('demand');
+        if (own.length > 0) return own;
+        return getChatIds('leads');
+    }
     try {
         const row = await prisma.systemSettings.findUnique({ where: { key: SETTINGS_KEY[channel] } });
         const saved = typeof row?.value === 'string' ? row.value : null;
@@ -51,6 +65,21 @@ export async function getChatIds(channel: NotifyChannel): Promise<string[]> {
         console.error('Failed to read chat settings, falling back to env:', err);
     }
     return envIds(channel);
+}
+
+/** Идентификаторы именно этого канала, без запасных вариантов. */
+async function ownChatIds(channel: NotifyChannel): Promise<string[]> {
+    try {
+        const row = await prisma.systemSettings.findUnique({ where: { key: SETTINGS_KEY[channel] } });
+        const saved = typeof row?.value === 'string' ? row.value : null;
+        const ids = parseIds(saved);
+        if (ids.length > 0) return ids;
+    } catch {
+        // База молчит — полагаемся на переменную окружения
+    }
+    return parseIds(
+        channel === 'demand' ? process.env.TELEGRAM_DEMAND_CHAT_ID : undefined
+    );
 }
 
 /** Откуда взялись id — для подсказки в админке. */

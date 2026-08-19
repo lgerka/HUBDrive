@@ -6,6 +6,7 @@ import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { prisma as db } from '@/lib/server/prisma';
 import { normalizePhone } from '@/lib/server/phone';
 import { LEAD_VALUE_USD } from '@/constants/contacts';
+import { reportMissingCar } from '@/lib/server/demand';
 
 /**
  * Заявка с лендинга — «рассчитать цену под ключ».
@@ -140,6 +141,13 @@ export async function POST(request: Request) {
                     },
                 }).catch(() => null);
             }
+
+            await reportMissingCar({
+                request: comment || '',
+                source: 'заявка с сайта',
+                name,
+                phone,
+            }).catch(err => console.error('[заявка] спрос не отправлен:', err));
 
             await sendMetaEvent({
                 eventName: 'Lead',
