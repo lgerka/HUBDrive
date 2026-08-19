@@ -50,12 +50,16 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                 // Check localStorage
                 const hasCompletedOnboarding = localStorage.getItem('onboardingCompleted') === 'true';
                 
-                // Fetch necessary data if initData exists
+                // На компьютере человек входит через виджет Telegram, и initData
+                // не появляется — раньше профиль тут просто не загружался, и вход
+                // не приводил никуда
                 if (initData) {
                     await Promise.all([
                         profile ? Promise.resolve() : fetchProfile(initData),
                         fetchFilters(initData)
                     ]);
+                } else if (!profile) {
+                    await fetchProfile();
                 }
 
                 if (!mounted) return;

@@ -14,20 +14,20 @@ export interface UserDBProfile {
 interface UserState {
     profile: UserDBProfile | null;
     isLoading: boolean;
-    fetchProfile: (initData: string) => Promise<void>;
+    fetchProfile: (initData?: string) => Promise<void>;
     updateProfile: (updated: Partial<UserDBProfile>) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
     profile: null,
     isLoading: false,
-    fetchProfile: async (initData: string) => {
+    fetchProfile: async (initData?: string) => {
         set({ isLoading: true });
         try {
+            // Вход через виджет Telegram на компьютере не даёт initData —
+            // там работает cookie-сессия, и сервер её понимает
             const res = await fetch('/api/me', {
-                headers: {
-                    'x-telegram-init-data': initData,
-                }
+                headers: initData ? { 'x-telegram-init-data': initData } : {},
             });
             if (res.ok) {
                 const data = await res.json();
