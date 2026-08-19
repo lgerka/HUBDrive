@@ -19,17 +19,47 @@ export const revalidate = 300;
 
 const HERO_IMAGE = "https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/public/media/landing/hero-main.jpg";
 
+/**
+ * Витрина на лендинге.
+ *
+ * Раньше брались шесть последних добавленных — и человек, пришедший по
+ * рекламе, видел шесть одинаковых BMW 320Li подряд. Со стороны это выглядит
+ * как пустой склад, хотя в каталоге полсотни машин семи марок.
+ *
+ * Теперь показываем разные марки: сначала по одной от каждой, потом
+ * добираем остальными. Внутри марки — сначала дешёвые: цена входа решает,
+ * стоит ли человеку читать дальше.
+ */
 async function getShowcase() {
     try {
-        const [vehicles, total] = await Promise.all([
+        const [pool, total] = await Promise.all([
             prisma.vehicle.findMany({
                 where: { status: { in: ["in_stock", "in_transit"] } },
-                orderBy: { createdAt: "desc" },
-                take: 6,
+                orderBy: [{ priceUSD: "asc" }, { createdAt: "desc" }],
+                take: 60,
                 select: { id: true, brand: true, model: true, year: true, mileage: true, priceUSD: true, media: true },
             }),
             prisma.vehicle.count({ where: { status: { notIn: ["hidden"] } } }),
         ]);
+
+        const byBrand = new Map<string, typeof pool>();
+        for (const v of pool) {
+            const list = byBrand.get(v.brand) ?? [];
+            list.push(v);
+            byBrand.set(v.brand, list);
+        }
+
+        // По кругу берём по одной машине от каждой марки, пока не наберём шесть
+        const vehicles: typeof pool = [];
+        const queues = [...byBrand.values()];
+        while (vehicles.length < 6 && queues.some(q => q.length > 0)) {
+            for (const q of queues) {
+                if (vehicles.length >= 6) break;
+                const next = q.shift();
+                if (next) vehicles.push(next);
+            }
+        }
+
         return { vehicles, total };
     } catch {
         return { vehicles: [], total: 0 };
