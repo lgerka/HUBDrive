@@ -2,7 +2,7 @@ import { Bot } from 'grammy';
 import { prisma } from '../prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { linkAttribution } from '@/lib/server/meta/attribution';
-import { saveSharedContact } from './contact';
+import { saveSharedContact, handleIncomingMessage } from './contact';
 import { SUPPORT_PHONE } from '@/constants/contacts';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -167,6 +167,43 @@ export function initChatDiscovery() {
     });
 }
 
+/**
+ * Человек написал боту текстом.
+ *
+ * Бот сам просит «напишите, что ищете», и до этого написанное пропадало:
+ * обработчика не было вовсе. Человек не получал ответа, менеджер не узнавал
+ * о нём, и запрос вроде «Geely Monjaro до 20 млн» просто исчезал.
+ */
+export function initIncomingMessages() {
+    bot.on('message:text', async (ctx, next) => {
+        // Команды обрабатываются своими обработчиками, группы нас тут не касаются
+        if (ctx.chat?.type !== 'private' || ctx.message.text.startsWith('/')) {
+            return next();
+        }
+
+        await handleIncomingMessage({
+            telegramId: String(ctx.from.id),
+            text: ctx.message.text,
+            firstName: ctx.from.first_name,
+            lastName: ctx.from.last_name,
+            username: ctx.from.username,
+        }).catch(err => console.error('Не удалось принять сообщение:', err));
+
+        // Человек должен видеть, что его услышали, иначе он уходит
+        await ctx.reply(
+            'Принял. Менеджер посчитает цену под ключ и ответит здесь же в рабочее время.\n\n'
+            + 'Если хотите, чтобы позвонили — нажмите «Отправить мой номер» под полем ввода.',
+            {
+                reply_markup: {
+                    keyboard: [[{ text: '📱 Отправить мой номер', request_contact: true }]],
+                    resize_keyboard: true,
+                    is_persistent: true,
+                },
+            }
+        ).catch(() => null);
+    });
+}
+
 
 /**
  * Номер телефона, которым человек поделился нажатием кнопки.
@@ -244,3 +281,4 @@ initBotCommands();
 initPriceRequest();
 initChatDiscovery();
 initContactSharing();
+initIncomingMessages();
