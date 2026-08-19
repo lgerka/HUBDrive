@@ -23,6 +23,37 @@ function readCookie(name: string): string | undefined {
     return hit ? decodeURIComponent(hit.slice(name.length + 1)) : undefined;
 }
 
+
+/**
+ * На компьютере ссылка t.me открывается страницей в браузере с кнопкой
+ * «Открыть в Telegram» — лишний шаг, на котором человек отваливается.
+ * Схему tg:// Windows и macOS отдают установленному приложению напрямую.
+ *
+ * На телефоне так делать не стоит: там t.me и так открывает приложение,
+ * а у гостя без Telegram tg:// покажет ошибку браузера вместо страницы.
+ */
+function isDesktop(): boolean {
+    if (typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent;
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return false;
+    return true;
+}
+
+/** t.me/бот?startapp=X → tg://resolve?domain=бот&startapp=X */
+function toAppScheme(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        if (!parsed.hostname.endsWith("t.me")) return null;
+        const domain = parsed.pathname.replace(/^\//, "").split("/")[0];
+        if (!domain) return null;
+        const params = new URLSearchParams(parsed.search);
+        params.set("domain", domain);
+        return `tg://resolve?${params.toString()}`;
+    } catch {
+        return null;
+    }
+}
+
 interface BotLinkProps {
     children: React.ReactNode;
     className?: string;
@@ -80,6 +111,23 @@ export function BotLink({ children, className, target = "app", event = "none", p
                 }
             } catch {
                 // остаёмся на обычной ссылке
+            }
+
+            // Сначала пробуем открыть приложение напрямую, а через полторы
+            // секунды — обычную ссылку. Если Telegram не установлен или схема
+            // не обработана, человек всё равно попадёт на страницу t.me
+            const appUrl = isDesktop() ? toAppScheme(url) : null;
+            if (appUrl) {
+                const fallback = window.setTimeout(() => {
+                    if (!document.hidden) window.location.href = url;
+                }, 1500);
+                // Ушли в приложение — окно теряет фокус, запасной переход не нужен
+                const cancel = () => {
+                    if (document.hidden) window.clearTimeout(fallback);
+                };
+                document.addEventListener("visibilitychange", cancel, { once: true });
+                window.location.href = appUrl;
+                return;
             }
 
             window.location.href = url;
