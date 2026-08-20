@@ -35,15 +35,26 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  // Считаем по всей базе, а не по загруженной странице: в базе 181 человек,
+  // а на странице 50 — раньше именно это число и показывалось как «всего»
+  const [summary, setSummary] = useState({ total: 0, withPhone: 0 });
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
 
-  const loadUsers = async () => {
+  const loadUsers = async (opts?: { page?: number; q?: string }) => {
+    setIsLoading(true);
     try {
       const headers: Record<string, string> = {};
       if (initData) headers["x-telegram-init-data"] = initData;
-      const res = await fetch("/api/admin/users", { headers });
+      const params = new URLSearchParams({ page: String(opts?.page ?? page) });
+      const q = opts?.q ?? search;
+      if (q.trim()) params.set("q", q.trim());
+      const res = await fetch(`/api/admin/users?${params}`, { headers });
       if (res.ok) {
         const json = await res.json();
         setUsers(Array.isArray(json) ? json : (json.data ?? []));
+        if (json.summary) setSummary(json.summary);
+        if (json.pagination) setPages(json.pagination.pages || 1);
       }
     } catch (e) {
       console.error(e);
@@ -53,8 +64,19 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    loadUsers();
+    loadUsers({ page: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initData]);
+
+  // Ищем на сервере, но не на каждую букву — иначе запросы обгоняют набор
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      loadUsers({ page: 1, q: search });
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const toggleRole = async (userId: string, currentRole: string) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
@@ -79,12 +101,9 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filteredUsers = users.filter(u => {
-    const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-    const uname = (u.username || '').toLowerCase();
-    const q = search.toLowerCase();
-    return fullName.includes(q) || uname.includes(q);
-  });
+  // Сервер уже отфильтровал по всей базе — фильтровать ещё раз на клиенте
+  // значило бы искать внутри найденного
+  const filteredUsers = users;
 
   const adminsCount = users.filter(u => u.role === 'admin').length;
 
@@ -94,19 +113,21 @@ export default function AdminUsersPage() {
       <div className="grid grid-cols-12 gap-6 mb-8">
         <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest p-8 rounded-3xl relative overflow-hidden shadow-sm border border-border/50">
           <div className="relative z-10">
-            <h3 className="font-sans text-2xl font-extrabold mb-2">Добро пожаловать в Curator Dashboard</h3>
+            <h3 className="font-sans text-2xl font-extrabold mb-2">Все люди в базе</h3>
             <p className="text-muted-foreground max-w-md font-sans font-medium leading-relaxed">
-              Управляйте правами доступа и просматривайте активность пользователей в режиме реального времени.
+              Каждый, кто открывал приложение или писал боту. Здесь же выдаются
+              права администратора. Работа с заявками — в разделах «Лиды»
+              и «Заявки с сайта».
             </p>
             <div className="flex gap-8 mt-8">
               <div>
-                <span className="block text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Всего пользователей</span>
-                <span className="text-3xl font-sans font-extrabold">{users.length}</span>
+                <span className="block text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Всего людей</span>
+                <span className="text-3xl font-sans font-extrabold">{summary.total}</span>
               </div>
               <div className="w-px h-10 bg-border/60 self-end"></div>
               <div>
-                <span className="block text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Менеджеры</span>
-                <span className="text-3xl font-sans font-extrabold">{adminsCount}</span>
+                <span className="block text-[10px] font-bold text-primary uppercase tracking-widest mb-1">С телефоном</span>
+                <span className="text-3xl font-sans font-extrabold">{summary.withPhone}</span>
               </div>
             </div>
           </div>
@@ -120,8 +141,8 @@ export default function AdminUsersPage() {
           <h4 className="font-sans font-bold text-sm mb-4">Статистика</h4>
           <div className="flex flex-col gap-4">
              <div className="bg-background px-4 py-3 rounded-2xl shadow-sm border border-border/50 flex justify-between items-center">
-                <span className="text-xs font-bold text-muted-foreground">Клиенты</span>
-                <span className="font-bold text-sm">{users.length - adminsCount}</span>
+                <span className="text-xs font-bold text-muted-foreground">Без телефона</span>
+                <span className="font-bold text-sm">{Math.max(0, summary.total - summary.withPhone)}</span>
              </div>
              <div className="bg-background px-4 py-3 rounded-2xl shadow-sm border border-border/50 flex justify-between items-center text-primary">
                 <span className="text-xs font-bold">Администраторы</span>
@@ -233,9 +254,27 @@ export default function AdminUsersPage() {
           )}
         </div>
 
-        {/* Pagination mock */}
-        <div className="flex justify-between items-center mt-6 p-4 border-t border-border/50">
-          <span className="text-xs text-muted-foreground font-medium tracking-tight">Показано {filteredUsers.length} из {users.length} пользователей</span>
+        {/* Постраничный вывод: без него видно только первых пятьдесят */}
+        <div className="flex flex-wrap justify-between items-center gap-3 mt-6 p-4 border-t border-border/50">
+          <span className="text-xs text-muted-foreground font-medium tracking-tight">
+            Страница {page} из {pages} · всего {summary.total}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { const n = page - 1; setPage(n); loadUsers({ page: n }); }}
+              disabled={page <= 1 || isLoading}
+              className="flex h-9 items-center gap-1 rounded-xl bg-muted/60 px-3 text-xs font-bold disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" /> Назад
+            </button>
+            <button
+              onClick={() => { const n = page + 1; setPage(n); loadUsers({ page: n }); }}
+              disabled={page >= pages || isLoading}
+              className="flex h-9 items-center gap-1 rounded-xl bg-muted/60 px-3 text-xs font-bold disabled:opacity-40"
+            >
+              Дальше <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
