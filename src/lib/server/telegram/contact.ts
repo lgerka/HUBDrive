@@ -143,6 +143,34 @@ async function sendPhoneToMeta(
  * Уведомляем не чаще раза в час на человека: люди пишут очередями по три
  * сообщения, и каждое не должно дёргать отдел продаж.
  */
+
+/**
+ * Спам в личке бота.
+ *
+ * В переписку полетели рассылки со ссылками на пиратские фильмы и на домен
+ * hubdrive.tips, подделывающийся под наш. Половина входящих оказалась такой.
+ * Каждое такое сообщение заводило человека в базе, дёргало отдел продаж
+ * и засоряло статистику обращений.
+ *
+ * Признак простой и надёжный: настоящий клиент пишет «Geely Monjaro до 20 млн»,
+ * а не присылает ссылку. Ссылок в запросах на машину не бывает, поэтому любое
+ * сообщение со ссылкой отбрасываем целиком — молча, без ответа: ответ
+ * подтвердил бы рассыльщику, что бот живой.
+ */
+const LINK_PATTERN = /(https?:\/\/|www\.|t\.me\/|\b[a-z0-9-]+\.(com|net|org|ru|kz|cl|tips|xyz|top|info|site|online|club|shop|link)\b)/i;
+
+/** Имена из непечатаемых символов — верный признак рассылки. */
+function looksLikeGibberish(name: string): boolean {
+    const letters = (name.match(/[\p{L}\p{N}]/gu) || []).length;
+    return name.length >= 6 && letters / name.length < 0.5;
+}
+
+export function looksLikeSpam(text: string, name?: string | null): boolean {
+    if (LINK_PATTERN.test(text)) return true;
+    if (name && looksLikeGibberish(name)) return true;
+    return false;
+}
+
 export async function handleIncomingMessage(input: {
     telegramId: string;
     text: string;
@@ -154,6 +182,13 @@ export async function handleIncomingMessage(input: {
     if (!text) return;
 
     const name = [input.firstName, input.lastName].filter(Boolean).join(' ').trim();
+
+    // Рассылку отбрасываем до всякой записи: иначе спамер попадёт в базу
+    // как клиент, а отдел продаж получит уведомление
+    if (looksLikeSpam(text, name)) {
+        console.warn('[бот] отброшено как спам:', text.slice(0, 80));
+        return;
+    }
 
     const user = await prisma.user.upsert({
         where: { telegramId: input.telegramId },
