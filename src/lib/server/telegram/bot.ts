@@ -2,7 +2,7 @@ import { Bot } from 'grammy';
 import { prisma } from '../prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { linkAttribution } from '@/lib/server/meta/attribution';
-import { saveSharedContact, handleIncomingMessage } from './contact';
+import { saveSharedContact, handleIncomingMessage, looksLikeSpam } from './contact';
 import { SUPPORT_PHONE } from '@/constants/contacts';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -179,6 +179,13 @@ export function initIncomingMessages() {
         // Команды обрабатываются своими обработчиками, группы нас тут не касаются
         if (ctx.chat?.type !== 'private' || ctx.message.text.startsWith('/')) {
             return next();
+        }
+
+        const senderName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ');
+        if (looksLikeSpam(ctx.message.text, senderName)) {
+            // Молча игнорируем: любой ответ подтверждает рассыльщику,
+            // что бот живой и адрес рабочий
+            return;
         }
 
         await handleIncomingMessage({
