@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send, Pencil, Trash2 } from "lucide-react";
+import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send, Pencil, Trash2, Search } from "lucide-react";
 import { whatsappLink } from "@/constants/contacts";
 
 /**
@@ -61,6 +61,9 @@ export default function LandingLeadsPage() {
     const [saving, setSaving] = useState<string | null>(null);
     // Обращение, случившееся вне сайта: WhatsApp, звонок, личка
     const [logging, setLogging] = useState(false);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+    const [channelFilter, setChannelFilter] = useState<string>("all");
     const [editing, setEditing] = useState<LandingLead | null>(null);
 
     const load = useCallback(async () => {
@@ -107,9 +110,23 @@ export default function LandingLeadsPage() {
 
     const waiting = leads.filter(l => !l.processed).length;
 
+    // Ищем по всему, чем человека можно узнать: имя, номер, что просил,
+    // заметка менеджера. Список небольшой, поэтому фильтруем на месте
+    const visible = leads.filter(l => {
+        if (statusFilter !== "all" && l.status !== statusFilter) return false;
+        if (channelFilter !== "all" && (l.channel ?? "") !== channelFilter) return false;
+        const q = search.trim().toLowerCase();
+        if (!q) return true;
+        return [l.name, l.phone, l.comment, l.managerComment, l.createdBy]
+            .some(v => (v || "").toLowerCase().includes(q));
+    });
+
+    // Каналы берём из самих заявок — незачем показывать пустые фильтры
+    const channels = Array.from(new Set(leads.map(l => l.channel).filter(Boolean) as string[]));
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="mx-auto w-full max-w-[1100px] space-y-6 px-6 py-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="font-headline text-2xl font-bold text-slate-900">Заявки</h1>
                     <p className="mt-1 text-sm text-slate-500">
@@ -117,7 +134,8 @@ export default function LandingLeadsPage() {
                             ? "Загружаем…"
                             : leads.length === 0
                                 ? "Пока ни одной заявки"
-                                : `Всего ${leads.length}, ждут звонка — ${waiting}`}
+                                : `Всего ${leads.length} · ждут звонка ${waiting}`
+                                  + (visible.length !== leads.length ? ` · показано ${visible.length}` : "")}
                     </p>
                 </div>
                 <button
@@ -127,6 +145,64 @@ export default function LandingLeadsPage() {
                     <PhoneIncoming className="h-4 w-4" />
                     Записать обращение
                 </button>
+            </div>
+
+            {/* Поиск и отбор */}
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3">
+                <div className="relative min-w-[220px] flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Имя, телефон, что просил"
+                        className="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
+                    />
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                    <button
+                        onClick={() => setStatusFilter("all")}
+                        className={`h-10 rounded-xl px-3 text-xs font-bold transition-colors ${
+                            statusFilter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                    >
+                        Все
+                    </button>
+                    {STATUSES.map(x => (
+                        <button
+                            key={x.key}
+                            onClick={() => setStatusFilter(x.key)}
+                            className={`h-10 rounded-xl px-3 text-xs font-bold transition-colors ${
+                                statusFilter === x.key ? x.tone : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            }`}
+                        >
+                            {x.label}
+                        </button>
+                    ))}
+                </div>
+
+                {channels.length > 1 && (
+                    <select
+                        value={channelFilter}
+                        onChange={e => setChannelFilter(e.target.value)}
+                        aria-label="Канал"
+                        className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 focus:border-slate-900 focus:outline-none"
+                    >
+                        <option value="all">Любой канал</option>
+                        {channels.map(c => (
+                            <option key={c} value={c}>{CHANNEL_LABELS[c] ?? c}</option>
+                        ))}
+                    </select>
+                )}
+
+                {(search || statusFilter !== "all" || channelFilter !== "all") && (
+                    <button
+                        onClick={() => { setSearch(""); setStatusFilter("all"); setChannelFilter("all"); }}
+                        className="h-10 rounded-xl px-3 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                    >
+                        Сбросить
+                    </button>
+                )}
             </div>
 
             {logging && (
@@ -147,14 +223,19 @@ export default function LandingLeadsPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {leads.map(lead => (
+                    {visible.length === 0 && (
+                        <p className="rounded-2xl border border-dashed border-slate-200 py-12 text-center text-sm text-slate-400">
+                            Ничего не нашлось — попробуйте другой запрос
+                        </p>
+                    )}
+                    {visible.map(lead => (
                         <div
                             key={lead.id}
-                            className={`rounded-2xl border p-4 transition-colors ${
-                                lead.processed ? "border-slate-100 bg-slate-50" : "border-slate-200 bg-white"
+                            className={`rounded-2xl border p-5 transition-shadow hover:shadow-sm ${
+                                lead.processed ? "border-slate-100 bg-slate-50/60" : "border-slate-200 bg-white"
                             }`}
                         >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="flex flex-col gap-4">
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <p className="font-bold text-slate-900">{lead.name}</p>
@@ -169,7 +250,12 @@ export default function LandingLeadsPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="mt-1 font-mono text-sm text-slate-700">{lead.phone}</p>
+                                    <a
+                                        href={`tel:${lead.phone}`}
+                                        className="mt-1 block font-mono text-base font-bold text-slate-900 hover:text-orange-600"
+                                    >
+                                        {lead.phone}
+                                    </a>
                                     {lead.comment && <p className="mt-1 text-sm text-slate-600">{lead.comment}</p>}
                                     {lead.ad && (
                                         <p className="mt-1 text-xs text-slate-500">Объявление: {lead.ad}</p>
@@ -187,7 +273,7 @@ export default function LandingLeadsPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex shrink-0 items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
                                     <a
                                         href={`tel:${lead.phone}`}
                                         aria-label="Позвонить"
@@ -224,6 +310,7 @@ export default function LandingLeadsPage() {
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </button>
+                                    <span className="flex-1" />
                                     <select
                                         value={lead.status}
                                         onChange={e => setStatus(lead, e.target.value as LeadStatus)}
