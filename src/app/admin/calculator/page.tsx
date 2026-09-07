@@ -1,12 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Calculator, Copy, Check, RefreshCw, SlidersHorizontal, Loader2, Info } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    calculate, asMessage, formatKzt, needsEngine, canUseWtoRate,
-    DESTINATIONS, POWERTRAINS, DEFAULT_FIXED, DEFAULT_COMMISSION_USD,
-    type FixedCosts, type Powertrain, type PriceCurrency, type MessageMode,
+    Calculator, Copy, Check, RefreshCw, SlidersHorizontal, Loader2, Info,
+    Save, Undo2, Scale, X, AlertTriangle,
+} from "lucide-react";
+import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
+import {
+    calculate, asMessage, formatKzt, needsEngine, canUseWtoRate, weeksLabel,
+    CITIES, POWERTRAINS,
+    type Powertrain, type PriceCurrency, type MessageMode,
 } from "@/lib/calculator";
+import {
+    FIELDS, CITY_FIELDS, readPath, writePath, diffSettings, buildPatch,
+    validateSettings, DEFAULT_CALC_SETTINGS,
+    type CalcSettings, type FieldDef, type Change,
+} from "@/lib/calculatorSettings";
 
 /**
  * Калькулятор стоимости под ключ.
@@ -15,9 +24,14 @@ import {
  * клиенту итог. Всё остальное подставлено и спрятано: если каждый раз
  * заполнять восемь полей, считать перестанут и вернутся к прикидкам в голове.
  *
- * Курс берём у Национального банка, а не у бесплатного агрегатора: таможня
- * считает пошлину и НДС только по нему, и разница в треть процента — это
- * сто тысяч тенге на машине.
+ * Расходы и ставки правятся здесь же и сохраняются на сервер: поправил
+ * доставку в Астану один раз — считают по новой все. Пока не нажата
+ * «Сохранить», правки живут только в этой вкладке: подобрать цифру под одного
+ * клиента и зафиксировать её для всех — разные намерения, и перепутать
+ * их дорого.
+ *
+ * Курс берём у Национального банка: таможня считает пошлину и НДС только
+ * по нему, и разница в треть процента — это сто тысяч тенге на машине.
  */
 
 interface NbkRates {
@@ -28,60 +42,257 @@ interface NbkRates {
     source: string;
 }
 
+interface Stored {
+    version: number;
+    updatedBy: string | null;
+    updatedAt: string | null;
+    settings: CalcSettings;
+}
+
+/** Текстовые значения всех настраиваемых полей — то, что видно в форме. */
+type Texts = Record<string, string>;
+
+function textsFrom(s: CalcSettings): Texts {
+    const t: Texts = {};
+    for (const f of FIELDS) {
+        const raw = readPath(s, f.path) as number;
+        t[f.path] = f.percent ? String(round(raw * 100, 4)) : String(raw);
+    }
+    for (const c of CITIES) {
+        for (const f of CITY_FIELDS) {
+            const raw = readPath(s.byCity[c.key], f.path) as number | null;
+            t[`byCity.${c.key}.${f.path}`] = raw === null ? "" : String(raw);
+        }
+    }
+    return t;
+}
+
+/**
+ * Настройки из текста формы.
+ *
+ * Стёртое поле — это не ноль. Пока менеджер не дописал число, считаем
+ * по сохранённому значению: иначе на долю секунды на экране появится цена,
+ * посчитанная без комиссии, и её успеют скопировать.
+ */
+function draftFrom(saved: CalcSettings, texts: Texts): CalcSettings {
+    const out = structuredClone(saved) as unknown as Record<string, unknown>;
+
+    for (const f of FIELDS) {
+        const n = Number(texts[f.path]);
+        if (texts[f.path]?.trim() === "" || !Number.isFinite(n)) continue;
+        writePath(out, f.path, f.percent ? n / 100 : n);
+    }
+
+    for (const c of CITIES) {
+        for (const f of CITY_FIELDS) {
+            const key = `byCity.${c.key}.${f.path}`;
+            const text = texts[key];
+            if (text === undefined) continue;
+            // Пустой срок по городу — это осознанное «взять общий»,
+            // а не незаполненное поле
+            if (text.trim() === "") {
+                if (f.path !== "deliveryUsd") writePath(out, key, null);
+                continue;
+            }
+            const n = Number(text);
+            if (Number.isFinite(n)) writePath(out, key, n);
+        }
+    }
+
+    return out as unknown as CalcSettings;
+}
+
+function round(n: number, digits: number): number {
+    const k = 10 ** digits;
+    return Math.round(n * k) / k;
+}
+
+function formatValue(v: number | null, unit: string): string {
+    if (v === null) return "не задан";
+    const n = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(v);
+    return `${n} ${unit}`;
+}
+
 export default function CalculatorPage() {
+    const { initData } = useTelegram();
+
     const [rates, setRates] = useState<NbkRates | null>(null);
+    const [stored, setStored] = useState<Stored | null>(null);
+    const [texts, setTexts] = useState<Texts>({});
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [price, setPrice] = useState("");
     const [currency, setCurrency] = useState<PriceCurrency>("CNY");
-    const [destinationKey, setDestinationKey] = useState("almaty");
+    const [cityKey, setCityKey] = useState("almaty");
     const [carName, setCarName] = useState("");
     const [powertrain, setPowertrain] = useState<Powertrain>("ice");
     const [engineCc, setEngineCc] = useState("2000");
     const [year, setYear] = useState(String(new Date().getFullYear()));
     const [kzOnly, setKzOnly] = useState(true);
-    const [commissionUsd, setCommissionUsd] = useState(String(DEFAULT_COMMISSION_USD));
-    const [fixed, setFixed] = useState<FixedCosts>(DEFAULT_FIXED);
 
-    const [showDetails, setShowDetails] = useState(false);
+    const [showCosts, setShowCosts] = useState(false);
+    const [showLegal, setShowLegal] = useState(false);
     const [messageMode, setMessageMode] = useState<MessageMode>("full");
     const [copied, setCopied] = useState(false);
 
-    const loadRates = useCallback(async (force = false) => {
+    const [confirming, setConfirming] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [savedNote, setSavedNote] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const savingRef = useRef(false);
+
+    const headers = useMemo<Record<string, string>>(
+        () => (initData ? { "x-telegram-init-data": initData } : ({} as Record<string, string>)),
+        [initData]
+    );
+
+    const loadRates = useCallback(async (force: boolean) => {
         if (force) setIsRefreshing(true);
         try {
-            const res = await fetch("/api/admin/nbk-rates", { method: force ? "POST" : "GET" });
+            const res = await fetch("/api/admin/nbk-rates", { method: force ? "POST" : "GET", headers });
             if (res.ok) setRates(await res.json());
         } catch {
-            // Банк не ответил — покажем пустой экран вместо неверной цифры
+            // Банк не ответил — лучше спиннер, чем цена по неизвестному курсу
         } finally {
             setIsRefreshing(false);
         }
-    }, []);
+    }, [headers]);
 
-    useEffect(() => { loadRates(); }, [loadRates]);
+    const loadSettings = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/calculator-settings", { cache: "no-store", headers });
+            if (!res.ok) return;
+            const data: Stored = await res.json();
+            setStored(data);
+            setTexts(textsFrom(data.settings));
+        } catch {
+            // Настройки не пришли — страница останется на загрузке.
+            // Считать по заводским молча нельзя: это правдоподобная неверная цена
+        }
+    }, [headers]);
+
+    useEffect(() => { loadRates(false); loadSettings(); }, [loadRates, loadSettings]);
+
+    const saved = stored?.settings ?? null;
+    const draft = useMemo(
+        () => (saved ? draftFrom(saved, texts) : DEFAULT_CALC_SETTINGS),
+        [saved, texts]
+    );
+
+    const changes = useMemo(
+        () => (saved ? diffSettings(saved, draft) : []),
+        [saved, draft]
+    );
 
     const result = useMemo(() => calculate({
         price: Number(price) || 0,
         currency,
-        destinationKey,
+        cityKey,
         powertrain,
         engineCc: Number(engineCc) || 0,
         year: Number(year) || new Date().getFullYear(),
         kzOnly,
         kztPerUsd: rates?.usd ?? 0,
         kztPerCny: rates?.cny ?? 0,
-        commissionUsd: Number(commissionUsd) || 0,
-        fixed,
-    }), [price, currency, destinationKey, powertrain, engineCc, year, kzOnly, rates, commissionUsd, fixed]);
+        settings: draft,
+    }), [price, currency, cityKey, powertrain, engineCc, year, kzOnly, rates, draft]);
+
+    // Тот же расчёт по сохранённым настройкам — чтобы в подтверждении
+    // показать, на сколько правка меняет цену на этой конкретной машине
+    const savedResult = useMemo(() => (saved ? calculate({
+        price: Number(price) || 0,
+        currency,
+        cityKey,
+        powertrain,
+        engineCc: Number(engineCc) || 0,
+        year: Number(year) || new Date().getFullYear(),
+        kzOnly,
+        kztPerUsd: rates?.usd ?? 0,
+        kztPerCny: rates?.cny ?? 0,
+        settings: saved,
+    }) : null), [saved, price, currency, cityKey, powertrain, engineCc, year, kzOnly, rates]);
 
     const message = useMemo(
         () => asMessage(result, carName, Number(year) || 0, messageMode),
         [result, carName, year, messageMode]
     );
 
-    const isReady = Number(price) > 0 && Boolean(rates);
+    const isReady = Number(price) > 0 && Boolean(rates) && Boolean(saved);
     const wtoAvailable = canUseWtoRate(powertrain);
+    const city = CITIES.find(c => c.key === cityKey);
+
+    const setText = (path: string, value: string) => {
+        setTexts(t => ({ ...t, [path]: value }));
+        setErrors(e => (e[path] ? { ...e, [path]: "" } : e));
+        setSavedNote(null);
+    };
+
+    const resetDraft = () => {
+        if (saved) setTexts(textsFrom(saved));
+        setErrors({});
+    };
+
+    const openConfirm = () => {
+        const found = validateSettings(draft);
+        if (Object.keys(found).length > 0) {
+            setErrors(found);
+            setShowCosts(true);
+            if (Object.keys(found).some(k => k.startsWith("rates."))) setShowLegal(true);
+            return;
+        }
+        setErrors({});
+        setSaveError(null);
+        setConfirming(true);
+    };
+
+    const save = async () => {
+        // Второй клик успевает пройти до перерисовки, поэтому флаг в ref,
+        // а не только в состоянии
+        if (savingRef.current || !saved || !stored) return;
+        savingRef.current = true;
+        setIsSaving(true);
+        setSaveError(null);
+
+        try {
+            const res = await fetch("/api/admin/calculator-settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", ...headers },
+                body: JSON.stringify({
+                    patch: buildPatch(saved, draft),
+                    version: stored.version,
+                }),
+            });
+
+            if (res.status === 409) {
+                const data = await res.json();
+                if (data.stored) {
+                    setStored(data.stored);
+                    setTexts(textsFrom(data.stored.settings));
+                }
+                setSaveError("Настройки только что изменил кто-то другой. Мы показали его значения — проверьте и внесите правку заново.");
+                setConfirming(false);
+                return;
+            }
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                setSaveError(data.error || "Не удалось сохранить. Попробуйте ещё раз.");
+                return;
+            }
+
+            const data: Stored = await res.json();
+            setStored(data);
+            setTexts(textsFrom(data.settings));
+            setConfirming(false);
+            setSavedNote("Настройки сохранены — теперь по ним считают все");
+        } catch {
+            setSaveError("Не удалось сохранить: нет связи с сервером.");
+        } finally {
+            savingRef.current = false;
+            setIsSaving(false);
+        }
+    };
 
     const copy = async () => {
         try {
@@ -96,6 +307,9 @@ export default function CalculatorPage() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    const commonFields = FIELDS.filter(f => f.group === "common");
+    const legalFields = FIELDS.filter(f => f.group === "legal");
 
     return (
         <div className="mx-auto w-full max-w-[1100px] space-y-5 px-4 py-6 sm:px-6 sm:py-8">
@@ -143,9 +357,7 @@ export default function CalculatorPage() {
                                         key={c}
                                         onClick={() => setCurrency(c)}
                                         className={`px-3.5 text-base font-bold transition-colors ${
-                                            currency === c
-                                                ? "bg-primary text-white"
-                                                : "bg-white text-slate-500 hover:bg-slate-50"
+                                            currency === c ? "bg-primary text-white" : "bg-white text-slate-500 hover:bg-slate-50"
                                         }`}
                                     >
                                         {c === "CNY" ? "¥" : "$"}
@@ -161,13 +373,11 @@ export default function CalculatorPage() {
                     <div>
                         <Label>Город доставки</Label>
                         <select
-                            value={destinationKey}
-                            onChange={e => setDestinationKey(e.target.value)}
+                            value={cityKey}
+                            onChange={e => setCityKey(e.target.value)}
                             className="w-full rounded-xl border bg-white px-4 py-3 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
                         >
-                            {DESTINATIONS.map(d => (
-                                <option key={d.key} value={d.key}>{d.city}</option>
-                            ))}
+                            {CITIES.map(c => <option key={c.key} value={c.key}>{c.city}</option>)}
                         </select>
                     </div>
 
@@ -188,9 +398,7 @@ export default function CalculatorPage() {
                             onChange={e => setPowertrain(e.target.value as Powertrain)}
                             className="w-full rounded-xl border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
                         >
-                            {POWERTRAINS.map(p => (
-                                <option key={p.key} value={p.key}>{p.label}</option>
-                            ))}
+                            {POWERTRAINS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
                         </select>
                         <p className="mt-1 text-[11px] text-slate-400">
                             {POWERTRAINS.find(p => p.key === powertrain)?.hint}
@@ -237,33 +445,114 @@ export default function CalculatorPage() {
                         </label>
                     )}
 
+                    {/* Настройки */}
                     <button
-                        onClick={() => setShowDetails(v => !v)}
+                        onClick={() => setShowCosts(v => !v)}
                         className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed py-2.5 text-xs font-bold text-slate-500 transition-colors hover:bg-slate-50"
                     >
                         <SlidersHorizontal className="h-3.5 w-3.5" />
-                        {showDetails ? "Скрыть расходы" : "Комиссия и расходы"}
+                        {showCosts ? "Скрыть расходы" : "Комиссия и расходы"}
+                        {changes.length > 0 && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                                {changes.length} {changes.length === 1 ? "правка" : changes.length < 5 ? "правки" : "правок"}
+                            </span>
+                        )}
                     </button>
 
-                    {showDetails && (
-                        <div className="space-y-2.5 rounded-xl bg-slate-50 p-3">
-                            <MoneyField label="Комиссия HUBDrive, $" value={commissionUsd} onChange={setCommissionUsd} />
-                            <MoneyField label="Брокер, $" value={String(fixed.brokerUsd)}
-                                onChange={v => setFixed({ ...fixed, brokerUsd: Number(v) || 0 })} />
-                            <MoneyField label="СБКТС и утиль, ₸" value={String(fixed.certification)}
-                                onChange={v => setFixed({ ...fixed, certification: Number(v) || 0 })} />
-                            <MoneyField label="СВХ, ₸" value={String(fixed.svh)}
-                                onChange={v => setFixed({ ...fixed, svh: Number(v) || 0 })} />
-                            <MoneyField label="Сверка, ₸" value={String(fixed.inspection)}
-                                onChange={v => setFixed({ ...fixed, inspection: Number(v) || 0 })} />
-                            <MoneyField label="Эвакуатор, ₸" value={String(fixed.towing)}
-                                onChange={v => setFixed({ ...fixed, towing: Number(v) || 0 })} />
-                            <button
-                                onClick={() => { setFixed(DEFAULT_FIXED); setCommissionUsd(String(DEFAULT_COMMISSION_USD)); }}
-                                className="w-full rounded-lg py-1.5 text-[11px] font-bold text-slate-400 hover:text-slate-600"
-                            >
-                                Вернуть обычные значения
-                            </button>
+                    {showCosts && saved && (
+                        <div className="space-y-4 rounded-xl bg-slate-50 p-3">
+                            <FieldGroup
+                                title="Для всех городов"
+                                fields={commonFields}
+                                texts={texts}
+                                saved={saved}
+                                errors={errors}
+                                onChange={setText}
+                            />
+
+                            <FieldGroup
+                                title={`Только ${city?.city ?? ""}`}
+                                subtitle="срок можно оставить пустым — тогда берётся общий"
+                                fields={CITY_FIELDS.map(f => ({ ...f, path: `byCity.${cityKey}.${f.path}` }))}
+                                texts={texts}
+                                saved={saved}
+                                errors={errors}
+                                onChange={setText}
+                            />
+
+                            <div>
+                                <button
+                                    onClick={() => setShowLegal(v => !v)}
+                                    className="flex w-full items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-700"
+                                >
+                                    <Scale className="h-3.5 w-3.5" />
+                                    Государственные ставки
+                                    <span className="ml-auto font-medium">{showLegal ? "скрыть" : "показать"}</span>
+                                </button>
+                                {showLegal && (
+                                    <div className="mt-2 space-y-2.5">
+                                        <p className="text-[11px] leading-relaxed text-slate-400">
+                                            Меняются законом. МРП пересматривают в декабре — поправьте его,
+                                            и все суммы в МРП пересчитаются сами.
+                                        </p>
+                                        {legalFields.map(f => (
+                                            <SettingField
+                                                key={f.path}
+                                                field={f}
+                                                value={texts[f.path] ?? ""}
+                                                savedValue={readPath(saved, f.path) as number}
+                                                error={errors[f.path]}
+                                                onChange={setText}
+                                            />
+                                        ))}
+                                        <p className="text-[11px] leading-relaxed text-slate-400">
+                                            Ступени первичной регистрации и границы объёма для утильсбора
+                                            остались в коде: там меняются не числа, а сама лестница.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {stored?.updatedAt && (
+                                <p className="text-[11px] text-slate-400">
+                                    Изменено {new Date(stored.updatedAt).toLocaleDateString("ru-RU", {
+                                        day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+                                    })}
+                                    {stored.updatedBy ? ` · ${stored.updatedBy}` : ""}
+                                </p>
+                            )}
+
+                            {saveError && (
+                                <p className="flex items-start gap-2 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
+                                    <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+                                    {saveError}
+                                </p>
+                            )}
+                            {savedNote && (
+                                <p className="flex items-center gap-2 rounded-lg bg-green-50 p-2.5 text-[11px] font-medium text-green-700">
+                                    <Check className="h-3.5 w-3.5 shrink-0" />
+                                    {savedNote}
+                                </p>
+                            )}
+
+                            {changes.length > 0 && (
+                                <div className="sticky bottom-0 -mx-3 -mb-3 flex gap-2 rounded-b-xl border-t bg-slate-50/95 px-3 py-3 backdrop-blur">
+                                    <button
+                                        onClick={resetDraft}
+                                        className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700"
+                                    >
+                                        <Undo2 className="h-3.5 w-3.5" />
+                                        Вернуть
+                                    </button>
+                                    <button
+                                        onClick={openConfirm}
+                                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
+                                    >
+                                        <Save className="h-3.5 w-3.5" />
+                                        Сохранить в настройки
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </section>
@@ -272,7 +561,7 @@ export default function CalculatorPage() {
                 <section className="space-y-4">
                     {!isReady ? (
                         <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-white p-8 text-center">
-                            {rates ? (
+                            {rates && saved ? (
                                 <>
                                     <Calculator className="h-8 w-8 text-slate-300" />
                                     <p className="text-sm text-slate-400">Введите цену — расчёт появится здесь</p>
@@ -285,7 +574,7 @@ export default function CalculatorPage() {
                         <>
                             <div className="rounded-2xl bg-slate-900 p-5 text-white sm:p-6">
                                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                    Цена под ключ в {result.destination?.city}
+                                    Цена под ключ в {result.city?.city}
                                 </p>
                                 <p className="mt-1 text-3xl font-black tabular-nums sm:text-4xl">
                                     {formatKzt(result.totalKzt)}
@@ -293,6 +582,11 @@ export default function CalculatorPage() {
                                 <p className="mt-1 text-sm tabular-nums text-slate-400">
                                     ≈ ${Math.round(result.totalUsd).toLocaleString("ru-RU")} · себестоимость {formatKzt(result.costKzt)}
                                 </p>
+                                {changes.length > 0 && (
+                                    <p className="mt-2 rounded-lg bg-amber-400/15 px-2.5 py-1.5 text-[11px] text-amber-200">
+                                        Считаем по вашим правкам. Пока не сохранены — у других менеджеров цифры прежние.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="overflow-hidden rounded-2xl border bg-white">
@@ -334,9 +628,7 @@ export default function CalculatorPage() {
                                                 key={m.key}
                                                 onClick={() => setMessageMode(m.key)}
                                                 className={`px-3 py-1.5 transition-colors ${
-                                                    messageMode === m.key
-                                                        ? "bg-slate-800 text-white"
-                                                        : "bg-white text-slate-500 hover:bg-slate-50"
+                                                    messageMode === m.key ? "bg-slate-800 text-white" : "bg-white text-slate-500 hover:bg-slate-50"
                                                 }`}
                                             >
                                                 {m.label}
@@ -362,11 +654,30 @@ export default function CalculatorPage() {
                                     onFocus={e => e.currentTarget.select()}
                                     className="w-full resize-none rounded-xl bg-slate-50 p-3 font-mono text-[12px] leading-relaxed text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/40"
                                 />
+                                <p className="mt-2 text-[11px] text-slate-400">
+                                    Срок доставки в сообщении: {weeksLabel(result.weeks)}
+                                </p>
                             </div>
                         </>
                     )}
                 </section>
             </div>
+
+            {confirming && saved && (
+                <ConfirmSheet
+                    changes={changes}
+                    beforeTotal={savedResult && Number(price) > 0 ? savedResult.totalKzt : null}
+                    afterTotal={Number(price) > 0 ? result.totalKzt : null}
+                    carName={carName}
+                    cityName={city?.city ?? ""}
+                    updatedAt={stored?.updatedAt ?? null}
+                    updatedBy={stored?.updatedBy ?? null}
+                    isSaving={isSaving}
+                    error={saveError}
+                    onCancel={() => setConfirming(false)}
+                    onConfirm={save}
+                />
+            )}
         </div>
     );
 }
@@ -379,21 +690,225 @@ function Label({ children }: { children: React.ReactNode }) {
     );
 }
 
-function MoneyField({ label, value, onChange }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
+function FieldGroup({ title, subtitle, fields, texts, saved, errors, onChange }: {
+    title: string;
+    subtitle?: string;
+    fields: FieldDef[];
+    texts: Texts;
+    saved: CalcSettings;
+    errors: Record<string, string>;
+    onChange: (path: string, value: string) => void;
 }) {
     return (
-        <label className="flex items-center justify-between gap-3">
-            <span className="text-xs font-medium text-slate-600">{label}</span>
-            <input
-                type="number"
-                inputMode="numeric"
-                value={value}
-                onChange={e => onChange(e.target.value)}
-                className="w-28 shrink-0 rounded-lg border bg-white px-2 py-1.5 text-right text-sm font-semibold tabular-nums text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-        </label>
+        <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{title}</p>
+            {subtitle && <p className="mb-1.5 text-[11px] text-slate-400">{subtitle}</p>}
+            <div className="mt-2 space-y-2.5">
+                {fields.map(f => (
+                    <SettingField
+                        key={f.path}
+                        field={f}
+                        value={texts[f.path] ?? ""}
+                        savedValue={readPath(saved, f.path) as number | null}
+                        error={errors[f.path]}
+                        onChange={onChange}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Одно настраиваемое поле.
+ *
+ * Изменённое подсвечивается и показывает сохранённое значение: менеджер
+ * должен видеть, что он трогал, не открывая окно подтверждения. Клик
+ * по подписи возвращает это одно поле.
+ */
+function SettingField({ field, value, savedValue, error, onChange }: {
+    field: FieldDef;
+    value: string;
+    savedValue: number | null;
+    error?: string;
+    onChange: (path: string, value: string) => void;
+}) {
+    const savedText = savedValue === null
+        ? ""
+        : String(field.percent ? round(savedValue * 100, 4) : savedValue);
+    const isChanged = value.trim() !== savedText;
+
+    return (
+        <div>
+            <label className="flex items-center justify-between gap-3">
+                <span className="min-w-0 text-xs font-medium text-slate-600">
+                    {field.label}
+                    <span className="ml-1 text-slate-400">{field.unit}</span>
+                </span>
+                <input
+                    type="number"
+                    inputMode="decimal"
+                    value={value}
+                    onChange={e => onChange(field.path, e.target.value)}
+                    placeholder={savedText || "—"}
+                    className={`w-28 shrink-0 rounded-lg border bg-white px-2 py-1.5 text-right text-sm font-semibold tabular-nums text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                        error ? "border-red-400" : isChanged ? "border-amber-400 bg-amber-50" : ""
+                    }`}
+                />
+            </label>
+            {error ? (
+                <p className="mt-0.5 text-right text-[10px] font-medium text-red-600">{error}</p>
+            ) : isChanged ? (
+                <button
+                    onClick={() => onChange(field.path, savedText)}
+                    className="mt-0.5 block w-full text-right text-[10px] text-amber-600 hover:underline"
+                >
+                    сохранено: {savedText || "не задано"} — вернуть
+                </button>
+            ) : field.hint ? (
+                <p className="mt-0.5 text-[10px] leading-relaxed text-slate-400">{field.hint}</p>
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * Подтверждение сохранения.
+ *
+ * Не «вы уверены?», а список того, что именно меняется и как это отражается
+ * на текущем расчёте. Владелец просил подтверждение затем, чтобы видеть
+ * последствия, а не чтобы щёлкнуть «ок».
+ *
+ * На телефоне это нижняя шторка: центрированное окно со списком из десяти
+ * строк на экране в 375 точек уезжает за край.
+ */
+function ConfirmSheet({
+    changes, beforeTotal, afterTotal, carName, cityName,
+    updatedAt, updatedBy, isSaving, error, onCancel, onConfirm,
+}: {
+    changes: Change[];
+    beforeTotal: number | null;
+    afterTotal: number | null;
+    carName: string;
+    cityName: string;
+    updatedAt: string | null;
+    updatedBy: string | null;
+    isSaving: boolean;
+    error: string | null;
+    onCancel: () => void;
+    onConfirm: () => void;
+}) {
+    // На iOS открытая клавиатура выталкивает шторку за экран
+    useEffect(() => { (document.activeElement as HTMLElement | null)?.blur(); }, []);
+
+    const common = changes.filter(c => !c.city);
+    const byCity = changes.filter(c => c.city);
+    const cities = Array.from(new Set(byCity.map(c => c.city!)));
+    const delta = beforeTotal !== null && afterTotal !== null ? afterTotal - beforeTotal : null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 sm:items-center">
+            <div className="flex max-h-[85vh] w-full flex-col rounded-t-2xl bg-white sm:max-w-md sm:rounded-2xl">
+                <div className="flex items-start justify-between gap-3 border-b px-5 py-4">
+                    <div>
+                        <h2 className="text-base font-bold text-slate-800">Сохранить в настройки</h2>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                            Новые значения увидят все менеджеры
+                        </p>
+                    </div>
+                    <button
+                        onClick={onCancel}
+                        disabled={isSaving}
+                        className="-mr-1 -mt-1 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-40"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                    {common.length > 0 && (
+                        <ChangeSection title="Для всех городов" items={common} />
+                    )}
+                    {cities.map(c => (
+                        <ChangeSection
+                            key={c}
+                            title={`Только ${c}`}
+                            items={byCity.filter(x => x.city === c)}
+                        />
+                    ))}
+
+                    {delta !== null && (
+                        <div className="mt-4 rounded-xl bg-slate-50 p-3">
+                            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                                На текущем расчёте
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                                {carName.trim() || "Автомобиль из Китая"}, {cityName}
+                            </p>
+                            <p className="mt-1 text-sm font-bold tabular-nums text-slate-800">
+                                {formatKzt(beforeTotal!)} → {formatKzt(afterTotal!)}
+                                <span className={delta >= 0 ? "ml-2 text-red-600" : "ml-2 text-green-600"}>
+                                    {delta >= 0 ? "+" : "−"}{formatKzt(Math.abs(delta))}
+                                </span>
+                            </p>
+                        </div>
+                    )}
+
+                    {updatedAt && (
+                        <p className="mt-3 text-[11px] text-slate-400">
+                            Сейчас сохранено: {new Date(updatedAt).toLocaleDateString("ru-RU", {
+                                day: "numeric", month: "long",
+                            })}{updatedBy ? `, ${updatedBy}` : ""}
+                        </p>
+                    )}
+
+                    {error && (
+                        <p className="mt-3 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
+                            {error}
+                        </p>
+                    )}
+                </div>
+
+                <div
+                    className="flex gap-3 border-t px-5 py-4"
+                    style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+                >
+                    <button
+                        onClick={onCancel}
+                        disabled={isSaving}
+                        className="flex-1 rounded-xl border py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isSaving}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                    >
+                        {isSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Сохраняем…</> : "Сохранить"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ChangeSection({ title, items }: { title: string; items: Change[] }) {
+    return (
+        <div className="mb-4 last:mb-0">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{title}</p>
+            <div className="mt-2 space-y-2.5">
+                {items.map((c, i) => (
+                    <div key={`${c.city ?? ""}-${c.label}-${i}`}>
+                        <p className="text-xs text-slate-600">{c.label}</p>
+                        <p className="text-sm tabular-nums text-slate-400">
+                            {formatValue(c.before, c.unit)}
+                            <span className="mx-1.5">→</span>
+                            <span className="font-bold text-slate-800">{formatValue(c.after, c.unit)}</span>
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

@@ -7,36 +7,22 @@
  *
  * Ставки сверены с законом 2026 года и с реальной сделкой владельца
  * (Zeekr 8X, 74 000 $). Сошлись до тенге: таможенный сбор, НДС, утильсбор
- * и первичная регистрация. Всё, что установлено законом, лежит здесь и задано
- * в МРП, а не в тенге: МРП меняется раз в год, и тогда правится одно число.
+ * и первичная регистрация.
+ *
+ * Сами значения ставок живут не здесь, а в настройках (calculatorSettings):
+ * менеджер правит их один раз, и это действует для всех. Здесь только
+ * порядок расчёта — он законом задан жёстко и от настроек не зависит.
  */
 
-/**
- * Ставки, установленные законом. Проверять в декабре, когда принимают
- * бюджет на следующий год.
- */
-export const RATES = {
-    /**
-     * Месячный расчётный показатель, 2026 год.
-     * Закон РК от 08.12.2025 № 239-VIII, ст. 7 п. 4.
-     */
-    mrp: 4325,
-    /** НДС на импорт. Подняли с 12% с 1 января 2026 года. */
-    vat: 0.16,
-    /** Таможенный сбор за декларирование, в МРП. */
-    customsFeeMrp: 6,
-    /** Ввозная пошлина по единому тарифу ЕАЭС. */
-    dutyEaeu: 0.15,
-    /** Акциз на дорогие машины и порог, с которого он берётся, в МРП. */
-    excise: 0.10,
-    exciseThresholdMrp: 18_000,
-    /** База утилизационного платежа, в МРП. */
-    utilBaseMrp: 50,
-    /** Свидетельство о регистрации транспортного средства, в МРП. */
-    srtsMrp: 1.25,
-    /** Государственные номера, в МРП. */
-    platesMrp: 2.8,
-} as const;
+import {
+    CITIES,
+    deliveryWeeksFor,
+    type CalcSettings,
+    type City,
+    type UtilBracket,
+} from './calculatorSettings';
+
+export { CITIES, type City };
 
 /**
  * Тип силовой установки — от него зависит почти всё.
@@ -75,88 +61,38 @@ export function canUseWtoRate(powertrain: Powertrain): boolean {
 }
 
 /**
- * Утилизационный платёж: 50 МРП × коэффициент.
+ * Коэффициент утилизационного платежа.
  *
- * Коэффициенты для машин из Китая. Для ввоза из России и Беларуси действует
- * другая таблица с запретительными значениями — мы оттуда не возим, и здесь
- * её нет намеренно, чтобы не подсказывать неверный расчёт.
+ * Ступени берутся из настроек и отсортированы по возрастанию объёма,
+ * поэтому годится первое совпадение. У чистого электромобиля утиля нет.
  */
-export function utilCoefficient(powertrain: Powertrain, engineCc: number): number {
+export function utilCoefficient(
+    powertrain: Powertrain,
+    engineCc: number,
+    brackets: UtilBracket[]
+): number {
     if (powertrain === 'bev') return 0;
-    if (engineCc <= 1000) return 1.5;
-    if (engineCc <= 2000) return 3.5;
-    if (engineCc <= 3000) return 5;
-    return 11.5;
+    for (const b of brackets) {
+        if (b.maxCc === null || engineCc <= b.maxCc) return b.coefficient;
+    }
+    return brackets[brackets.length - 1]?.coefficient ?? 0;
 }
 
-/** Сбор за первичную регистрацию, в МРП. Зависит от возраста и типа. */
+/**
+ * Сбор за первичную регистрацию, в МРП.
+ *
+ * Границы возраста: до двух лет включительно — минимальная ставка, три года —
+ * средняя, старше — максимальная. В исходной спецификации средняя ступень
+ * была записана условием, которое при целом возрасте никогда не выполняется,
+ * и ставки 25 и 50 МРП оказывались недостижимы. Мы возим новые машины,
+ * так что на сегодняшних расчётах это не сказывалось, но границу
+ * стоит подтвердить у брокера, прежде чем считать по ней подержанную.
+ */
 export function registrationMrp(powertrain: Powertrain, ageYears: number): number {
     if (ageYears <= 2) return 0.25;
-    if (powertrain === 'bev') return ageYears < 3 ? 25 : 250;
-    return ageYears < 3 ? 50 : 500;
+    if (ageYears === 3) return powertrain === 'bev' ? 25 : 50;
+    return powertrain === 'bev' ? 250 : 500;
 }
-
-/**
- * Города доставки.
- *
- * Разбито на три части так, как считает владелец: проход границы одинаков
- * для всех, транзит зависит от страны, доставка — от города.
- */
-export interface Destination {
-    key: string;
-    city: string;
-    country: 'KZ' | 'KG' | 'RU';
-    /** Транзит до страны назначения, доллары. */
-    transitUsd: number;
-    /** Доставка до города, доллары. */
-    deliveryUsd: number;
-}
-
-export const DESTINATIONS: Destination[] = [
-    { key: 'almaty', city: 'Алматы', country: 'KZ', transitUsd: 200, deliveryUsd: 200 },
-    { key: 'astana', city: 'Астана', country: 'KZ', transitUsd: 200, deliveryUsd: 400 },
-    { key: 'shymkent', city: 'Шымкент', country: 'KZ', transitUsd: 200, deliveryUsd: 350 },
-    { key: 'karaganda', city: 'Караганда', country: 'KZ', transitUsd: 200, deliveryUsd: 350 },
-    { key: 'aktobe', city: 'Актобе', country: 'KZ', transitUsd: 200, deliveryUsd: 600 },
-    { key: 'atyrau', city: 'Атырау', country: 'KZ', transitUsd: 200, deliveryUsd: 650 },
-    { key: 'bishkek', city: 'Бишкек', country: 'KG', transitUsd: 400, deliveryUsd: 500 },
-    { key: 'moscow', city: 'Москва', country: 'RU', transitUsd: 400, deliveryUsd: 1500 },
-];
-
-/** Проход границы в юанях — так его выставляет китайская сторона. */
-export const BORDER_CROSSING_CNY = 3500;
-
-/**
- * Расходы, не зависящие от цены машины.
- *
- * Государственных ставок здесь нет — это договорные цены подрядчиков.
- * Значения из реальной сделки владельца, но открыты для правки: брокер
- * и тарифы склада меняются, а зашить их намертво — значит однажды назвать
- * клиенту цену, которой нет.
- */
-export interface FixedCosts {
-    /** Склад временного хранения. */
-    svh: number;
-    /** СБКТС, ЭПТС и подача утильсбора одним пакетом. */
-    certification: number;
-    /** Сверка агрегатов. */
-    inspection: number;
-    /** Эвакуатор с СВХ. */
-    towing: number;
-    /** Услуги брокера, доллары. */
-    brokerUsd: number;
-}
-
-export const DEFAULT_FIXED: FixedCosts = {
-    svh: 25_000,
-    certification: 250_000,
-    inspection: 25_000,
-    towing: 25_000,
-    brokerUsd: 200,
-};
-
-/** Комиссия HUBDrive по умолчанию — середина вилки владельца. */
-export const DEFAULT_COMMISSION_USD = 2000;
 
 export type PriceCurrency = 'CNY' | 'USD';
 
@@ -164,7 +100,7 @@ export interface CalcInput {
     /** Цена машины в Китае, как её называет продавец. */
     price: number;
     currency: PriceCurrency;
-    destinationKey: string;
+    cityKey: string;
     powertrain: Powertrain;
     engineCc: number;
     year: number;
@@ -174,9 +110,7 @@ export interface CalcInput {
     kztPerUsd: number;
     /** Тенге за юань, курс НБ РК. */
     kztPerCny: number;
-    /** Наша комиссия, доллары. */
-    commissionUsd: number;
-    fixed: FixedCosts;
+    settings: CalcSettings;
 }
 
 export interface CalcLine {
@@ -196,20 +130,23 @@ export interface CalcResult {
     /** Таможенная стоимость: от неё считаются пошлина и НДС. */
     customsValueKzt: number;
     dutyRate: number;
-    destination: Destination | undefined;
+    city: City | undefined;
+    weeks: { min: number; max: number };
 }
 
 export function calculate(input: CalcInput): CalcResult {
-    const dest = DESTINATIONS.find(d => d.key === input.destinationKey);
+    const s = input.settings;
+    const r = s.rates;
+    const city = CITIES.find(c => c.key === input.cityKey);
     const kztUsd = input.kztPerUsd > 0 ? input.kztPerUsd : 1;
     const kztCny = input.kztPerCny > 0 ? input.kztPerCny : 1;
     const fromUsd = (usd: number) => usd * kztUsd;
 
     const carKzt = input.currency === 'CNY' ? input.price * kztCny : fromUsd(input.price);
-    const borderKzt = BORDER_CROSSING_CNY * kztCny;
+    const borderKzt = s.borderCrossingCny * kztCny;
 
-    const transitUsd = dest?.transitUsd ?? 0;
-    const deliveryUsd = dest?.deliveryUsd ?? 0;
+    const transitUsd = city ? s.transitUsd[city.country] : 0;
+    const deliveryUsd = city ? (s.byCity[city.key]?.deliveryUsd ?? 0) : 0;
     const logisticsKzt = borderKzt + fromUsd(transitUsd + deliveryUsd);
 
     // Таможенная стоимость — цена машины на границе, и только она.
@@ -219,34 +156,48 @@ export function calculate(input: CalcInput): CalcResult {
     // доставка до границы в ней уже есть
     const customsValue = carKzt;
 
-    const customsFee = RATES.customsFeeMrp * RATES.mrp;
+    const customsFee = r.customsFeeMrp * r.mrp;
 
     // Нулевая ставка только тем, кому она положена, и только если машина
     // остаётся в Казахстане: вывоз в ЕАЭС по ней запрещён
     const wtoRate = input.kzOnly && canUseWtoRate(input.powertrain);
-    const dutyRate = wtoRate ? 0 : RATES.dutyEaeu;
+    const dutyRate = wtoRate ? 0 : r.dutyEaeu;
     const duty = customsValue * dutyRate;
 
-    // Акциз — это налог на роскошь, а не плата за объём двигателя.
-    // Считается по каждой машине отдельно, не по партии
-    const excise = customsValue >= RATES.exciseThresholdMrp * RATES.mrp
-        ? customsValue * RATES.excise
+    // Акциз на роскошь — не плата за объём двигателя. Считается по каждой
+    // машине отдельно, не по партии
+    const luxuryExcise = customsValue >= r.exciseLuxuryThresholdMrp * r.mrp
+        ? customsValue * r.exciseLuxury
         : 0;
 
-    const vat = (customsValue + duty + customsFee + excise) * RATES.vat;
+    // Второй акциз, по объёму двигателя, по умолчанию выключен: ставку
+    // никто не подтвердил, а включённой она молча подняла бы каждую цену
+    const volumeExcise = input.powertrain !== 'bev'
+        && r.exciseVolumeKztPerCc > 0
+        && input.engineCc > r.exciseVolumeThresholdCc
+        ? input.engineCc * r.exciseVolumeKztPerCc
+        : 0;
 
-    const coefficient = utilCoefficient(input.powertrain, input.engineCc);
-    const util = RATES.utilBaseMrp * RATES.mrp * coefficient;
+    const excise = luxuryExcise + volumeExcise;
+    const vat = (customsValue + duty + customsFee + excise) * r.vat;
+
+    const coefficient = utilCoefficient(input.powertrain, input.engineCc, r.utilBrackets);
+    const util = r.utilBaseMrp * r.mrp * coefficient;
 
     const age = Math.max(0, new Date().getFullYear() - input.year);
     const regMrp = registrationMrp(input.powertrain, age);
-    const registrationTotalMrp = regMrp + RATES.srtsMrp + RATES.platesMrp;
-    const registration = registrationTotalMrp * RATES.mrp;
+    const registrationTotalMrp = regMrp + r.srtsMrp + r.platesMrp;
+    const registration = registrationTotalMrp * r.mrp;
 
-    const f = input.fixed;
-    const paperwork = f.svh + f.certification + f.inspection + f.towing + fromUsd(f.brokerUsd);
+    const f = s.fixed;
+    const paperwork = f.svh + f.certification + f.eraGlonass + f.inspection
+        + f.towing + fromUsd(f.brokerUsd);
 
-    const commissionKzt = fromUsd(input.commissionUsd);
+    // Перевод денег в Китай стоит процент от суммы. На пошлину и НДС
+    // не влияет: они считаются от таможенной стоимости по курсу Нацбанка
+    const paymentFee = carKzt * s.chinaPaymentFeePct;
+
+    const commissionKzt = fromUsd(s.commissionUsd);
 
     const lines: CalcLine[] = [
         {
@@ -256,38 +207,47 @@ export function calculate(input: CalcInput): CalcResult {
                 ? `${fmt(input.price)} ¥ × ${kztCny.toFixed(2)} ₸`
                 : `${fmt(input.price)} $ × ${kztUsd.toFixed(2)} ₸`,
         },
+        ...(paymentFee > 0
+            ? [{
+                label: 'Перевод денег в Китай',
+                kzt: paymentFee,
+                hint: `${pct(s.chinaPaymentFeePct)} от цены машины`,
+            }]
+            : []),
         {
             label: 'Логистика из Китая',
             kzt: logisticsKzt,
-            hint: `граница ${fmt(BORDER_CROSSING_CNY)} ¥ · транзит ${transitUsd} $ · до города ${deliveryUsd} $`,
+            hint: `граница ${fmt(s.borderCrossingCny)} ¥ · транзит ${transitUsd} $ · до города ${deliveryUsd} $`,
         },
-        { label: 'Таможенный сбор', kzt: customsFee, hint: `${RATES.customsFeeMrp} МРП` },
+        { label: 'Таможенный сбор', kzt: customsFee, hint: `${r.customsFeeMrp} МРП` },
         {
             label: 'Таможенная пошлина',
             kzt: duty,
             hint: wtoRate
                 ? 'нулевая ставка ВТО — без права вывоза в ЕАЭС'
-                : `${pct(RATES.dutyEaeu)} от таможенной стоимости`,
+                : `${pct(r.dutyEaeu)} от таможенной стоимости`,
         },
         ...(excise > 0
             ? [{
                 label: 'Акциз',
                 kzt: excise,
-                hint: `${pct(RATES.excise)} — машина дороже ${fmt(RATES.exciseThresholdMrp * RATES.mrp)} ₸`,
+                hint: luxuryExcise > 0
+                    ? `${pct(r.exciseLuxury)} — машина дороже ${fmt(r.exciseLuxuryThresholdMrp * r.mrp)} ₸`
+                    : `${fmt(input.engineCc)} см³ × ${fmt(r.exciseVolumeKztPerCc)} ₸`,
             }]
             : []),
-        { label: 'НДС', kzt: vat, hint: `${pct(RATES.vat)} от стоимости с пошлиной и сбором` },
+        { label: 'НДС', kzt: vat, hint: `${pct(r.vat)} от стоимости с пошлиной и сбором` },
         {
             label: 'Утилизационный сбор',
             kzt: util,
             hint: coefficient === 0
                 ? 'электромобили освобождены'
-                : `${RATES.utilBaseMrp} МРП × ${coefficient}`,
+                : `${r.utilBaseMrp} МРП × ${coefficient}`,
         },
         {
             label: 'Регистрация и номера',
             kzt: registration,
-            hint: `${String(registrationTotalMrp).replace('.', ',')} МРП · ${ageLabel(age)}`,
+            hint: `${String(round(registrationTotalMrp, 2)).replace('.', ',')} МРП · ${ageLabel(age)}`,
         },
         { label: 'Оформление и склад', kzt: paperwork, hint: 'СВХ, СБКТС, сверка, эвакуатор, брокер' },
     ];
@@ -303,8 +263,14 @@ export function calculate(input: CalcInput): CalcResult {
         totalUsd: totalKzt / kztUsd,
         customsValueKzt: customsValue,
         dutyRate,
-        destination: dest,
+        city,
+        weeks: deliveryWeeksFor(s, input.cityKey),
     };
+}
+
+function round(n: number, digits: number): number {
+    const k = 10 ** digits;
+    return Math.round(n * k) / k;
 }
 
 function fmt(n: number): string {
@@ -312,7 +278,7 @@ function fmt(n: number): string {
 }
 
 function pct(rate: number): string {
-    return `${(rate * 100).toFixed(1).replace(/[.,]0$/, '')}%`;
+    return `${round(rate * 100, 2)}%`.replace('.', ',');
 }
 
 function ageLabel(age: number): string {
@@ -360,7 +326,7 @@ export function asMessage(
     // а разделители остаются обычными строками
     const lines: (string | null)[] = [
         `🚗 ${title}`,
-        result.destination ? `📍 Доставка: ${result.destination.city}` : null,
+        result.city ? `📍 Доставка: ${result.city.city}` : null,
         '',
         `💰 Цена под ключ: ${formatKzt(result.totalKzt)}`,
         '',
@@ -384,7 +350,16 @@ export function asMessage(
         lines.push('Доплат при получении нет.');
     }
 
-    lines.push('', 'Срок доставки: 4–8 недель.', '', 'HUBDrive · hubdrive.asia');
+    lines.push('', `Срок доставки: ${weeksLabel(result.weeks)}.`, '', 'HUBDrive · hubdrive.asia');
 
     return lines.filter(l => l !== null).join('\n');
+}
+
+/** «3–6 недель», с правильным окончанием, если срок ровный. */
+export function weeksLabel(weeks: { min: number; max: number }): string {
+    const n = weeks.max;
+    const last = n % 10;
+    const teen = n % 100 >= 11 && n % 100 <= 14;
+    const word = !teen && last === 1 ? 'неделя' : !teen && last >= 2 && last <= 4 ? 'недели' : 'недель';
+    return weeks.min === weeks.max ? `${n} ${word}` : `${weeks.min}–${weeks.max} ${word}`;
 }
