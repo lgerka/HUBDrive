@@ -13,14 +13,21 @@ import { whatsappLink } from "@/constants/contacts";
  */
 type LeadStatus = "new" | "in_progress" | "awaiting_reply" | "qualified" | "converted" | "closed_lost" | "rejected";
 
-/** Та же воронка, что у людей в очереди лидов — чтобы стадии не разъезжались. */
-const STATUSES: { key: LeadStatus; label: string; tone: string }[] = [
+/**
+ * Пять стадий вместо семи.
+ *
+ * «Ждём ответа» ничем не отличалась от «в работе», «Слился» — от «Отказа».
+ * Лишние стадии заставляют менеджера выбирать между одинаковыми словами,
+ * а в отчётах дробят одну и ту же цифру на две.
+ *
+ * Две из пяти отправляются в рекламу: «Квалифицирован» и «Купил». По ним
+ * Meta учится искать похожих людей, поэтому ставить их надо честно.
+ */
+const STATUSES: { key: LeadStatus; label: string; tone: string; toMeta?: boolean }[] = [
     { key: "new", label: "Новая", tone: "bg-orange-100 text-orange-700" },
     { key: "in_progress", label: "В работе", tone: "bg-sky-100 text-sky-700" },
-    { key: "awaiting_reply", label: "Ждём ответа", tone: "bg-amber-100 text-amber-700" },
-    { key: "qualified", label: "Квалифицирован", tone: "bg-violet-100 text-violet-700" },
-    { key: "converted", label: "Купил", tone: "bg-green-100 text-green-700" },
-    { key: "closed_lost", label: "Слился", tone: "bg-slate-200 text-slate-600" },
+    { key: "qualified", label: "Квалифицирован", tone: "bg-violet-100 text-violet-700", toMeta: true },
+    { key: "converted", label: "Купил", tone: "bg-green-100 text-green-700", toMeta: true },
     { key: "rejected", label: "Отказ", tone: "bg-red-100 text-red-700" },
 ];
 
@@ -449,8 +456,8 @@ function EditLeadForm({ lead, onClose, onSaved }: {
                     <div>
                         <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">Стадия</span>
                         <p className="mb-2 text-xs text-slate-500">
-                            «Квалифицирован» и «Купил» уходят в рекламный кабинет —
-                            по ним Meta учится искать похожих людей. Ставьте их честно.
+                            Стадии со стрелкой уходят в рекламный кабинет — по ним Meta
+                            учится искать похожих людей. Ставьте их честно.
                         </p>
                         <div className="flex flex-wrap gap-2">
                             {STATUSES.map(x => (
@@ -461,7 +468,7 @@ function EditLeadForm({ lead, onClose, onSaved }: {
                                         status === x.key ? x.tone : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                                     }`}
                                 >
-                                    {x.label}
+                                    {x.label}{x.toMeta ? " →" : ""}
                                 </button>
                             ))}
                         </div>

@@ -111,8 +111,16 @@ async function reportQuality(lead: LandingLead, nextStatus: LeadStatus): Promise
     }
 }
 
+/**
+ * Стадии, которые можно поставить. «Ждём ответа» и «Слился» убраны как
+ * дублирующие: первая ничем не отличалась от «в работе», вторая — от «Отказа».
+ *
+ * В самом типе базы они остались — старые записи уже переведены, а удалять
+ * значение из перечисления Postgres значит пересоздавать тип целиком,
+ * и ради двух неиспользуемых слов это лишний риск.
+ */
 const STATUSES: LeadStatus[] = [
-    'new', 'in_progress', 'awaiting_reply', 'qualified', 'converted', 'closed_lost', 'rejected',
+    'new', 'in_progress', 'qualified', 'converted', 'rejected',
 ];
 
 /**

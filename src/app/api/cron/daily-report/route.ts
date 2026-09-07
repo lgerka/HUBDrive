@@ -56,11 +56,13 @@ const MANUAL_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
     new: 'новые',
     in_progress: 'в работе',
-    awaiting_reply: 'ждут ответа',
     qualified: 'квалифицированы',
     converted: 'купили',
-    closed_lost: 'слились',
     rejected: 'отказ',
+    // Старые записи могли остаться на убранных стадиях — показываем
+    // их как те, в которые они переехали
+    awaiting_reply: 'в работе',
+    closed_lost: 'отказ',
 };
 
 function plural(n: number, one: string, few: string, many: string): string {
