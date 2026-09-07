@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send, Pencil } from "lucide-react";
+import { Check, Phone, MessageCircle, Megaphone, Loader2, PhoneIncoming, X, Send, Pencil, Trash2 } from "lucide-react";
 import { whatsappLink } from "@/constants/contacts";
 
 /**
@@ -14,21 +14,19 @@ import { whatsappLink } from "@/constants/contacts";
 type LeadStatus = "new" | "in_progress" | "awaiting_reply" | "qualified" | "converted" | "closed_lost" | "rejected";
 
 /**
- * Пять стадий вместо семи.
+ * Три стадии — ровно то, ради чего всё делалось.
  *
- * «Ждём ответа» ничем не отличалась от «в работе», «Слился» — от «Отказа».
- * Лишние стадии заставляют менеджера выбирать между одинаковыми словами,
- * а в отчётах дробят одну и ту же цифру на две.
+ * Список заявок существует, чтобы кормить рекламу сигналами о нужных людях,
+ * а не чтобы вести клиента по воронке: для второго нужна CRM, и это отдельная
+ * задача. Поэтому остались стадия по умолчанию и две, которые уходят в Meta.
  *
- * Две из пяти отправляются в рекламу: «Квалифицирован» и «Купил». По ним
- * Meta учится искать похожих людей, поэтому ставить их надо честно.
+ * «В работе» и «Отказ» убраны: первая ничего не сообщала рекламе, вторая
+ * заменяется удалением — мёртвой заявке в списке не место.
  */
 const STATUSES: { key: LeadStatus; label: string; tone: string; toMeta?: boolean }[] = [
     { key: "new", label: "Новая", tone: "bg-orange-100 text-orange-700" },
-    { key: "in_progress", label: "В работе", tone: "bg-sky-100 text-sky-700" },
     { key: "qualified", label: "Квалифицирован", tone: "bg-violet-100 text-violet-700", toMeta: true },
     { key: "converted", label: "Купил", tone: "bg-green-100 text-green-700", toMeta: true },
-    { key: "rejected", label: "Отказ", tone: "bg-red-100 text-red-700" },
 ];
 
 const CHANNEL_LABELS: Record<string, string> = {
@@ -79,6 +77,17 @@ export default function LandingLeadsPage() {
     }, []);
 
     useEffect(() => { void load(); }, [load]);
+
+    const removeLead = async (lead: LandingLead) => {
+        if (!confirm(`Удалить заявку ${lead.name} (${lead.phone})? Отменить нельзя.`)) return;
+        setSaving(lead.id);
+        try {
+            await fetch(`/api/admin/landing-leads?id=${lead.id}`, { method: "DELETE" });
+            setLeads(prev => prev.filter(l => l.id !== lead.id));
+        } finally {
+            setSaving(null);
+        }
+    };
 
     const setStatus = async (lead: LandingLead, status: LeadStatus) => {
         setSaving(lead.id);
@@ -205,6 +214,15 @@ export default function LandingLeadsPage() {
                                         className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200"
                                     >
                                         <Pencil className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => removeLead(lead)}
+                                        disabled={saving === lead.id}
+                                        aria-label="Удалить заявку"
+                                        title="Удалить — для мусора и дублей"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-red-100 hover:text-red-600 disabled:opacity-50"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
                                     </button>
                                     <select
                                         value={lead.status}
