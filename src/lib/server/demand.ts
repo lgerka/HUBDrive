@@ -64,6 +64,18 @@ const KNOWN_BRANDS = [
     'x5', 'x7', 'x9', 'вx', 'lx',
 ];
 
+/**
+ * Названа ли в тексте хоть какая-то машина.
+ *
+ * Нужно фильтру спама: бот про авто в Казахстане, и настоящий запрос всегда
+ * называет марку или модель. Проверка синхронная и по списку — обращаться
+ * к базе на каждое входящее сообщение незачем.
+ */
+export function mentionsCar(text: string): boolean {
+    const lower = (text || '').toLowerCase();
+    return KNOWN_BRANDS.some(b => lower.includes(b));
+}
+
 export interface DemandHint {
     /** Что человек назвал, как он это написал. */
     mentioned: string | null;

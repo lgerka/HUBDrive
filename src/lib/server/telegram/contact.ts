@@ -3,7 +3,7 @@ import { normalizePhone } from '../phone';
 import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyManagerAboutNewContact } from './notifier';
-import { reportMissingCar } from '../demand';
+import { reportMissingCar, mentionsCar } from '../demand';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 
 /**
@@ -165,9 +165,26 @@ function looksLikeGibberish(name: string): boolean {
     return name.length >= 6 && letters / name.length < 0.5;
 }
 
+/**
+ * Слова из пиратских рассылок. Вторая волна пришла уже без ссылок:
+ * «Toxic movie», «Pushpa», «Mirapur movie» — просят названия фильмов
+ * у бота, который продаёт автомобили.
+ */
+const PIRACY_WORDS = /\b(movie|film|webrip|hdrip|hdtc|dvdrip|720p|1080p|4k|download|watch\s*online|full\s*hd|season|episode)\b/i;
+
 export function looksLikeSpam(text: string, name?: string | null): boolean {
     if (LINK_PATTERN.test(text)) return true;
     if (name && looksLikeGibberish(name)) return true;
+    if (PIRACY_WORDS.test(text)) return true;
+
+    // Главное правило, не требующее списков. Бот продаёт машины в Казахстане:
+    // настоящий запрос либо называет марку, либо написан кириллицей, либо
+    // содержит номер телефона. «Pushpa» не подходит ни под что из этого,
+    // а «Tiguan L» и «BYD Sea Lion» проходят по названию машины
+    const hasCyrillic = /[\u0400-\u04FF]/.test(text);
+    const hasDigits = /\d/.test(text);
+    if (!hasCyrillic && !hasDigits && !mentionsCar(text)) return true;
+
     return false;
 }
 
