@@ -159,8 +159,13 @@ export function calculate(input: CalcInput): CalcResult {
     const customsFee = r.customsFeeMrp * r.mrp;
 
     // Нулевая ставка только тем, кому она положена, и только если машина
-    // остаётся в Казахстане: вывоз в ЕАЭС по ней запрещён
-    const wtoRate = input.kzOnly && canUseWtoRate(input.powertrain);
+    // остаётся в Казахстане: вывоз в ЕАЭС по ней запрещён. Россия и Киргизия —
+    // страны ЕАЭС, поэтому на машину в Москву или Бишкек льгота не даётся,
+    // сколько бы галочек ни стояло. Без этой проверки из цены выпадала
+    // пошлина 15% вместе с НДС на неё — почти шесть миллионов тенге
+    const wtoRate = input.kzOnly
+        && canUseWtoRate(input.powertrain)
+        && city?.country === 'KZ';
     const dutyRate = wtoRate ? 0 : r.dutyEaeu;
     const duty = customsValue * dutyRate;
 

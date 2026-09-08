@@ -522,17 +522,20 @@ export function validateSettings(s: CalcSettings): Record<string, string> {
             checkOne(`byCity.${c.key}.${f.path}`, readPath(s.byCity[c.key], f.path), f, nullable);
         }
 
-        // Сравнивать надо действующие сроки, а не пару заполненных полей.
-        // Иначе «от» = 8 при пустом «до» молча возьмёт общий конец 6 недель,
-        // и клиенту уйдёт «Срок доставки: 8–6 недель»
-        const weeks = deliveryWeeksFor(s, c.key);
-        const weekPath = s.byCity[c.key].weeksMin !== null
+        // Сравнивать надо сочетание городского и общего срока, а не пару
+        // заполненных полей: «от» = 8 при пустом «до» молча возьмёт общий
+        // конец 6 недель. Берём сырое сочетание, а не deliveryWeeksFor —
+        // тот такую пару уже выправляет, и проверять после него нечего
+        const cc = s.byCity[c.key];
+        const rawMin = cc.weeksMin ?? s.deliveryWeeks.min;
+        const rawMax = cc.weeksMax ?? s.deliveryWeeks.max;
+        const weekPath = cc.weeksMin !== null
             ? `byCity.${c.key}.weeksMin`
             : `byCity.${c.key}.weeksMax`;
         // Не затираем более точную ошибку: «не больше 52» полезнее, чем
         // «выходит 60–6» — она говорит, что именно исправить
-        if (weeks.min > weeks.max && !errors[weekPath]) {
-            errors[weekPath] = `Выходит «${weeks.min}–${weeks.max}»: начало срока позже конца`;
+        if (rawMin > rawMax && !errors[weekPath]) {
+            errors[weekPath] = `Выходит «${rawMin}–${rawMax}»: начало срока позже конца`;
         }
     }
 
@@ -580,11 +583,19 @@ export function rejectedPaths(patch: unknown): Record<string, string> {
     return rejected;
 }
 
-/** Срок доставки в конкретный город: свой, если задан, иначе общий. */
+/**
+ * Срок доставки в конкретный город: свой, если задан, иначе общий.
+ *
+ * Если из смешения городского и общего вышел перевёрнутый диапазон —
+ * например, по городу задано «от 8», а общий конец 6 недель, — отдаём общий
+ * срок целиком. Иначе клиенту уходит «Срок доставки: 8–6 недель», и это
+ * читается как небрежность. Сохранить такое сочетание проверка не даст,
+ * но в черновике оно живёт, а сообщение копируют и из черновика.
+ */
 export function deliveryWeeksFor(s: CalcSettings, cityKey: string): { min: number; max: number } {
     const city = s.byCity[cityKey];
-    return {
-        min: city?.weeksMin ?? s.deliveryWeeks.min,
-        max: city?.weeksMax ?? s.deliveryWeeks.max,
-    };
+    const min = city?.weeksMin ?? s.deliveryWeeks.min;
+    const max = city?.weeksMax ?? s.deliveryWeeks.max;
+    if (min > max) return { ...s.deliveryWeeks };
+    return { min, max };
 }

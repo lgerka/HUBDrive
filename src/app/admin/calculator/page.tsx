@@ -185,6 +185,20 @@ export default function CalculatorPage() {
         [saved, draft]
     );
 
+    /**
+     * Ошибки в черновике — сразу, а не при попытке сохранить.
+     *
+     * Менеджер часто правит цифру под одного клиента и сохранять не собирается.
+     * Отрицательная комиссия при этом молча выкидывала строку из расчёта
+     * и занижала итог почти на два миллиона, а проверка стояла только
+     * на кнопке «Сохранить». Считать по заведомо неверным настройкам нельзя,
+     * даже если их не сохраняют.
+     */
+    const draftErrors = useMemo(
+        () => (saved ? validateSettings(draft) : {}),
+        [saved, draft]
+    );
+
     const result = useMemo(() => calculate({
         price: Number(price) || 0,
         currency,
@@ -221,9 +235,27 @@ export default function CalculatorPage() {
     // Пустой объём молча считался нулём и попадал в ступень утиля «до 1000 см³» —
     // на внедорожнике это два миллиона тенге мимо, и без единого признака на экране
     const engineOk = !needsEngine(powertrain) || Number(engineCc) > 0;
-    const isReady = Number(price) > 0 && engineOk && Boolean(rates) && Boolean(saved);
+
+    // На расчёт влияют общие поля и поля выбранного города. Ошибка в сроках
+    // Актобе не повод прятать цену для Алматы — она лишь мешает сохранить
+    const blocksResult = Object.keys(draftErrors).some(path => {
+        if (!path.startsWith("byCity.")) return true;
+        return path.split(".")[1] === cityKey;
+    });
+
+    const isReady = Number(price) > 0 && engineOk && !blocksResult
+        && Boolean(rates) && Boolean(saved);
     const wtoAvailable = canUseWtoRate(powertrain);
     const city = CITIES.find(c => c.key === cityKey);
+    // Льгота ВТО существует ради того, что машина остаётся в Казахстане.
+    // Россия и Киргизия — страны ЕАЭС, туда её везти по этой ставке нельзя
+    const wtoPossible = wtoAvailable && city?.country === "KZ";
+
+    // Живые ошибки видны всегда, серверные добавляются к ним после отказа
+    const shownErrors = useMemo(
+        () => ({ ...errors, ...draftErrors }),
+        [errors, draftErrors]
+    );
 
     const setText = (path: string, value: string) => {
         setTexts(t => ({ ...t, [path]: value }));
@@ -239,21 +271,31 @@ export default function CalculatorPage() {
     /**
      * Показать поле, из-за которого сохранение не идёт.
      *
-     * Блок расходов бывает свёрнут, ставки спрятаны отдельно, а поля города
-     * рисуются только для выбранного города. Без этого кнопка «Сохранить»
-     * выглядит сломанной: нажал — и ничего не произошло.
+     * Блок расходов бывает свёрнут, а ставки спрятаны отдельно — без этого
+     * кнопка «Сохранить» выглядит сломанной: нажал, и ничего не произошло.
+     *
+     * Город при этом НЕ переключаем, хотя поля с ошибкой могут быть его.
+     * На cityKey держится весь правый столбец: цена, заголовок и строка
+     * «Доставка» в готовом сообщении. Менеджер считал Алматы, нажал
+     * «Сохранить» — и в WhatsApp ушла бы цена Актобе. Вместо этого называем
+     * город в отдельной строке и даём перейти к нему нажатием.
      */
     const revealErrors = (found: Record<string, string>) => {
         setErrors(found);
         setShowCosts(true);
-        const paths = Object.keys(found);
-        if (paths.some(k => k.startsWith("rates."))) setShowLegal(true);
-        const cityPath = paths.find(k => k.startsWith("byCity."));
-        if (cityPath) {
-            const key = cityPath.split(".")[1];
-            if (CITIES.some(c => c.key === key)) setCityKey(key);
-        }
+        if (Object.keys(found).some(k => k.startsWith("rates."))) setShowLegal(true);
     };
+
+    /** Города, в настройках которых есть ошибка, кроме открытого сейчас. */
+    const citiesWithErrors = useMemo(() => {
+        const keys = new Set(
+            Object.keys(shownErrors)
+                .filter(k => k.startsWith("byCity.") && shownErrors[k])
+                .map(k => k.split(".")[1])
+        );
+        keys.delete(cityKey);
+        return CITIES.filter(c => keys.has(c.key));
+    }, [shownErrors, cityKey]);
 
     const openConfirm = () => {
         const found = validateSettings(draft);
@@ -461,7 +503,7 @@ export default function CalculatorPage() {
                         </div>
                     </div>
 
-                    {wtoAvailable && (
+                    {wtoPossible && (
                         <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-emerald-50 p-3">
                             <input
                                 type="checkbox"
@@ -497,7 +539,7 @@ export default function CalculatorPage() {
                                 fields={commonFields}
                                 texts={texts}
                                 saved={saved}
-                                errors={errors}
+                                errors={shownErrors}
                                 onChange={setText}
                             />
 
@@ -507,7 +549,7 @@ export default function CalculatorPage() {
                                 fields={CITY_FIELDS.map(f => ({ ...f, path: `byCity.${cityKey}.${f.path}` }))}
                                 texts={texts}
                                 saved={saved}
-                                errors={errors}
+                                errors={shownErrors}
                                 onChange={setText}
                             />
 
@@ -532,7 +574,7 @@ export default function CalculatorPage() {
                                                 field={f}
                                                 value={texts[f.path] ?? ""}
                                                 savedValue={readPath(saved, f.path) as number}
-                                                error={errors[f.path]}
+                                                error={shownErrors[f.path]}
                                                 onChange={setText}
                                             />
                                         ))}
@@ -551,6 +593,27 @@ export default function CalculatorPage() {
                                     })}
                                     {stored.updatedBy ? ` · ${stored.updatedBy}` : ""}
                                 </p>
+                            )}
+
+                            {citiesWithErrors.length > 0 && (
+                                <div className="rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
+                                    <p className="font-bold">Ошибка в настройках другого города</p>
+                                    <p className="mt-0.5">
+                                        Сохранить не получится, пока не исправите.
+                                        {citiesWithErrors.map(c => (
+                                            <button
+                                                key={c.key}
+                                                onClick={() => setCityKey(c.key)}
+                                                className="ml-1.5 font-bold underline"
+                                            >
+                                                Открыть {c.city}
+                                            </button>
+                                        ))}
+                                    </p>
+                                    <p className="mt-1 text-red-500">
+                                        Расчёт при переходе пересчитается на выбранный город.
+                                    </p>
+                                </div>
                             )}
 
                             {saveError && (
@@ -596,7 +659,9 @@ export default function CalculatorPage() {
                                 <>
                                     <Calculator className="h-8 w-8 text-slate-300" />
                                     <p className="text-sm text-slate-400">
-                                        {Number(price) > 0 && !engineOk
+                                        {blocksResult
+                                            ? "Исправьте настройки — по ним считать нельзя"
+                                            : Number(price) > 0 && !engineOk
                                             ? "Укажите объём двигателя — от него зависит утильсбор"
                                             : "Введите цену — расчёт появится здесь"}
                                     </p>

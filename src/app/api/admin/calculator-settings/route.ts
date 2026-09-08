@@ -9,7 +9,15 @@ export async function GET(request: Request) {
     if (!(await verifyAdmin(request, prisma))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    return NextResponse.json(await getCalcSettings());
+
+    try {
+        return NextResponse.json(await getCalcSettings());
+    } catch (error) {
+        // Отвечать заводскими значениями нельзя: страница примет их
+        // за сохранённые и посчитает клиенту неверную цену
+        console.error('[калькулятор] настройки не прочитались:', error);
+        return NextResponse.json({ error: 'Настройки не прочитались' }, { status: 503 });
+    }
 }
 
 /**
@@ -53,7 +61,14 @@ export async function PUT(request: Request) {
     }
 
     const author = await adminIdentity(request, prisma);
-    const result = await saveCalcSettings(patch as Record<string, unknown>, version, author);
+
+    let result;
+    try {
+        result = await saveCalcSettings(patch as Record<string, unknown>, version, author);
+    } catch (error) {
+        console.error('[калькулятор] настройки не сохранились:', error);
+        return NextResponse.json({ error: 'База недоступна, настройки не сохранены' }, { status: 503 });
+    }
 
     if (!result.ok) {
         return NextResponse.json(
