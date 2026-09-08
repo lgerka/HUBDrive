@@ -439,30 +439,41 @@ export function diffSettings(saved: CalcSettings, draft: CalcSettings): Change[]
 }
 
 /**
- * Только изменённые поля — их и отправляем на сервер.
+ * Всё, что отличается от заводского, — это и есть патч.
  *
- * Собираем явным перебором, а не надеясь, что JSON.stringify выбросит
- * undefined: в патч не должно попасть ничего, чего менеджер не трогал.
+ * База сравнения обязана быть DEFAULT_CALC_SETTINGS, а не текущие сохранённые
+ * настройки. Патч заменяет в базе прежний целиком, поэтому он должен описывать
+ * все отклонения от заводских разом. Если считать разницу с сохранённым,
+ * второе сохранение подряд молча откатит первое: поле, которое менеджер
+ * в этот раз не трогал, совпадёт с сохранённым, не попадёт в патч — и исчезнет
+ * из базы вместе со старым патчем. Так терялись бы комиссия, МРП, ставки
+ * и цены доставки, накопленные за месяцы.
+ *
+ * Отсюда же берётся сброс к заводскому: вернул значение как было — поле просто
+ * пропало из патча, отдельного признака не нужно.
  */
-export function buildPatch(saved: CalcSettings, draft: CalcSettings): Record<string, unknown> {
+export function buildPatch(base: CalcSettings, draft: CalcSettings): Record<string, unknown> {
     const patch: Record<string, unknown> = {};
 
     for (const f of FIELDS) {
         // Ступени утиля кладутся одним куском ниже
         if (f.path.startsWith('rates.utilBrackets')) continue;
-        const before = readPath(saved, f.path);
+        const before = readPath(base, f.path);
         const after = readPath(draft, f.path);
         if (before !== after) writePath(patch, f.path, after);
     }
 
-    const bracketsChanged = draft.rates.utilBrackets.some(
-        (b, i) => b.coefficient !== saved.rates.utilBrackets[i]?.coefficient
-    );
+    const bracketsChanged =
+        draft.rates.utilBrackets.length !== base.rates.utilBrackets.length
+        || draft.rates.utilBrackets.some((b, i) => {
+            const from = base.rates.utilBrackets[i];
+            return !from || b.coefficient !== from.coefficient || b.maxCc !== from.maxCc;
+        });
     if (bracketsChanged) writePath(patch, 'rates.utilBrackets', draft.rates.utilBrackets);
 
     for (const c of CITIES) {
         for (const f of CITY_FIELDS) {
-            const before = readPath(saved.byCity[c.key], f.path) ?? null;
+            const before = readPath(base.byCity[c.key], f.path) ?? null;
             const after = readPath(draft.byCity[c.key], f.path) ?? null;
             if (before !== after) writePath(patch, `byCity.${c.key}.${f.path}`, after);
         }
@@ -480,19 +491,23 @@ export function buildPatch(saved: CalcSettings, draft: CalcSettings): Record<str
 export function validateSettings(s: CalcSettings): Record<string, string> {
     const errors: Record<string, string> = {};
 
-    for (const f of FIELDS) {
-        const raw = readPath(s, f.path);
+    const checkOne = (path: string, raw: unknown, f: FieldDef, nullable: boolean) => {
+        if (raw === null && nullable) return;
         if (typeof raw !== 'number' || !Number.isFinite(raw)) {
-            errors[f.path] = 'Введите число';
-            continue;
+            errors[path] = 'Введите число';
+            return;
         }
-        if (raw < 0) errors[f.path] = 'Не может быть отрицательным';
-        else if (f.nonZero && raw === 0) errors[f.path] = 'Не может быть нулём';
-        else if (f.integer && !Number.isInteger(raw)) errors[f.path] = 'Только целое число';
-        else if (f.min !== undefined && raw < f.min) errors[f.path] = `Не меньше ${f.min}`;
+        if (raw < 0) errors[path] = 'Не может быть отрицательным';
+        else if (f.nonZero && raw === 0) errors[path] = 'Не может быть нулём';
+        else if (f.integer && !Number.isInteger(raw)) errors[path] = 'Только целое число';
+        else if (f.min !== undefined && raw < f.min) errors[path] = `Не меньше ${f.min}`;
         else if (f.max !== undefined && raw > f.max) {
-            errors[f.path] = f.percent ? `Не больше ${f.max * 100}%` : `Не больше ${f.max}`;
+            errors[path] = f.percent ? `Не больше ${f.max * 100}%` : `Не больше ${f.max}`;
         }
+    };
+
+    for (const f of FIELDS) {
+        checkOne(f.path, readPath(s, f.path), f, false);
     }
 
     if (s.deliveryWeeks.min > s.deliveryWeeks.max) {
@@ -500,9 +515,24 @@ export function validateSettings(s: CalcSettings): Record<string, string> {
     }
 
     for (const c of CITIES) {
-        const cc = s.byCity[c.key];
-        if (cc.weeksMin !== null && cc.weeksMax !== null && cc.weeksMin > cc.weeksMax) {
-            errors[`byCity.${c.key}.weeksMin`] = 'Начало срока позже конца';
+        for (const f of CITY_FIELDS) {
+            // Пустой срок по городу законен — он означает «взять общий».
+            // Пустая доставка не законна: нулевой цены доставки не бывает
+            const nullable = f.path !== 'deliveryUsd';
+            checkOne(`byCity.${c.key}.${f.path}`, readPath(s.byCity[c.key], f.path), f, nullable);
+        }
+
+        // Сравнивать надо действующие сроки, а не пару заполненных полей.
+        // Иначе «от» = 8 при пустом «до» молча возьмёт общий конец 6 недель,
+        // и клиенту уйдёт «Срок доставки: 8–6 недель»
+        const weeks = deliveryWeeksFor(s, c.key);
+        const weekPath = s.byCity[c.key].weeksMin !== null
+            ? `byCity.${c.key}.weeksMin`
+            : `byCity.${c.key}.weeksMax`;
+        // Не затираем более точную ошибку: «не больше 52» полезнее, чем
+        // «выходит 60–6» — она говорит, что именно исправить
+        if (weeks.min > weeks.max && !errors[weekPath]) {
+            errors[weekPath] = `Выходит «${weeks.min}–${weeks.max}»: начало срока позже конца`;
         }
     }
 

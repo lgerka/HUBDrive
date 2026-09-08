@@ -218,7 +218,10 @@ export default function CalculatorPage() {
         [result, carName, year, messageMode]
     );
 
-    const isReady = Number(price) > 0 && Boolean(rates) && Boolean(saved);
+    // Пустой объём молча считался нулём и попадал в ступень утиля «до 1000 см³» —
+    // на внедорожнике это два миллиона тенге мимо, и без единого признака на экране
+    const engineOk = !needsEngine(powertrain) || Number(engineCc) > 0;
+    const isReady = Number(price) > 0 && engineOk && Boolean(rates) && Boolean(saved);
     const wtoAvailable = canUseWtoRate(powertrain);
     const city = CITIES.find(c => c.key === cityKey);
 
@@ -233,12 +236,29 @@ export default function CalculatorPage() {
         setErrors({});
     };
 
+    /**
+     * Показать поле, из-за которого сохранение не идёт.
+     *
+     * Блок расходов бывает свёрнут, ставки спрятаны отдельно, а поля города
+     * рисуются только для выбранного города. Без этого кнопка «Сохранить»
+     * выглядит сломанной: нажал — и ничего не произошло.
+     */
+    const revealErrors = (found: Record<string, string>) => {
+        setErrors(found);
+        setShowCosts(true);
+        const paths = Object.keys(found);
+        if (paths.some(k => k.startsWith("rates."))) setShowLegal(true);
+        const cityPath = paths.find(k => k.startsWith("byCity."));
+        if (cityPath) {
+            const key = cityPath.split(".")[1];
+            if (CITIES.some(c => c.key === key)) setCityKey(key);
+        }
+    };
+
     const openConfirm = () => {
         const found = validateSettings(draft);
         if (Object.keys(found).length > 0) {
-            setErrors(found);
-            setShowCosts(true);
-            if (Object.keys(found).some(k => k.startsWith("rates."))) setShowLegal(true);
+            revealErrors(found);
             return;
         }
         setErrors({});
@@ -259,7 +279,10 @@ export default function CalculatorPage() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", ...headers },
                 body: JSON.stringify({
-                    patch: buildPatch(saved, draft),
+                    // Разница именно с заводскими: патч заменяет прежний целиком,
+                    // поэтому должен описывать все отклонения сразу, а не только
+                    // правки этого захода
+                    patch: buildPatch(DEFAULT_CALC_SETTINGS, draft),
                     version: stored.version,
                 }),
             });
@@ -278,6 +301,12 @@ export default function CalculatorPage() {
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
                 setSaveError(data.error || "Не удалось сохранить. Попробуйте ещё раз.");
+                // Сервер называет виноватые поля — без этого менеджер видит
+                // «Проверьте значения» и не знает, какое из трёх десятков чинить
+                if (data.errors && typeof data.errors === "object") {
+                    revealErrors(data.errors);
+                    setConfirming(false);
+                }
                 return;
             }
 
@@ -414,7 +443,9 @@ export default function CalculatorPage() {
                                     inputMode="numeric"
                                     value={engineCc}
                                     onChange={e => setEngineCc(e.target.value)}
-                                    className="w-full rounded-xl border px-3 py-2.5 text-sm font-medium tabular-nums text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    className={`w-full rounded-xl border px-3 py-2.5 text-sm font-medium tabular-nums text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                                        engineOk ? "" : "border-red-400 bg-red-50"
+                                    }`}
                                 />
                             </div>
                         )}
@@ -564,7 +595,11 @@ export default function CalculatorPage() {
                             {rates && saved ? (
                                 <>
                                     <Calculator className="h-8 w-8 text-slate-300" />
-                                    <p className="text-sm text-slate-400">Введите цену — расчёт появится здесь</p>
+                                    <p className="text-sm text-slate-400">
+                                        {Number(price) > 0 && !engineOk
+                                            ? "Укажите объём двигателя — от него зависит утильсбор"
+                                            : "Введите цену — расчёт появится здесь"}
+                                    </p>
                                 </>
                             ) : (
                                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
