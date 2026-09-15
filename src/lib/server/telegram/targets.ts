@@ -68,7 +68,14 @@ export async function getChatIds(channel: NotifyChannel): Promise<string[]> {
 }
 
 /** Идентификаторы именно этого канала, без запасных вариантов. */
-async function ownChatIds(channel: NotifyChannel): Promise<string[]> {
+/**
+ * Чаты, настроенные именно для этого канала, — без запасного варианта.
+ *
+ * getChatIds('demand') при пустой настройке отдаёт чат продаж, и для разовых
+ * сообщений о спросе это разумно. Для вечернего списка на закупку — нет:
+ * английская версия предназначена поставщику, и в чате продаж ей не место.
+ */
+export async function ownChatIds(channel: NotifyChannel): Promise<string[]> {
     try {
         const row = await prisma.systemSettings.findUnique({ where: { key: SETTINGS_KEY[channel] } });
         const saved = typeof row?.value === 'string' ? row.value : null;
