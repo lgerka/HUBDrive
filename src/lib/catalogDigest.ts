@@ -287,54 +287,53 @@ interface Term { key: string; ru: string; en: string; match: RegExp; ruWithout?:
 
 /**
  * Уровни комплектации. «Средняя» и «полная» — не заводские названия, в китайском
- * прайсе их нет. Переводим в то, чем реально пользуются китайские экспортёры,
- * и рядом пишем иероглифы.
+ * прайсе их нет. Переводим в то, чем реально пользуются китайские экспортёры.
  */
 const TRIMS: Term[] = [
-    { key: 'any', ru: 'любая', en: 'all available trims — please quote every version (请报所有配置)',
+    { key: 'any', ru: 'любая', en: 'all available trims — please quote every version',
         match: u(/(все\s+(возможные\s+)?комплектац|любая\s+комплектац|любые\s+комплектац|комплектация\s+не\s+важна)/) },
-    { key: 'top', ru: 'максимальная', en: 'top-spec / flagship (顶配)',
+    { key: 'top', ru: 'максимальная', en: 'top-spec / flagship',
         match: u(/(максимал|топов|\bтоп\b|самая\s+полная)/) },
-    { key: 'full', ru: 'полная', en: 'high-spec / full option (高配)',
+    { key: 'full', ru: 'полная', en: 'high-spec / full option',
         match: u(/\bполн(ая|ой|ую|ые|ых|ом)\b(?!\s+привод)/) },
-    { key: 'mid', ru: 'средняя', en: 'mid-spec (中配)',
+    { key: 'mid', ru: 'средняя', en: 'mid-spec',
         match: u(/\bсредн(яя|ей|юю|ие|их|ем)\b|продвинут/) },
-    { key: 'base', ru: 'базовая', en: 'base / standard (标准版)',
+    { key: 'base', ru: 'базовая', en: 'base / standard',
         match: u(/\bбазов|начальн/) },
 ];
 
 const COLORS: Term[] = [
-    { key: 'wet_asphalt', ru: 'мокрый асфальт', en: 'dark grey metallic “wet asphalt” shade (深灰色), please send paint options',
+    { key: 'wet_asphalt', ru: 'мокрый асфальт', en: 'dark grey metallic “wet asphalt” shade, please send paint options',
         match: u(/мокр\w*\s+асфальт\w*/) },
-    { key: 'dark_grey', ru: 'тёмно-серый', en: 'dark grey (深灰色)', match: u(/темно[\s-]*сер\w*/) },
-    { key: 'dark_green', ru: 'тёмно-зелёный', en: 'dark green (墨绿色)', match: u(/темно[\s-]*зелен\w*/) },
-    { key: 'dark_blue', ru: 'тёмно-синий', en: 'dark blue (深蓝色)', match: u(/темно[\s-]*син\w*/) },
-    { key: 'dark_tone', ru: 'тёмный', en: 'dark tone (深色)', match: u(/темн\w*\s+тон\w*|\bтемн(ый|ая|ое|ые|ом|ых)\b/) },
-    { key: 'light_tone', ru: 'светлый', en: 'light tone (浅色)', match: u(/светл\w*\s+тон\w*|\bсветл(ый|ая|ое|ые|ом|ых)\b/) },
-    { key: 'white', ru: 'белый', en: 'white (白色)', match: u(/\bбел(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
-    { key: 'black', ru: 'чёрный', en: 'black (黑色)', match: u(/\bчерн(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
-    { key: 'silver', ru: 'серебристый', en: 'silver (银色)', match: u(/серебр\w*/) },
-    { key: 'grey', ru: 'серый', en: 'grey (灰色)', match: u(/\bсер(ый|ая|ое|ые|ом|ого|ой|ую)\b|графит\w*/) },
-    { key: 'burgundy', ru: 'бордовый', en: 'burgundy (酒红色)', match: u(/бордо\w*/) },
-    { key: 'green', ru: 'зелёный', en: 'green (绿色)', match: u(/\bзелен(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
-    { key: 'blue', ru: 'синий', en: 'blue (蓝色)', match: u(/\bсин(ий|яя|ее|ие|ем|его|ей|юю)\b/) },
-    { key: 'light_blue', ru: 'голубой', en: 'light blue (浅蓝色)', match: u(/голуб\w*/) },
-    { key: 'red', ru: 'красный', en: 'red (红色)', match: u(/\bкрасн\w*/) },
-    { key: 'yellow', ru: 'жёлтый', en: 'yellow (黄色)', match: u(/\bжелт\w*/) },
-    { key: 'beige', ru: 'бежевый', en: 'beige (米色)', match: u(/\bбеж\w*/) },
-    { key: 'tan', ru: 'рыжий', en: 'tan / caramel (浅棕色)', match: u(/\bрыж\w*|карамел\w*/) },
-    { key: 'brown', ru: 'коричневый', en: 'brown (棕色)', match: u(/коричнев\w*|mocha\s+brown|шоколад\w*/) },
-    { key: 'orange', ru: 'оранжевый', en: 'orange (橙色)', match: u(/оранжев\w*/) },
+    { key: 'dark_grey', ru: 'тёмно-серый', en: 'dark grey', match: u(/темно[\s-]*сер\w*/) },
+    { key: 'dark_green', ru: 'тёмно-зелёный', en: 'dark green', match: u(/темно[\s-]*зелен\w*/) },
+    { key: 'dark_blue', ru: 'тёмно-синий', en: 'dark blue', match: u(/темно[\s-]*син\w*/) },
+    { key: 'dark_tone', ru: 'тёмный', en: 'dark tone', match: u(/темн\w*\s+тон\w*|\bтемн(ый|ая|ое|ые|ом|ых)\b/) },
+    { key: 'light_tone', ru: 'светлый', en: 'light tone', match: u(/светл\w*\s+тон\w*|\bсветл(ый|ая|ое|ые|ом|ых)\b/) },
+    { key: 'white', ru: 'белый', en: 'white', match: u(/\bбел(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
+    { key: 'black', ru: 'чёрный', en: 'black', match: u(/\bчерн(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
+    { key: 'silver', ru: 'серебристый', en: 'silver', match: u(/серебр\w*/) },
+    { key: 'grey', ru: 'серый', en: 'grey', match: u(/\bсер(ый|ая|ое|ые|ом|ого|ой|ую)\b|графит\w*/) },
+    { key: 'burgundy', ru: 'бордовый', en: 'burgundy', match: u(/бордо\w*/) },
+    { key: 'green', ru: 'зелёный', en: 'green', match: u(/\bзелен(ый|ая|ое|ые|ом|ого|ой|ую)\b/) },
+    { key: 'blue', ru: 'синий', en: 'blue', match: u(/\bсин(ий|яя|ее|ие|ем|его|ей|юю)\b/) },
+    { key: 'light_blue', ru: 'голубой', en: 'light blue', match: u(/голуб\w*/) },
+    { key: 'red', ru: 'красный', en: 'red', match: u(/\bкрасн\w*/) },
+    { key: 'yellow', ru: 'жёлтый', en: 'yellow', match: u(/\bжелт\w*/) },
+    { key: 'beige', ru: 'бежевый', en: 'beige', match: u(/\bбеж\w*/) },
+    { key: 'tan', ru: 'рыжий', en: 'tan / caramel', match: u(/\bрыж\w*|карамел\w*/) },
+    { key: 'brown', ru: 'коричневый', en: 'brown', match: u(/коричнев\w*|mocha\s+brown|шоколад\w*/) },
+    { key: 'orange', ru: 'оранжевый', en: 'orange', match: u(/оранжев\w*/) },
 ];
-const ANY_COLOR: Term = { key: 'any', ru: 'любой', en: 'any colour (颜色不限)', match: /$^/ };
+const ANY_COLOR: Term = { key: 'any', ru: 'любой', en: 'any colour', match: /$^/ };
 
 const FEATURES: Term[] = [
-    { key: 'ventilated', ruWithout: 'без вентиляции сидений', ru: 'вентиляция сидений', en: 'ventilated seats (座椅通风)', match: u(/обдув\w*|вентиляц\w*/) },
-    { key: 'massage', ruWithout: 'без массажа сидений', ru: 'массаж сидений', en: 'massage seats (座椅按摩)', match: u(/массаж\w*/) },
-    { key: 'heated', ruWithout: 'без подогревов', ru: 'подогревы', en: 'heated seats / steering wheel (座椅加热)', match: u(/подогрев\w*/) },
+    { key: 'ventilated', ruWithout: 'без вентиляции сидений', ru: 'вентиляция сидений', en: 'ventilated seats', match: u(/обдув\w*|вентиляц\w*/) },
+    { key: 'massage', ruWithout: 'без массажа сидений', ru: 'массаж сидений', en: 'massage seats', match: u(/массаж\w*/) },
+    { key: 'heated', ruWithout: 'без подогревов', ru: 'подогревы', en: 'heated seats / steering wheel', match: u(/подогрев\w*/) },
     { key: 'hud', ruWithout: 'без проекции', ru: 'проекция на стекло', en: 'head-up display (HUD)', match: u(/проекци\w*|\bhud\b/) },
-    { key: 'panorama', ruWithout: 'без панорамной крыши', ru: 'панорамная крыша', en: 'panoramic roof (全景天窗)', match: u(/панорам\w*/) },
-    { key: 'air_suspension', ruWithout: 'без пневмоподвески', ru: 'пневмоподвеска', en: 'air suspension (空气悬架)', match: u(/пневмо[\s-]*подвес\w*/) },
+    { key: 'panorama', ruWithout: 'без панорамной крыши', ru: 'панорамная крыша', en: 'panoramic roof', match: u(/панорам\w*/) },
+    { key: 'air_suspension', ruWithout: 'без пневмоподвески', ru: 'пневмоподвеска', en: 'air suspension', match: u(/пневмо[\s-]*подвес\w*/) },
     { key: 'classic_handles', ruWithout: 'без обычных ручек', ru: 'обычные дверные ручки', en: 'conventional door handles (not retractable)', match: u(/обычн\w*\s+ручк\w*/) },
 ];
 
@@ -787,8 +786,8 @@ const POWERTRAIN_RU: Record<Powertrain, string> = {
     ICE: 'бензин/дизель', HYBRID: 'гибрид',
 };
 const POWERTRAIN_EN: Record<Powertrain, string> = {
-    BEV: 'BEV (纯电)', EREV: 'EREV (增程)', PHEV: 'PHEV (插混)', HEV: 'HEV, non plug-in (油电混动)',
-    ICE: 'ICE (燃油)', HYBRID: 'hybrid — please specify PHEV or HEV (混动)',
+    BEV: 'BEV', EREV: 'EREV', PHEV: 'PHEV', HEV: 'HEV, non plug-in',
+    ICE: 'ICE', HYBRID: 'hybrid — please specify PHEV or HEV',
 };
 
 /** Telegram понимает ограниченный HTML: всё, что пришло от людей, экранируем. */
@@ -892,8 +891,7 @@ function rowRu(row: DigestRow, n: number): string[] {
 function rowEn(row: DigestRow, n: number): string[] {
     const f = row.facts;
     const m = row.model;
-    const extra = [m.zh, m.exportNote].filter(Boolean).join(' / ');
-    const lines = [`<b>${n}. ${escapeHtml(m.name)}${extra ? ` (${escapeHtml(extra)})` : ''}</b>`];
+    const lines = [`<b>${n}. ${escapeHtml(m.name)}${m.exportNote ? ` (${escapeHtml(m.exportNote)})` : ''}</b>`];
 
     // Тип двигателя не угадываем: если клиент не сказал, а у модели их
     // несколько, прямо просим цены на все — иначе приедет что попало
@@ -930,8 +928,8 @@ function rowEn(row: DigestRow, n: number): string[] {
     if (condParts.length) lines.push(`Condition: ${condParts.join(' · ')}`);
 
     const specs = [
-        f.drive.has('AWD') ? 'AWD / 4WD (四驱)' : '',
-        f.drive.has('FWD') ? 'FWD (两驱)' : '',
+        f.drive.has('AWD') ? 'AWD / 4WD' : '',
+        f.drive.has('FWD') ? 'FWD' : '',
         f.engineLiters.size ? `${[...f.engineLiters].join(', ')}L engine` : '',
         f.evRangeKm.size ? `${[...f.evRangeKm].join(' / ')} km electric range (CLTC)` : '',
         ...[...f.features].map(k => FEATURE_TERMS.get(k)?.en ?? ''),
