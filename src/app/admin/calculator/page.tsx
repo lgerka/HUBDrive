@@ -107,6 +107,17 @@ function round(n: number, digits: number): number {
     return Math.round(n * k) / k;
 }
 
+const usd = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} $`;
+
+/** «до 20 000 $», «20 000–40 000 $», «от 40 000 $» — ступень словами. */
+function tierLabel(t: { fromUsd: number; toUsd: number | null; index: number }): string {
+    const n = (v: number) => v.toLocaleString("ru-RU");
+    if (t.toUsd === null) return `ступень от ${n(t.fromUsd)} $`;
+    // Первая ступень работает и для машин дешевле своего порога
+    if (t.index === 0) return `ступень до ${n(t.toUsd)} $`;
+    return `ступень ${n(t.fromUsd)}–${n(t.toUsd)} $`;
+}
+
 function formatValue(v: number | null, unit: string): string {
     if (v === null) return "не задан";
     const n = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(v);
@@ -379,6 +390,7 @@ export default function CalculatorPage() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const commissionFields = FIELDS.filter(f => f.group === "commission");
     const commonFields = FIELDS.filter(f => f.group === "common");
     const legalFields = FIELDS.filter(f => f.group === "legal");
 
@@ -534,6 +546,16 @@ export default function CalculatorPage() {
 
                     {showCosts && saved && (
                         <div className="space-y-4 rounded-xl bg-slate-50 p-3">
+                            <FieldGroup
+                                title="Комиссия HUBDrive"
+                                subtitle="зависит от цены машины и меняется сама, пока вводите сумму"
+                                fields={commissionFields}
+                                texts={texts}
+                                saved={saved}
+                                errors={shownErrors}
+                                onChange={setText}
+                            />
+
                             <FieldGroup
                                 title="Для всех городов"
                                 fields={commonFields}
@@ -702,8 +724,15 @@ export default function CalculatorPage() {
                                     </div>
                                 ))}
                                 {result.commissionKzt > 0 && (
-                                    <div className="flex items-center justify-between gap-3 bg-orange-50 px-4 py-3">
-                                        <p className="text-sm font-semibold text-orange-800">Комиссия HUBDrive</p>
+                                    <div className="flex items-start justify-between gap-3 bg-orange-50 px-4 py-3">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold text-orange-800">Комиссия HUBDrive</p>
+                                            {/* Менеджер должен видеть, почему комиссия именно такая:
+                                                иначе скачок при переходе через 20 000 $ выглядит как ошибка */}
+                                            <p className="mt-0.5 text-[11px] text-orange-700/70">
+                                                {usd(result.commissionUsd)} · машина {usd(result.carUsd)}, {tierLabel(result.commissionTier)}
+                                            </p>
+                                        </div>
                                         <p className="text-sm font-bold tabular-nums text-orange-800">
                                             {formatKzt(result.commissionKzt)}
                                         </p>

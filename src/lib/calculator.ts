@@ -16,6 +16,7 @@
 
 import {
     CITIES,
+    commissionFor,
     deliveryWeeksFor,
     type CalcSettings,
     type City,
@@ -124,6 +125,11 @@ export interface CalcResult {
     /** Себестоимость без нашей комиссии. */
     costKzt: number;
     commissionKzt: number;
+    /** Комиссия в долларах и ступень сетки, по которой она взята. */
+    commissionUsd: number;
+    commissionTier: { fromUsd: number; toUsd: number | null; index: number };
+    /** Цена машины в долларах — по ней выбирается ступень. */
+    carUsd: number;
     totalKzt: number;
     /** Итог в долларах — так удобнее сверяться с китайским прайсом. */
     totalUsd: number;
@@ -202,7 +208,13 @@ export function calculate(input: CalcInput): CalcResult {
     // не влияет: они считаются от таможенной стоимости по курсу Нацбанка
     const paymentFee = carKzt * s.chinaPaymentFeePct;
 
-    const commissionKzt = fromUsd(s.commissionUsd);
+    // Ступень выбирается по цене машины в долларах. Цену в юанях переводим
+    // через тенге по курсу Нацбанка — тем же, по которому считается всё остальное
+    const carUsd = carKzt / kztUsd;
+    const { tier, index, toUsd } = commissionFor(s.commissionTiers, carUsd);
+    // Пока цена не введена, комиссии нет — иначе в пустом расчёте висели бы 1500 $
+    const commissionUsd = input.price > 0 ? tier.commissionUsd : 0;
+    const commissionKzt = fromUsd(commissionUsd);
 
     const lines: CalcLine[] = [
         {
@@ -264,6 +276,9 @@ export function calculate(input: CalcInput): CalcResult {
         lines,
         costKzt,
         commissionKzt,
+        commissionUsd,
+        commissionTier: { fromUsd: tier.fromUsd, toUsd, index },
+        carUsd,
         totalKzt,
         totalUsd: totalKzt / kztUsd,
         customsValueKzt: customsValue,

@@ -94,9 +94,23 @@ export interface LegalRates {
     platesMrp: number;
 }
 
-export interface CalcSettings {
-    /** Комиссия HUBDrive, доллары. */
+/**
+ * Ступень комиссии: с какой цены машины она действует и сколько берём.
+ *
+ * Плоская комиссия не работает: на машине за 12 тысяч долларов 3500 — треть
+ * её цены и клиент уйдёт, а на машине за 60 тысяч 1500 — работа себе в убыток.
+ * Поэтому комиссия зависит от цены и меняется сама, пока менеджер вводит сумму.
+ */
+export interface CommissionTier {
+    /** С какой цены машины действует ступень, доллары. */
+    fromUsd: number;
+    /** Сколько берём, доллары. */
     commissionUsd: number;
+}
+
+export interface CalcSettings {
+    /** Сетка комиссии HUBDrive по цене машины — по возрастанию цены. */
+    commissionTiers: CommissionTier[];
     fixed: FixedCosts;
     /** Надбавка за перевод денег в Китай, доля от цены машины. */
     chinaPaymentFeePct: number;
@@ -112,7 +126,13 @@ export interface CalcSettings {
 }
 
 export const DEFAULT_CALC_SETTINGS: CalcSettings = {
-    commissionUsd: 2000,
+    // Машины дешевле первой ступени считаются по ней же: отдельной цены
+    // для них владелец не называл, а работать бесплатно не с чего
+    commissionTiers: [
+        { fromUsd: 10_000, commissionUsd: 1500 },
+        { fromUsd: 20_000, commissionUsd: 2500 },
+        { fromUsd: 40_000, commissionUsd: 3500 },
+    ],
     fixed: {
         svh: 25_000,
         certification: 250_000,
@@ -163,7 +183,7 @@ export const DEFAULT_CALC_SETTINGS: CalcSettings = {
 /* Описание полей — один список, из которого строится всё остальное     */
 /* ------------------------------------------------------------------ */
 
-export type FieldGroup = 'common' | 'legal';
+export type FieldGroup = 'commission' | 'common' | 'legal';
 
 export interface FieldDef {
     /** Путь внутри CalcSettings: 'fixed.svh', 'rates.vat'. */
@@ -190,7 +210,15 @@ export interface FieldDef {
  * трижды, и однажды описания разошлись бы.
  */
 export const FIELDS: FieldDef[] = [
-    { path: 'commissionUsd', label: 'Комиссия HUBDrive', unit: '$', group: 'common' },
+    {
+        path: 'commissionTiers.0.fromUsd', label: 'Первая ступень: машина от', unit: '$', group: 'commission',
+        integer: true, hint: 'Машины дешевле тоже считаются по первой ступени',
+    },
+    { path: 'commissionTiers.0.commissionUsd', label: 'Первая ступень: комиссия', unit: '$', group: 'commission' },
+    { path: 'commissionTiers.1.fromUsd', label: 'Вторая ступень: машина от', unit: '$', group: 'commission', integer: true, nonZero: true },
+    { path: 'commissionTiers.1.commissionUsd', label: 'Вторая ступень: комиссия', unit: '$', group: 'commission' },
+    { path: 'commissionTiers.2.fromUsd', label: 'Третья ступень: машина от', unit: '$', group: 'commission', integer: true, nonZero: true },
+    { path: 'commissionTiers.2.commissionUsd', label: 'Третья ступень: комиссия', unit: '$', group: 'commission' },
     { path: 'fixed.brokerUsd', label: 'Брокер', unit: '$', group: 'common' },
     { path: 'fixed.certification', label: 'СБКТС и оформление', unit: '₸', group: 'common' },
     {
@@ -319,7 +347,7 @@ export function applyCalcPatch(patch: unknown): CalcSettings {
     const pr = (p.rates ?? {}) as Record<string, unknown>;
 
     const out: CalcSettings = {
-        commissionUsd: num(p.commissionUsd, d.commissionUsd),
+        commissionTiers: readTiers(p.commissionTiers),
         fixed: {
             svh: num(pf.svh, d.fixed.svh),
             certification: num(pf.certification, d.fixed.certification),
@@ -369,6 +397,44 @@ export function applyCalcPatch(patch: unknown): CalcSettings {
     }
 
     return out;
+}
+
+/**
+ * Сетка комиссии берётся целиком или не берётся вовсе.
+ *
+ * Число ступеней должно совпадать с заводским: поля формы заведены под каждую
+ * ступень отдельно, и лишняя или недостающая оставила бы поле без значения.
+ */
+function readTiers(v: unknown): CommissionTier[] {
+    const fallback = DEFAULT_CALC_SETTINGS.commissionTiers;
+    if (!Array.isArray(v) || v.length !== fallback.length) return fallback;
+    const parsed: CommissionTier[] = [];
+    for (const item of v) {
+        if (!item || typeof item !== 'object') return fallback;
+        const row = item as Record<string, unknown>;
+        const fromUsd = row.fromUsd;
+        const commissionUsd = row.commissionUsd;
+        if (typeof fromUsd !== 'number' || !Number.isInteger(fromUsd) || fromUsd < 0) return fallback;
+        if (typeof commissionUsd !== 'number' || !Number.isFinite(commissionUsd) || commissionUsd < 0) return fallback;
+        parsed.push({ fromUsd, commissionUsd });
+    }
+    // Ступень ищется по возрастанию цены — порядок в базе обязан быть таким же
+    for (let i = 1; i < parsed.length; i++) if (parsed[i].fromUsd <= parsed[i - 1].fromUsd) return fallback;
+    return parsed;
+}
+
+/**
+ * Комиссия для машины этой цены.
+ *
+ * Берём последнюю ступень, до которой цена дотянулась. Машина дешевле первой
+ * ступени считается по первой. Граница входит в верхнюю ступень: машина
+ * ровно за 20 000 $ — это уже «20 000–40 000».
+ */
+export function commissionFor(tiers: CommissionTier[], carUsd: number): { tier: CommissionTier; index: number; toUsd: number | null } {
+    const sorted = [...tiers].sort((a, b) => a.fromUsd - b.fromUsd);
+    let index = 0;
+    sorted.forEach((t, i) => { if (carUsd >= t.fromUsd) index = i; });
+    return { tier: sorted[index], index, toUsd: sorted[index + 1]?.fromUsd ?? null };
 }
 
 /**
@@ -456,12 +522,15 @@ export function buildPatch(base: CalcSettings, draft: CalcSettings): Record<stri
     const patch: Record<string, unknown> = {};
 
     for (const f of FIELDS) {
-        // Ступени утиля кладутся одним куском ниже
-        if (f.path.startsWith('rates.utilBrackets')) continue;
+        // Ступени утиля и сетка комиссии кладутся одним куском ниже
+        if (f.path.startsWith('rates.utilBrackets') || f.path.startsWith('commissionTiers')) continue;
         const before = readPath(base, f.path);
         const after = readPath(draft, f.path);
         if (before !== after) writePath(patch, f.path, after);
     }
+
+    const tiersChanged = JSON.stringify(draft.commissionTiers) !== JSON.stringify(base.commissionTiers);
+    if (tiersChanged) writePath(patch, 'commissionTiers', draft.commissionTiers);
 
     const bracketsChanged =
         draft.rates.utilBrackets.length !== base.rates.utilBrackets.length
@@ -514,6 +583,16 @@ export function validateSettings(s: CalcSettings): Record<string, string> {
         errors['deliveryWeeks.min'] = 'Начало срока позже конца';
     }
 
+    // Иначе машина за 30 000 $ попадёт сразу в две ступени, и комиссия
+    // будет зависеть от того, в каком порядке их перебрали
+    s.commissionTiers.forEach((t, i) => {
+        const prev = s.commissionTiers[i - 1];
+        const path = `commissionTiers.${i}.fromUsd`;
+        if (prev && !errors[path] && t.fromUsd <= prev.fromUsd) {
+            errors[path] = `Должно быть больше ${prev.fromUsd.toLocaleString('ru-RU')} $`;
+        }
+    });
+
     for (const c of CITIES) {
         for (const f of CITY_FIELDS) {
             // Пустой срок по городу законен — он означает «взять общий».
@@ -563,7 +642,7 @@ export function rejectedPaths(patch: unknown): Record<string, string> {
     };
 
     for (const f of FIELDS) {
-        if (f.path.startsWith('rates.utilBrackets')) continue;
+        if (f.path.startsWith('rates.utilBrackets') || f.path.startsWith('commissionTiers')) continue;
         check(f.path, readPath(patch, f.path), readPath(merged, f.path), f.label);
     }
 
@@ -572,6 +651,12 @@ export function rejectedPaths(patch: unknown): Record<string, string> {
             const path = `byCity.${c.key}.${f.path}`;
             check(path, readPath(patch, path), readPath(merged, path), `${f.label} (${c.city})`);
         }
+    }
+
+    const askedTiers = readPath(patch, 'commissionTiers');
+    if (askedTiers !== undefined
+        && JSON.stringify(askedTiers) !== JSON.stringify(merged.commissionTiers)) {
+        rejected['commissionTiers'] = 'Сетка комиссии задана неверно: пороги должны идти по возрастанию';
     }
 
     const askedBrackets = readPath(patch, 'rates.utilBrackets');
