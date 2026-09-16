@@ -95,6 +95,20 @@ export function registrationMrp(powertrain: Powertrain, ageYears: number): numbe
     return powertrain === 'bev' ? 250 : 500;
 }
 
+/**
+ * Как машина проходит границу.
+ *
+ * Сроки — это время на самой границе: самоходом машина стоит в очереди
+ * на Хоргосе, автовоз проходит быстрее. Клиенту они не показываются —
+ * в сообщении общий срок доставки, — а менеджеру нужны, чтобы выбрать.
+ */
+export type BorderMethod = 'carrier' | 'selfDrive';
+
+export const BORDER_METHODS: { key: BorderMethod; label: string; days: string }[] = [
+    { key: 'carrier', label: 'Автовоз', days: '5–7 дней' },
+    { key: 'selfDrive', label: 'Самоход', days: '20–30 дней' },
+];
+
 export type PriceCurrency = 'CNY' | 'USD';
 
 export interface CalcInput {
@@ -102,6 +116,7 @@ export interface CalcInput {
     price: number;
     currency: PriceCurrency;
     cityKey: string;
+    borderMethod: BorderMethod;
     powertrain: Powertrain;
     engineCc: number;
     year: number;
@@ -149,11 +164,10 @@ export function calculate(input: CalcInput): CalcResult {
     const fromUsd = (usd: number) => usd * kztUsd;
 
     const carKzt = input.currency === 'CNY' ? input.price * kztCny : fromUsd(input.price);
-    const borderKzt = s.borderCrossingCny * kztCny;
-
+    const method = BORDER_METHODS.find(m => m.key === input.borderMethod) ?? BORDER_METHODS[0];
+    const borderUsd = method.key === 'selfDrive' ? s.borderCrossing.selfDriveUsd : s.borderCrossing.carrierUsd;
     const transitUsd = city ? s.transitUsd[city.country] : 0;
     const deliveryUsd = city ? (s.byCity[city.key]?.deliveryUsd ?? 0) : 0;
-    const logisticsKzt = borderKzt + fromUsd(transitUsd + deliveryUsd);
 
     // Таможенная стоимость — цена машины на границе, и только она.
     // Проход границы, транзит и всё, что дальше, в базу пошлины и НДС
@@ -231,10 +245,22 @@ export function calculate(input: CalcInput): CalcResult {
                 hint: `${pct(s.chinaPaymentFeePct)} от цены машины`,
             }]
             : []),
+        // Логистика тремя строками, а не одной: клиент спрашивает «а за что
+        // тысяча долларов доставки», и ответ должен быть виден сразу
         {
-            label: 'Логистика из Китая',
-            kzt: logisticsKzt,
-            hint: `граница ${fmt(s.borderCrossingCny)} ¥ · транзит ${transitUsd} $ · до города ${deliveryUsd} $`,
+            label: 'Проход границы',
+            kzt: fromUsd(borderUsd),
+            hint: `${method.label.toLowerCase()} ${borderUsd} $ · на границе ${method.days}`,
+        },
+        {
+            label: 'Транзит',
+            kzt: fromUsd(transitUsd),
+            hint: city ? `до ${COUNTRY_TO[city.country]} ${transitUsd} $` : 'город не выбран',
+        },
+        {
+            label: 'Логистика до города',
+            kzt: fromUsd(deliveryUsd),
+            hint: city ? `до города ${city.city} ${deliveryUsd} $` : 'город не выбран',
         },
         { label: 'Таможенный сбор', kzt: customsFee, hint: `${r.customsFeeMrp} МРП` },
         {
@@ -287,6 +313,12 @@ export function calculate(input: CalcInput): CalcResult {
         weeks: deliveryWeeksFor(s, input.cityKey),
     };
 }
+
+const COUNTRY_TO: Record<City['country'], string> = {
+    KZ: 'Казахстана',
+    KG: 'Киргизии',
+    RU: 'России',
+};
 
 function round(n: number, digits: number): number {
     const k = 10 ** digits;

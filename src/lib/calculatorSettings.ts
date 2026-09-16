@@ -114,8 +114,12 @@ export interface CalcSettings {
     fixed: FixedCosts;
     /** Надбавка за перевод денег в Китай, доля от цены машины. */
     chinaPaymentFeePct: number;
-    /** Проход границы, юани — так его выставляет китайская сторона. */
-    borderCrossingCny: number;
+    /**
+     * Проход границы, доллары. Способов два, и за один платить нужно всегда:
+     * самоходом дешевле, но машина стоит в очереди на Хоргосе неделями,
+     * автовоз дороже и проходит быстрее. Способ выбирает менеджер под сделку.
+     */
+    borderCrossing: { selfDriveUsd: number; carrierUsd: number };
     /** Транзит до страны назначения, доллары. */
     transitUsd: { KZ: number; KG: number; RU: number };
     /** Срок доставки по умолчанию, недели. */
@@ -145,7 +149,7 @@ export const DEFAULT_CALC_SETTINGS: CalcSettings = {
     },
     // Ноль намеренно: включённая надбавка молча подняла бы каждую цену
     chinaPaymentFeePct: 0,
-    borderCrossingCny: 3500,
+    borderCrossing: { selfDriveUsd: 300, carrierUsd: 600 },
     transitUsd: { KZ: 200, KG: 400, RU: 400 },
     deliveryWeeks: { min: 3, max: 6 },
     byCity: {
@@ -233,7 +237,8 @@ export const FIELDS: FieldDef[] = [
         percent: true, max: 0.2,
         hint: 'Банк или платёжный агент берёт около 1,5%. На пошлину и НДС не влияет — они считаются по курсу Нацбанка',
     },
-    { path: 'borderCrossingCny', label: 'Проход границы', unit: '¥', group: 'common' },
+    { path: 'borderCrossing.carrierUsd', label: 'Проход границы: автовоз', unit: '$', group: 'common' },
+    { path: 'borderCrossing.selfDriveUsd', label: 'Проход границы: самоход', unit: '$', group: 'common' },
     { path: 'transitUsd.KZ', label: 'Транзит до Казахстана', unit: '$', group: 'common' },
     { path: 'transitUsd.KG', label: 'Транзит до Киргизии', unit: '$', group: 'common' },
     { path: 'transitUsd.RU', label: 'Транзит до России', unit: '$', group: 'common' },
@@ -342,6 +347,7 @@ export function applyCalcPatch(patch: unknown): CalcSettings {
     const get = (path: string) => readPath(p, path);
 
     const pf = (p.fixed ?? {}) as Record<string, unknown>;
+    const pb = (p.borderCrossing ?? {}) as Record<string, unknown>;
     const pt = (p.transitUsd ?? {}) as Record<string, unknown>;
     const pw = (p.deliveryWeeks ?? {}) as Record<string, unknown>;
     const pr = (p.rates ?? {}) as Record<string, unknown>;
@@ -357,7 +363,10 @@ export function applyCalcPatch(patch: unknown): CalcSettings {
             brokerUsd: num(pf.brokerUsd, d.fixed.brokerUsd),
         },
         chinaPaymentFeePct: num(p.chinaPaymentFeePct, d.chinaPaymentFeePct, 0, 0.2),
-        borderCrossingCny: num(p.borderCrossingCny, d.borderCrossingCny),
+        borderCrossing: {
+            selfDriveUsd: num(pb.selfDriveUsd, d.borderCrossing.selfDriveUsd),
+            carrierUsd: num(pb.carrierUsd, d.borderCrossing.carrierUsd),
+        },
         transitUsd: {
             KZ: num(pt.KZ, d.transitUsd.KZ),
             KG: num(pt.KG, d.transitUsd.KG),

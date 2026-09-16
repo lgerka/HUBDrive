@@ -8,8 +8,8 @@ import {
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import {
     calculate, asMessage, formatKzt, needsEngine, canUseWtoRate, weeksLabel,
-    CITIES, POWERTRAINS,
-    type Powertrain, type PriceCurrency, type MessageMode,
+    CITIES, POWERTRAINS, BORDER_METHODS,
+    type Powertrain, type PriceCurrency, type MessageMode, type BorderMethod,
 } from "@/lib/calculator";
 import {
     FIELDS, CITY_FIELDS, readPath, writePath, diffSettings, buildPatch,
@@ -135,6 +135,7 @@ export default function CalculatorPage() {
     const [price, setPrice] = useState("");
     const [currency, setCurrency] = useState<PriceCurrency>("CNY");
     const [cityKey, setCityKey] = useState("almaty");
+    const [borderMethod, setBorderMethod] = useState<BorderMethod>("carrier");
     const [carName, setCarName] = useState("");
     const [powertrain, setPowertrain] = useState<Powertrain>("ice");
     const [engineCc, setEngineCc] = useState("2000");
@@ -214,6 +215,7 @@ export default function CalculatorPage() {
         price: Number(price) || 0,
         currency,
         cityKey,
+        borderMethod,
         powertrain,
         engineCc: Number(engineCc) || 0,
         year: Number(year) || new Date().getFullYear(),
@@ -221,7 +223,7 @@ export default function CalculatorPage() {
         kztPerUsd: rates?.usd ?? 0,
         kztPerCny: rates?.cny ?? 0,
         settings: draft,
-    }), [price, currency, cityKey, powertrain, engineCc, year, kzOnly, rates, draft]);
+    }), [price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, rates, draft]);
 
     // Тот же расчёт по сохранённым настройкам — чтобы в подтверждении
     // показать, на сколько правка меняет цену на этой конкретной машине
@@ -229,6 +231,7 @@ export default function CalculatorPage() {
         price: Number(price) || 0,
         currency,
         cityKey,
+        borderMethod,
         powertrain,
         engineCc: Number(engineCc) || 0,
         year: Number(year) || new Date().getFullYear(),
@@ -236,7 +239,7 @@ export default function CalculatorPage() {
         kztPerUsd: rates?.usd ?? 0,
         kztPerCny: rates?.cny ?? 0,
         settings: saved,
-    }) : null), [saved, price, currency, cityKey, powertrain, engineCc, year, kzOnly, rates]);
+    }) : null), [saved, price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, rates]);
 
     const message = useMemo(
         () => asMessage(result, carName, Number(year) || 0, messageMode),
@@ -462,6 +465,32 @@ export default function CalculatorPage() {
                         >
                             {CITIES.map(c => <option key={c.key} value={c.key}>{c.city}</option>)}
                         </select>
+                    </div>
+
+                    <div>
+                        <Label>Проход границы</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {BORDER_METHODS.map(m => {
+                                const cost = saved
+                                    ? (m.key === "selfDrive" ? draft.borderCrossing.selfDriveUsd : draft.borderCrossing.carrierUsd)
+                                    : null;
+                                const active = borderMethod === m.key;
+                                return (
+                                    <button
+                                        key={m.key}
+                                        onClick={() => setBorderMethod(m.key)}
+                                        className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                                            active ? "border-primary bg-primary/10" : "bg-white hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        <span className={`block text-sm font-bold ${active ? "text-primary" : "text-slate-700"}`}>
+                                            {m.label}{cost !== null ? ` · ${usd(cost)}` : ""}
+                                        </span>
+                                        <span className="block text-[11px] text-slate-400">на границе {m.days}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div>
