@@ -112,8 +112,6 @@ export interface CalcSettings {
     /** Сетка комиссии HUBDrive по цене машины — по возрастанию цены. */
     commissionTiers: CommissionTier[];
     fixed: FixedCosts;
-    /** Надбавка за перевод денег в Китай, доля от цены машины. */
-    chinaPaymentFeePct: number;
     /**
      * Проход границы, доллары. Способов два, и за один платить нужно всегда:
      * самоходом дешевле, но машина стоит в очереди на Хоргосе неделями,
@@ -147,8 +145,6 @@ export const DEFAULT_CALC_SETTINGS: CalcSettings = {
         towing: 25_000,
         brokerUsd: 200,
     },
-    // Ноль намеренно: включённая надбавка молча подняла бы каждую цену
-    chinaPaymentFeePct: 0,
     borderCrossing: { selfDriveUsd: 300, carrierUsd: 600 },
     transitUsd: { KZ: 200, KG: 400, RU: 400 },
     deliveryWeeks: { min: 3, max: 6 },
@@ -232,11 +228,6 @@ export const FIELDS: FieldDef[] = [
     { path: 'fixed.svh', label: 'СВХ', unit: '₸', group: 'common' },
     { path: 'fixed.inspection', label: 'Сверка агрегатов', unit: '₸', group: 'common' },
     { path: 'fixed.towing', label: 'Эвакуатор', unit: '₸', group: 'common' },
-    {
-        path: 'chinaPaymentFeePct', label: 'Перевод денег в Китай', unit: '%', group: 'common',
-        percent: true, max: 0.2,
-        hint: 'Банк или платёжный агент берёт около 1,5%. На пошлину и НДС не влияет — они считаются по курсу Нацбанка',
-    },
     { path: 'borderCrossing.carrierUsd', label: 'Проход границы: автовоз', unit: '$', group: 'common' },
     { path: 'borderCrossing.selfDriveUsd', label: 'Проход границы: самоход', unit: '$', group: 'common' },
     { path: 'transitUsd.KZ', label: 'Транзит до Казахстана', unit: '$', group: 'common' },
@@ -362,7 +353,6 @@ export function applyCalcPatch(patch: unknown): CalcSettings {
             towing: num(pf.towing, d.fixed.towing),
             brokerUsd: num(pf.brokerUsd, d.fixed.brokerUsd),
         },
-        chinaPaymentFeePct: num(p.chinaPaymentFeePct, d.chinaPaymentFeePct, 0, 0.2),
         borderCrossing: {
             selfDriveUsd: num(pb.selfDriveUsd, d.borderCrossing.selfDriveUsd),
             carrierUsd: num(pb.carrierUsd, d.borderCrossing.carrierUsd),

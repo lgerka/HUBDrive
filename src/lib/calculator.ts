@@ -218,10 +218,6 @@ export function calculate(input: CalcInput): CalcResult {
     const paperwork = f.svh + f.certification + f.eraGlonass + f.inspection
         + f.towing + fromUsd(f.brokerUsd);
 
-    // Перевод денег в Китай стоит процент от суммы. На пошлину и НДС
-    // не влияет: они считаются от таможенной стоимости по курсу Нацбанка
-    const paymentFee = carKzt * s.chinaPaymentFeePct;
-
     // Ступень выбирается по цене машины в долларах. Цену в юанях переводим
     // через тенге по курсу Нацбанка — тем же, по которому считается всё остальное
     const carUsd = carKzt / kztUsd;
@@ -238,13 +234,6 @@ export function calculate(input: CalcInput): CalcResult {
                 ? `${fmt(input.price)} ¥ × ${kztCny.toFixed(2)} ₸`
                 : `${fmt(input.price)} $ × ${kztUsd.toFixed(2)} ₸`,
         },
-        ...(paymentFee > 0
-            ? [{
-                label: 'Перевод денег в Китай',
-                kzt: paymentFee,
-                hint: `${pct(s.chinaPaymentFeePct)} от цены машины`,
-            }]
-            : []),
         // Логистика тремя строками, а не одной: клиент спрашивает «а за что
         // тысяча долларов доставки», и ответ должен быть виден сразу
         {
