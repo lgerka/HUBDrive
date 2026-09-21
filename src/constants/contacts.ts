@@ -1,4 +1,6 @@
 // Контакты компании — единая точка правды для всех CTA в приложении и на лендинге.
+import { trackEvent } from '@/lib/api/track';
+
 export const SUPPORT_TELEGRAM_URL = 'https://t.me/Hubdrivekz';
 /** Бот: сюда отправляем, если приложение открыли вне Telegram (например, с иконки PWA). */
 export const BOT_USERNAME = 'HUBDrive_bot';
@@ -48,8 +50,22 @@ function openExternal(url: string) {
     else window.open(url, '_blank', 'noopener');
 }
 
+/**
+ * Учёт нажатия — только если сказано, откуда нажали.
+ *
+ * На лендинге клики по кнопкам связи считались, а в приложении нет, и
+ * админка видела обращения только с сайта. Но часть вызывающих, например
+ * страница машины, уже считает клик сама, со своими подробностями. Поэтому
+ * учёт включается явным указанием места, а не всегда: иначе клик
+ * посчитался бы дважды.
+ */
+function trackContact(type: 'whatsapp_clicked' | 'telegram_clicked' | 'call_clicked', place?: string) {
+    if (place) trackEvent(type, { meta: { place } });
+}
+
 /** Открывает Telegram-чат поддержки: внутри Telegram WebApp — нативно, иначе в новой вкладке. */
-export function openSupportTelegram() {
+export function openSupportTelegram(place?: string) {
+    trackContact('telegram_clicked', place);
     const tg = typeof window !== 'undefined'
         ? (window.Telegram?.WebApp as { openTelegramLink?: (url: string) => void } | undefined)
         : undefined;
@@ -61,12 +77,14 @@ export function openSupportTelegram() {
 }
 
 /** Открывает WhatsApp с менеджером. */
-export function openWhatsApp(text?: string) {
+export function openWhatsApp(text?: string, place?: string) {
+    trackContact('whatsapp_clicked', place);
     openExternal(whatsappLink(text));
 }
 
 /** Звонок менеджеру. */
-export function callSupport() {
+export function callSupport(place?: string) {
+    trackContact('call_clicked', place);
     window.location.href = `tel:${SUPPORT_PHONE}`;
 }
 

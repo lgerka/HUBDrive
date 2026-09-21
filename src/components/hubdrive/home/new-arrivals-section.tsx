@@ -1,24 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { Vehicle } from '@prisma/client';
-import { VehicleCard } from '../vehicles/vehicle-card';
+import React from 'react';
 import Link from 'next/link';
+import { VehicleCard } from '../vehicles/vehicle-card';
+import { useHomeVehicles, isAvailable } from './use-home-vehicles';
 
-// PRD §7: блок «Новые поступления» на главном экране
+// PRD §7: блок «Новые поступления» на главном экране.
+// Только то, что можно купить: проданная машина в «новых поступлениях» —
+// это обещание, которое мы не выполним
 export function NewArrivalsSection() {
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-
-    useEffect(() => {
-        fetch('/api/vehicles?sort=newest')
-            .then(res => (res.ok ? res.json() : []))
-            .then((data: Vehicle[]) => {
-                if (Array.isArray(data)) {
-                    setVehicles(data.slice(0, 4));
-                }
-            })
-            .catch(() => { });
-    }, []);
+    const all = useHomeVehicles();
+    const vehicles = (all ?? []).filter(isAvailable).slice(0, 4);
 
     if (vehicles.length === 0) return null;
 

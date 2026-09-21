@@ -15,7 +15,6 @@ import {
     Truck,
     FileText
 } from "lucide-react";
-import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 import { cn } from "@/lib/utils";
 import { SUPPORT_PHONE_DISPLAY, openSupportTelegram, openWhatsApp, callSupport } from "@/constants/contacts";
 
@@ -91,7 +90,7 @@ export default function SupportPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <button
                         type="button"
-                        onClick={openSupportTelegram}
+                        onClick={() => openSupportTelegram('support')}
                         className="relative overflow-hidden bg-primary rounded-xl p-4 h-32 flex flex-col justify-between group cursor-pointer shadow-md shadow-primary/20 hover:shadow-lg transition-shadow text-left active:scale-[0.98]"
                     >
                         <div className="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center text-white">
@@ -104,7 +103,7 @@ export default function SupportPage() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => openWhatsApp("Здравствуйте! Хочу узнать про авто из Китая")}
+                        onClick={() => openWhatsApp("Здравствуйте! Хочу узнать про авто из Китая", 'support')}
                         className="relative overflow-hidden bg-[#25D366] rounded-xl p-4 h-32 flex flex-col justify-between group cursor-pointer shadow-md shadow-[#25D366]/20 hover:shadow-lg transition-shadow text-left active:scale-[0.98]"
                     >
                         <div className="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center text-white">
@@ -119,7 +118,7 @@ export default function SupportPage() {
 
                 <button
                     type="button"
-                    onClick={callSupport}
+                    onClick={() => callSupport('support')}
                     className="mt-4 w-full flex items-center justify-center gap-3 bg-slate-900 dark:bg-slate-800 rounded-xl px-5 py-4 text-white active:scale-[0.98] transition-transform"
                 >
                     <Phone className="w-5 h-5" />
@@ -173,7 +172,6 @@ export default function SupportPage() {
                 <div className="h-20 bg-background-light dark:bg-background-dark"></div>
             </div>
 
-            <BottomNav />
         </div>
     );
 }
