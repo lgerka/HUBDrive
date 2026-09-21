@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
+import { toPublicVehicle } from '@/lib/server/publicVehicle';
 
 export async function GET(
     request: Request,
@@ -19,9 +20,7 @@ export async function GET(
         if (vehicle.status === 'hidden') {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
-        const { priceChina, pricePort, vin, ...publicVehicle } = vehicle;
-
-        return NextResponse.json(publicVehicle);
+        return NextResponse.json(toPublicVehicle(vehicle));
     } catch (error) {
         console.error('Error fetching vehicle:', error);
         return NextResponse.json(

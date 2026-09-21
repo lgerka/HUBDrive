@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
+import { vehiclePriceText } from '@/lib/price';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
@@ -84,9 +85,7 @@ export async function POST(request: Request) {
             ? `https://t.me/${dbUser.username}`
             : `tg://user?id=${dbUser.telegramId}`;
         const contact = dbUser.username ? `@${dbUser.username}` : `ID ${dbUser.telegramId}`;
-        const price = vehicle.priceUSD
-            ? `$ ${vehicle.priceUSD.toLocaleString('ru-RU')}`
-            : new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(vehicle.priceKeyTurnKZT);
+        const price = vehiclePriceText(vehicle) ?? 'по запросу';
 
         const message = [
             '<b>Новая заявка HUBDrive</b>',

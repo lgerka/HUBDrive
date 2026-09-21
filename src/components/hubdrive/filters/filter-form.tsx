@@ -241,6 +241,9 @@ export function FilterForm({ initialData, onSubmit }: FilterFormProps) {
                             </div>
                         </div>
                     </div>
+                    <p className="ml-1 text-xs text-on-surface-variant">
+                        Сравниваем с ценой под ключ в Алматы: машина, доставка, растаможка и оформление.
+                    </p>
                 </section>
 
                 {/* Mileage Section */}

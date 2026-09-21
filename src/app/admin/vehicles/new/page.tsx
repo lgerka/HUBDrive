@@ -2,10 +2,11 @@
 
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Video, UploadCloud, ChevronRight, Check, Camera, Settings2, Wallet, FileText, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
+import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
 
 // Мастер создания карточки авто — шаги по PRD §19.4
 const STEPS = [
@@ -40,23 +41,15 @@ export default function AdminNewVehiclePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [stepError, setStepError] = useState<string | null>(null);
-  // Курс ¥ за $1 — для живого предпросмотра клиентской цены
-  const [usdRate, setUsdRate] = useState(0);
-  useEffect(() => {
-    fetch("/api/admin/exchange-rates", { headers: { "x-telegram-init-data": initData || "" } })
-      .then(res => (res.ok ? res.json() : null))
-      .then(d => { if (d?.usdCny) setUsdRate(d.usdCny); })
-      .catch(() => { });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
     generation: "",
     vin: "",
-    year: new Date().getFullYear().toString(),
+    year: "",
     bodyType: "Кроссовер",
     engineType: "Бензин",
+    powertrain: "",
     engineVolume: "",
     powerHp: "",
     transmission: "Автомат",
@@ -132,6 +125,12 @@ export default function AdminNewVehiclePage() {
     if (s === 3) {
       if (!formData.brand.trim()) return "Укажите марку автомобиля";
       if (!formData.model.trim()) return "Укажите модель автомобиля";
+      const y = Number(formData.year);
+      const thisYear = new Date().getFullYear();
+      // От года зависит сбор за регистрацию: у машин старше трёх лет это ~2 млн ₸
+      if (!Number.isInteger(y) || y < 1990 || y > thisYear + 1) return `Укажите год выпуска — от 1990 до ${thisYear + 1}`;
+      if (formData.engineType === "Гибрид" && !formData.powertrain) return "Выберите тип гибрида — от него зависит пошлина";
+      if (formData.engineType !== "Электро" && !(Number(formData.engineVolume) > 0)) return "Укажите объём двигателя — от него зависит утильсбор";
     }
     if (s === 4) {
       if (!formData.priceChina || Number(formData.priceChina) <= 0) return "Укажите цену в юанях — как она пришла из Китая";
@@ -185,7 +184,9 @@ export default function AdminNewVehiclePage() {
         router.push("/admin/vehicles");
         router.refresh();
       } else {
-        alert("Ошибка при добавлении автомобиля");
+        // Сервер говорит, что именно не так: «Выберите тип гибрида», «Укажите объём»
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Ошибка при добавлении автомобиля");
       }
     } catch (err) {
       console.error(err);
@@ -341,7 +342,7 @@ export default function AdminNewVehiclePage() {
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Год выпуска</label>
-                  <input type="number" name="year" className={inputCls} value={formData.year} onChange={handleChange} />
+                  <input type="number" name="year" className={inputCls} placeholder="2024" value={formData.year} onChange={handleChange} />
                 </div>
                 <div className="space-y-3">
                   <label className={labelCls}>Поколение</label>
@@ -371,12 +372,28 @@ export default function AdminNewVehiclePage() {
                 <div className="space-y-3">
                   <label className={labelCls}>Двигатель</label>
                   <div className="relative">
-                    <select name="engineType" className={cn(inputCls, "appearance-none pr-10")} value={formData.engineType} onChange={handleChange}>
+                    <select name="engineType" className={cn(inputCls, "appearance-none pr-10")} value={formData.engineType}
+                      onChange={(e) => setFormData(prev => ({ ...prev, engineType: e.target.value, powertrain: "" }))}>
                       <option>Бензин</option><option>Электро</option><option>Гибрид</option><option>Дизель</option>
                     </select>
                     <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                   </div>
                 </div>
+                {/* EREV и обычный гибрид для пошлины — 0% против 15%: на машине
+                    за 10 млн ₸ это почти два миллиона разницы */}
+                {formData.engineType === "Гибрид" && (
+                  <div className="space-y-3">
+                    <label className={labelCls}>Тип гибрида</label>
+                    <div className="relative">
+                      <select name="powertrain" className={cn(inputCls, "appearance-none pr-10")} value={formData.powertrain} onChange={handleChange}>
+                        <option value="">Выберите…</option>
+                        <option value="erev">Последовательный (EREV) — двигатель только заряжает батарею</option>
+                        <option value="phev">Обычный (PHEV) — двигатель крутит колёса</option>
+                      </select>
+                      <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                    </div>
+                  </div>
+                )}
                 {/* Для электро объём ДВС не существует — поле прячем, а не оставляем «мёртвым» */}
                 {formData.engineType !== "Электро" && (
                   <div className="space-y-3">
@@ -454,16 +471,15 @@ export default function AdminNewVehiclePage() {
                   />
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
                 </div>
-                {Number(formData.priceChina) > 0 && usdRate > 0 && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
-                    <span className="text-sm font-medium text-emerald-700">Клиент увидит:</span>
-                    <span className="font-headline font-extrabold text-emerald-700">
-                      $ {(Math.ceil(Number(formData.priceChina) / usdRate / 100) * 100).toLocaleString("ru-RU")}
-                    </span>
-                    <span className="text-[11px] text-emerald-600/70 ml-auto">курс ¥{usdRate} за $1</span>
-                  </div>
-                )}
-                <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Доллары для клиента и тенге для бюджетов фильтров посчитаются автоматически (Настройки → Курс валют).</p>
+                <TurnkeyPreviewBox
+                  initData={initData}
+                  priceChina={formData.priceChina}
+                  engineType={formData.engineType}
+                  powertrain={formData.powertrain}
+                  engineVolume={formData.engineVolume}
+                  year={formData.year}
+                />
+                <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ в тенге и долларах посчитает калькулятор — по его настройкам и курсу Нацбанка — и будет пересчитывать каждое утро.</p>
               </div>
             </div>
           )}
@@ -517,16 +533,24 @@ export default function AdminNewVehiclePage() {
                   <span className="font-bold">{formData.brand || "—"} {formData.model} · {formData.year}</span>
                   <span className="text-slate-400">Кузов / Двигатель</span>
                   <span className="font-bold">{formData.bodyType} / {formData.engineType}</span>
-                  <span className="text-slate-400">Цена под ключ</span>
-                  <span className="font-bold text-primary">
-                    {formData.priceChina
-                      ? `¥ ${Number(formData.priceChina).toLocaleString("ru-RU")}${usdRate > 0 ? ` → $ ${(Math.ceil(Number(formData.priceChina) / usdRate / 100) * 100).toLocaleString("ru-RU")}` : ""}`
-                      : "—"}
+                  <span className="text-slate-400">Цена в Китае</span>
+                  <span className="font-bold">
+                    {formData.priceChina ? `¥ ${Number(formData.priceChina).toLocaleString("ru-RU")}` : "—"}
                   </span>
                   <span className="text-slate-400">Фото / Видео</span>
                   <span className="font-bold">{formData.media.length} фото{formData.videoUrl ? " + видео" : ""}</span>
                   <span className="text-slate-400">Описание</span>
                   <span className="font-bold">{formData.description ? `${formData.description.length} симв.` : "не заполнено"}</span>
+                </div>
+                <div className="pt-3">
+                  <TurnkeyPreviewBox
+                    initData={initData}
+                    priceChina={formData.priceChina}
+                    engineType={formData.engineType}
+                    powertrain={formData.powertrain}
+                    engineVolume={formData.engineVolume}
+                    year={formData.year}
+                  />
                 </div>
               </div>
             </div>

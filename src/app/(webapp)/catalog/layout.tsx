@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/server/prisma";
+import { fmtKzt } from "@/lib/price";
 import { slugForBrand, brandBySlug, MIN_VEHICLES_FOR_INDEX } from "@/lib/brands";
 
 export const metadata: Metadata = {
     title: "Каталог авто из Китая в наличии — цены под ключ в Казахстане",
     description:
-        "Автомобили из Китая с ценой под ключ: доставка, растаможка с полной пошлиной "
+        "Автомобили из Китая с ценой под ключ: доставка, официальная растаможка "
         + "и оформление уже включены. Проверяем каждую машину до оплаты.",
     alternates: { canonical: "/catalog" },
 };
@@ -58,12 +59,12 @@ async function BrandLinks() {
 }
 
 async function AllVehiclesIndex() {
-    let vehicles: Array<{ id: string; brand: string; model: string; year: number; priceUSD: number | null }> = [];
+    let vehicles: Array<{ id: string; brand: string; model: string; year: number; priceUSD: number | null; priceKeyTurnKZT: number; priceCalc: unknown }> = [];
 
     try {
         vehicles = await prisma.vehicle.findMany({
             where: { status: { notIn: ["hidden", "sold", "delivered"] } },
-            select: { id: true, brand: true, model: true, year: true, priceUSD: true },
+            select: { id: true, brand: true, model: true, year: true, priceUSD: true, priceKeyTurnKZT: true, priceCalc: true },
             orderBy: [{ brand: "asc" }, { model: "asc" }],
             take: 300,
         });
@@ -86,7 +87,9 @@ async function AllVehiclesIndex() {
                             className="text-sm text-on-surface-variant underline-offset-2 hover:text-primary hover:underline"
                         >
                             {v.brand} {v.model} {v.year}
-                            {v.priceUSD ? ` — $${v.priceUSD.toLocaleString("ru-RU")}` : ""}
+                            {v.priceCalc !== null && v.priceKeyTurnKZT > 0
+                                ? ` — ${fmtKzt(v.priceKeyTurnKZT)}`
+                                : v.priceUSD ? ` — $${v.priceUSD.toLocaleString("ru-RU")}` : ""}
                         </Link>
                     </li>
                 ))}

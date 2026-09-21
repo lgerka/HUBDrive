@@ -4,6 +4,9 @@ import { prisma } from '@/lib/server/prisma';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { VehicleDetailClient } from './vehicle-detail-client';
 import { slugForBrand, brandBySlug } from '@/lib/brands';
+import { toPublicVehicle, type PublicVehicle } from '@/lib/server/publicVehicle';
+import { fmtKzt, fmtUsd } from '@/lib/price';
+import { CATALOG_PRICING } from '@/lib/turnkey';
 
 /**
  * Карточка автомобиля.
@@ -17,24 +20,35 @@ import { slugForBrand, brandBySlug } from '@/lib/brands';
 /** Список обновляется часто, поэтому держим страницу свежей, но кэшируем на час. */
 export const revalidate = 3600;
 
-async function getVehicle(id: string) {
+/**
+ * Машина для страницы — только публичные поля.
+ *
+ * Раньше сюда читалась машина целиком и так же целиком уходила в браузер:
+ * с ценой в Китае, ценой до порта и VIN. Рядом с ценой под ключ по разнице
+ * читается наша комиссия. Скрытые машины открывались по прямой ссылке.
+ */
+async function getVehicle(id: string): Promise<PublicVehicle | null> {
     try {
-        return await prisma.vehicle.findUnique({ where: { id } });
+        const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+        if (!vehicle || vehicle.status === 'hidden') return null;
+        return toPublicVehicle(vehicle);
     } catch (error) {
         console.error('[vehicles] не удалось прочитать авто:', error);
         return null;
     }
 }
 
-function priceLabel(vehicle: { priceUSD: number | null; priceKeyTurnKZT: number }): string {
+/** «20 900 000 ₸ ($ 47 000)» под ключ — или как раньше, если ещё не пересчитана. */
+function priceLabel(vehicle: PublicVehicle): string {
+    if (vehicle.turnkey && vehicle.priceKeyTurnKZT > 0) {
+        return vehicle.priceUSD && vehicle.priceUSD > 0
+            ? `${fmtKzt(vehicle.priceKeyTurnKZT)} (${fmtUsd(vehicle.priceUSD)})`
+            : fmtKzt(vehicle.priceKeyTurnKZT);
+    }
     if (vehicle.priceUSD && vehicle.priceUSD > 0) {
         return `$${vehicle.priceUSD.toLocaleString('ru-RU')}`;
     }
-    return new Intl.NumberFormat('ru-KZ', {
-        style: 'currency',
-        currency: 'KZT',
-        maximumFractionDigits: 0,
-    }).format(vehicle.priceKeyTurnKZT);
+    return fmtKzt(vehicle.priceKeyTurnKZT);
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -49,8 +63,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const title = `${name} — ${priceLabel(vehicle)} под ключ в Казахстане`;
     const mileage = vehicle.mileage ? `${vehicle.mileage.toLocaleString('ru-RU')} км` : 'без пробега по РК';
     const description =
-        `${name}, ${mileage}. Цена ${priceLabel(vehicle)} под ключ: с доставкой из Китая, `
-        + `растаможкой и оформлением в Казахстане. Проверка автомобиля до оплаты, договор, доставка в Алматы и Астану.`;
+        `${name}, ${mileage}. Цена ${priceLabel(vehicle)} под ключ с доставкой в ${CATALOG_PRICING.cityName}: `
+        + `растаможка и оформление в Казахстане включены. Проверка автомобиля до оплаты, договор.`;
 
     const cover = Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined;
     const url = `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`;
@@ -118,8 +132,11 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
         offers: {
             '@type': 'Offer',
             url: `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`,
-            price: vehicle.priceUSD ?? vehicle.priceKeyTurnKZT,
-            priceCurrency: vehicle.priceUSD ? 'USD' : 'KZT',
+            // Посчитанная цена под ключ — в тенге, это и есть цена сделки.
+            // До пересчёта — как раньше
+            ...(vehicle.turnkey
+                ? { price: vehicle.priceKeyTurnKZT, priceCurrency: 'KZT' }
+                : { price: vehicle.priceUSD ?? vehicle.priceKeyTurnKZT, priceCurrency: vehicle.priceUSD ? 'USD' : 'KZT' }),
             availability: vehicle.status === 'sold' || vehicle.status === 'delivered'
                 ? 'https://schema.org/SoldOut'
                 : 'https://schema.org/InStock',
@@ -154,7 +171,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
             <div className="sr-only">
                 <h1>{name} — авто из Китая под ключ в Казахстане</h1>
                 <p>
-                    Цена {priceLabel(vehicle)} под ключ: доставка из Китая, растаможка с полной пошлиной
+                    Цена {priceLabel(vehicle)} под ключ: доставка из Китая, официальная растаможка
                     и оформление в Казахстане включены.
                 </p>
                 {vehicle.mileage ? <p>Пробег: {vehicle.mileage.toLocaleString('ru-RU')} км.</p> : null}

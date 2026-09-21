@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { fmtKzt } from '@/lib/price';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight, BadgeCheck } from 'lucide-react';
@@ -16,6 +17,22 @@ import { brandBySlug, BRAND_INFO, MIN_VEHICLES_FOR_INDEX } from '@/lib/brands';
 
 export const revalidate = 3600;
 
+type BrandVehicle = { priceUSD: number | null; priceKeyTurnKZT: number; priceCalc: unknown };
+
+/** Цена в списке: под ключ в тенге, если посчитана калькулятором, иначе как раньше. */
+function priceText(v: BrandVehicle): string {
+    if (v.priceCalc !== null && v.priceKeyTurnKZT > 0) return fmtKzt(v.priceKeyTurnKZT);
+    return v.priceUSD ? `$${v.priceUSD.toLocaleString('ru-RU')}` : 'по запросу';
+}
+
+/** «от 9 500 000 ₸» — по ценам под ключ; пока их нет — по долларам, как раньше. */
+function fromPrice(vehicles: BrandVehicle[]): string | null {
+    const turnkey = vehicles.filter(v => v.priceCalc !== null && v.priceKeyTurnKZT > 0).map(v => v.priceKeyTurnKZT);
+    if (turnkey.length > 0) return fmtKzt(Math.min(...turnkey));
+    const usd = vehicles.map(v => v.priceUSD).filter((p): p is number => Boolean(p));
+    return usd.length > 0 ? `$${Math.min(...usd).toLocaleString('ru-RU')}` : null;
+}
+
 async function getVehicles(brand: string) {
     try {
         return await prisma.vehicle.findMany({
@@ -23,7 +40,12 @@ async function getVehicles(brand: string) {
                 brand: { equals: brand, mode: 'insensitive' },
                 status: { notIn: ['hidden', 'sold', 'delivered'] },
             },
-            select: { id: true, brand: true, model: true, year: true, mileage: true, priceUSD: true, media: true },
+            select: {
+                id: true, brand: true, model: true, year: true, mileage: true, priceUSD: true, media: true,
+                priceKeyTurnKZT: true,
+                // Только чтобы знать, посчитана ли цена под ключ
+                priceCalc: true,
+            },
             orderBy: { priceUSD: 'asc' },
         });
     } catch (error) {
@@ -42,13 +64,12 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
     if (!info) return { title: 'Марка не найдена', robots: { index: false, follow: true } };
 
     const vehicles = await getVehicles(info.brand);
-    const prices = vehicles.map(v => v.priceUSD).filter((p): p is number => Boolean(p));
-    const from = prices.length > 0 ? Math.min(...prices) : null;
+    const from = fromPrice(vehicles);
 
     const title = `${info.brand} из Китая в Казахстан — цены под ключ`;
     const description = from
-        ? `${info.brand} из Китая с доставкой и растаможкой: ${vehicles.length} в наличии, от $${from.toLocaleString('ru-RU')} под ключ. Проверяем машину до оплаты, цена фиксируется в договоре.`
-        : `${info.brand} из Китая под заказ: доставка, растаможка с полной пошлиной и оформление в Казахстане. Проверяем машину до оплаты.`;
+        ? `${info.brand} из Китая с доставкой и растаможкой: ${vehicles.length} в наличии, от ${from} под ключ. Проверяем машину до оплаты, цена фиксируется в договоре.`
+        : `${info.brand} из Китая под заказ: доставка, официальная растаможка и оформление в Казахстане. Проверяем машину до оплаты.`;
 
     return {
         title,
@@ -68,8 +89,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
     if (!info) notFound();
 
     const vehicles = await getVehicles(info.brand);
-    const prices = vehicles.map(v => v.priceUSD).filter((p): p is number => Boolean(p));
-    const from = prices.length > 0 ? Math.min(...prices) : null;
+    const from = fromPrice(vehicles);
 
     const jsonLd = {
         '@context': 'https://schema.org',
@@ -110,14 +130,14 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
             </h1>
             <p className="mt-3 text-on-surface-variant">
                 {from
-                    ? `${vehicles.length} ${vehicles.length === 1 ? 'автомобиль' : 'автомобилей'} в наличии, от $${from.toLocaleString('ru-RU')} под ключ`
+                    ? `${vehicles.length} ${vehicles.length === 1 ? 'автомобиль' : 'автомобилей'} в наличии, от ${from} под ключ`
                     : 'Привозим под заказ'}
             </p>
 
             <p className="mt-6 leading-relaxed text-on-surface">{info.intro}</p>
 
             <ul className="mt-6 space-y-2 text-sm text-on-surface-variant">
-                <li className="flex gap-2"><BadgeCheck className="h-5 w-5 shrink-0 text-primary" />Цена сразу под ключ: доставка, растаможка с полной пошлиной, утильсбор и оформление</li>
+                <li className="flex gap-2"><BadgeCheck className="h-5 w-5 shrink-0 text-primary" />Цена сразу под ключ: доставка, официальная растаможка, утильсбор и оформление</li>
                 <li className="flex gap-2"><BadgeCheck className="h-5 w-5 shrink-0 text-primary" />Проверяем машину в Китае до оплаты и присылаем отчёт с фото</li>
                 <li className="flex gap-2"><BadgeCheck className="h-5 w-5 shrink-0 text-primary" />Итоговая сумма закрепляется в договоре</li>
             </ul>
@@ -142,7 +162,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                                         </span>
                                     </span>
                                     <span className="shrink-0 font-headline font-bold text-on-surface">
-                                        {v.priceUSD ? `$${v.priceUSD.toLocaleString('ru-RU')}` : 'по запросу'}
+                                        {priceText(v)}
                                     </span>
                                 </Link>
                             </li>

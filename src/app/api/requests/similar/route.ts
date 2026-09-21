@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
+import { vehiclePriceText } from '@/lib/price';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
         const usernameLine = dbUser.username ? `@${dbUser.username}` : `ID ${dbUser.telegramId}`;
         const carLine = vehicle
-            ? `<b>Ориентир:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}${vehicle.priceUSD ? ` — $${vehicle.priceUSD.toLocaleString('ru-RU')}` : ''}`
+            ? `<b>Ориентир:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}${vehiclePriceText(vehicle) ? ` — ${vehiclePriceText(vehicle)}` : ''}`
             : '<b>Ориентир:</b> не указан';
 
         const message = [

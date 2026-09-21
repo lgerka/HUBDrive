@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
-import { getExchangeRates, prettyUsd } from '@/lib/server/exchange';
+import { readVehicleInput, turnkeyInputOf, VehicleInputError } from '@/lib/server/vehicleInput';
+import { priceForSave, TurnkeyInputError } from '@/lib/server/turnkeyPrices';
+import { isPriceFrozen } from '@/lib/turnkey';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,54 +30,42 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const body = await request.json();
+        const input = readVehicleInput(await request.json());
+        const existing = await prisma.vehicle.findUnique({ where: { id }, select: { id: true } });
+        if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-        // Ввод — юани; доллары для клиента и тенге для фильтров считаем по курсу
-        const priceChina = Number(body.priceChina) || null;
-        let priceUSD = Number(body.priceUSD) || null;
-        let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
-        if ((priceChina && !priceUSD) || (priceUSD && !priceKeyTurnKZT)) {
-            const rates = await getExchangeRates();
-            if (priceChina && !priceUSD) {
-                priceUSD = prettyUsd(priceChina / rates.usdCny);
-            }
-            if (priceUSD && !priceKeyTurnKZT) {
-                priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
-            }
-        }
+        // Машина в сделке — цена зафиксирована договором. Правка описания или
+        // статуса не должна пересчитать её по сегодняшнему курсу
+        const frozen = isPriceFrozen(input.fields.status);
+        const price = frozen ? null : await priceForSave(turnkeyInputOf(input));
 
         const updated = await prisma.vehicle.update({
             where: { id },
             data: {
-                brand: body.brand,
-                model: body.model,
-                generation: body.generation || null,
-                vin: body.vin || null,
-                year: Number(body.year),
-                priceUSD,
-                priceKeyTurnKZT,
-                priceChina,
-                pricePort: Number(body.pricePort) || null,
-                deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,
-                status: body.status,
-                description: body.description || '',
-                bodyType: body.bodyType,
-                engineType: body.engineType,
-                engineVolume: Number(body.engineVolume) || 0,
-                powerHp: Number(body.powerHp) || 0,
-                mileage: Number(body.mileage) || 0,
-                transmission: body.transmission,
-                drivetrain: body.drivetrain,
-                exteriorColor: body.exteriorColor || '',
-                interiorColor: body.interiorColor || '',
-                media: body.media ?? [],
-                videoUrl: body.videoUrl || null
-            }
+                ...input.fields,
+                priceChina: input.priceChina,
+                powertrain: input.powertrain,
+                ...(price
+                    ? {
+                        priceKeyTurnKZT: price.priceKeyTurnKZT,
+                        priceUSD: price.priceUSD,
+                        priceCalc: price.priceCalc as never,
+                    }
+                    : {}),
+            },
         });
+        revalidatePath('/', 'layout');
 
-        return NextResponse.json(updated);
+        return NextResponse.json({
+            ...updated,
+            ...(price?.fallbackRate ? { warning: 'Нацбанк не ответил — цена посчитана по запасному курсу, ночью пересчитается' } : {}),
+        });
     } catch (e) {
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        if (e instanceof VehicleInputError || e instanceof TurnkeyInputError) {
+            return NextResponse.json({ error: e.message }, { status: 400 });
+        }
+        console.error('Error updating vehicle:', e);
+        return NextResponse.json({ error: 'Машина не сохранена: не удалось посчитать цену. Попробуйте ещё раз' }, { status: 500 });
     }
 }
 
@@ -85,6 +76,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         await prisma.vehicle.delete({ where: { id } });
+        revalidatePath('/', 'layout');
 
         return NextResponse.json({ success: true });
     } catch (e) {

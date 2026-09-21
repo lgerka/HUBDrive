@@ -6,6 +6,7 @@ import {
     Save, Undo2, Scale, X, AlertTriangle,
 } from "lucide-react";
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
+import { CatalogPricesCard } from "@/components/hubdrive/admin/catalog-prices-card";
 import {
     calculate, asMessage, formatKzt, needsEngine, canUseWtoRate, weeksLabel,
     CITIES, POWERTRAINS, BORDER_METHODS,
@@ -366,11 +367,18 @@ export default function CalculatorPage() {
                 return;
             }
 
-            const data: Stored = await res.json();
+            const data: Stored & { recalc?: { changed: number } | { error: string } | null } = await res.json();
             setStored(data);
             setTexts(textsFrom(data.settings));
             setConfirming(false);
-            setSavedNote("Настройки сохранены — теперь по ним считают все");
+            const recalc = data.recalc;
+            setSavedNote(
+                recalc && "changed" in recalc
+                    ? `Настройки сохранены. Цены в каталоге пересчитаны: изменилось ${recalc.changed}`
+                    : recalc && "error" in recalc
+                        ? `Настройки сохранены. ${recalc.error}`
+                        : "Настройки сохранены — теперь по ним считают все"
+            );
         } catch {
             setSaveError("Не удалось сохранить: нет связи с сервером.");
         } finally {
@@ -820,6 +828,8 @@ export default function CalculatorPage() {
                     )}
                 </section>
             </div>
+
+            <CatalogPricesCard headers={headers} />
 
             {confirming && saved && (
                 <ConfirmSheet

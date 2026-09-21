@@ -8,7 +8,7 @@ interface VehicleInfoBlocksProps {
 
 // Блок гарантий — общие обязательства HUBDrive по каждому авто.
 // Индивидуальной оценки «осмотра» у нас нет, поэтому никаких баллов не показываем.
-const GUARANTEES = ["Без ДТП", "Оригинальный пробег", "Застраховано", "Полная пошлина"];
+const GUARANTEES = ["Без ДТП", "Оригинальный пробег", "Застраховано", "Официальная растаможка"];
 
 export function VehicleInfoBlocks({ description }: VehicleInfoBlocksProps) {
     return (

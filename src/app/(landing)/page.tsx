@@ -7,7 +7,7 @@ import {
     Search, MessagesSquare, KeyRound, ArrowRight, Send, Phone, MessageCircle,
 } from "lucide-react";
 import { prisma } from "@/lib/server/prisma";
-import { fmtUsd } from "@/lib/price";
+import { TurnkeyPrice } from "@/components/hubdrive/vehicles/turnkey-price";
 import { SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, SUPPORT_TELEGRAM_URL, whatsappLink } from "@/constants/contacts";
 import { InstallInstructions } from "@/components/hubdrive/landing/install-instructions";
 import { StandaloneRedirect } from "@/components/hubdrive/landing/standalone-redirect";
@@ -37,7 +37,12 @@ async function getShowcase() {
                 where: { status: { in: ["in_stock", "in_transit"] } },
                 orderBy: [{ priceUSD: "asc" }, { createdAt: "desc" }],
                 take: 60,
-                select: { id: true, brand: true, model: true, year: true, mileage: true, priceUSD: true, media: true },
+                select: {
+                    id: true, brand: true, model: true, year: true, mileage: true, media: true,
+                    priceUSD: true, priceKeyTurnKZT: true, engineType: true, powertrain: true,
+                    // Только чтобы знать, посчитана ли цена под ключ
+                    priceCalc: true,
+                },
             }),
             prisma.vehicle.count({ where: { status: { notIn: ["hidden"] } } }),
         ]);
@@ -77,7 +82,7 @@ const STEPS = [
 const GUARANTEES = [
     { icon: ShieldCheck, title: "Проверка перед покупкой", text: "Осматриваем лично: кузов, пробег, история. Если что-то не так — вы узнаете об этом до оплаты." },
     { icon: Wallet, title: "Цена под ключ", text: "Считаем сразу с доставкой и пошлиной. Без «доплатите ещё на таможне» в последний момент." },
-    { icon: FileText, title: "Полная пошлина и документы", text: "Растаможка официальная, авто ставится на учёт без сюрпризов." },
+    { icon: FileText, title: "Официальная растаможка и документы", text: "Растаможка официальная, авто ставится на учёт без сюрпризов." },
     { icon: UserRound, title: "Личный менеджер", text: "Один человек ведёт вас от подбора до вручения ключей и отвечает в Telegram." },
 ];
 
@@ -85,7 +90,7 @@ const FAQ = [
     { q: "Сколько занимает доставка?", a: "В среднем 4–8 недель с момента оплаты: выкуп, подготовка документов, логистика и таможня. Точный срок менеджер называет по конкретной машине." },
     { q: "Можно ли посмотреть авто до покупки?", a: "Да. Мы присылаем подробные фото и видео с осмотра, показания толщиномера и одометра, а также данные по документам." },
     { q: "Какие авто вы возите?", a: "В основном свежие автомобили 2021–2023 годов: Volkswagen, Audi, Mazda, Toyota и другие популярные модели китайского рынка." },
-    { q: "Что входит в цену?", a: "Стоимость автомобиля, подготовка, доставка до Казахстана, таможенное оформление и полная пошлина. Итоговая цена фиксируется в договоре." },
+    { q: "Что входит в цену?", a: "Стоимость автомобиля, подготовка, доставка до Казахстана, таможенное оформление и растаможка. Итоговая цена фиксируется в договоре." },
     { q: "В какие города Казахстана вы привозите?", a: "Работаем по всему Казахстану: Алматы, Астана, Шымкент, Караганда, Актобе и другие города. Автомобиль можно забрать самостоятельно или заказать доставку по адресу." },
     { q: "Сколько стоит растаможка авто из Китая?", a: "Пошлина и оформление уже включены в цену под ключ — отдельно доплачивать не нужно. Менеджер показывает расчёт по конкретной машине до подписания договора." },
 ];
@@ -206,7 +211,7 @@ export default async function LandingPage() {
                         </h2>
                         <p className="mt-4 leading-relaxed text-slate-600">
                             Скажем честную сумму под ключ в Казахстане и покажем, из чего она складывается:
-                            цена в Китае, доставка, растаможка с полной пошлиной, утильсбор и оформление.
+                            цена в Китае, доставка, официальная растаможка, утильсбор и оформление.
                         </p>
                         <ul className="mt-6 space-y-3 text-sm text-slate-700">
                             <li className="flex gap-3"><BadgeCheck className="h-5 w-5 shrink-0 text-orange-500" />Проверяем машину до оплаты и присылаем отчёт с фото</li>
@@ -285,9 +290,8 @@ export default async function LandingPage() {
                                             <p className="mt-1 text-sm text-slate-500">
                                                 {v.year} · {v.mileage ? `${v.mileage.toLocaleString("ru-RU")} км` : "новый"}
                                             </p>
-                                            {v.priceUSD ? (
-                                                <p className="mt-3 font-headline text-xl font-extrabold">{fmtUsd(v.priceUSD)}</p>
-                                            ) : null}
+                                            {/* Сюда ведёт реклама: цена должна быть той, что человек заплатит */}
+                                            <TurnkeyPrice vehicle={{ ...v, turnkey: v.priceCalc !== null }} size="card" className="mt-3" />
                                         </div>
                                     </BotLink>
                                 );

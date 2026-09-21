@@ -41,6 +41,8 @@ export async function GET(request: Request) {
                 mileage: true,
                 priceKeyTurnKZT: true,
                 priceUSD: true,
+                // Только чтобы знать, посчитана ли цена под ключ; сам снимок не отдаём
+                priceCalc: true,
                 status: true,
                 media: true,
                 createdAt: true,
@@ -49,8 +51,9 @@ export async function GET(request: Request) {
             }
         });
 
-        const dtos = vehicles.map(({ _count, ...v }) => ({
+        const dtos = vehicles.map(({ _count, priceCalc, ...v }) => ({
             ...v,
+            turnkey: priceCalc !== null,
             coverPhotoUrl: Array.isArray(v.media) && v.media[0] ? v.media[0] : null,
             popularity: _count.events + _count.favorites,
         }));

@@ -4,13 +4,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart, Eye } from 'lucide-react';
-import { Vehicle } from '@prisma/client';
+import type { PublicVehicle } from '@/lib/server/publicVehicle';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useFavoritesStore } from '@/lib/state/favorites.store';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 import { trackEvent } from '@/lib/api/track';
-import { fmtUsd } from '@/lib/price';
+import { TurnkeyPrice, TurnkeyIncluded } from '@/components/hubdrive/vehicles/turnkey-price';
 import { callSupport } from '@/constants/contacts';
 
 import { VehicleGallery } from '@/components/hubdrive/vehicles/vehicle-gallery';
@@ -20,7 +20,7 @@ import { VehicleCtaBar } from '@/components/hubdrive/vehicles/vehicle-cta-bar';
 import { SimilarRequestBlock, SimilarRequestSheet } from '@/components/hubdrive/vehicles/similar-request';
 import { metaTrack } from '@/lib/meta/pixel';
 
-export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicle }) {
+export function VehicleDetailClient({ initialVehicle }: { initialVehicle: PublicVehicle }) {
     const router = useRouter();
     const { toast } = useToast();
     const { toggleFavorite, isFavorite } = useFavoritesStore();
@@ -58,14 +58,6 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialVehicle.id]);
-
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('ru-KZ', {
-            style: 'currency',
-            currency: 'KZT',
-            maximumFractionDigits: 0,
-        }).format(price).replace('₸', '₸');
-    };
 
     const handleContact = async () => {
         setIsSending(true);
@@ -197,13 +189,11 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Vehicl
                                 </button>
                             </div>
                         </div>
-                        <div className="text-right shrink-0">
-                            {/* Клиент видит цену только в долларах */}
-                            <p className="font-headline text-2xl font-black text-on-surface">
-                                {vehicle.priceUSD && vehicle.priceUSD > 0 ? fmtUsd(vehicle.priceUSD) : formatPrice(vehicle.priceKeyTurnKZT)}
-                            </p>
-                        </div>
+                        {/* Тенге крупно, доллары ниже — «под ключ», если цена посчитана калькулятором */}
+                        <TurnkeyPrice vehicle={vehicle} size="card" className="text-right shrink-0" />
                     </div>
+
+                    <TurnkeyIncluded vehicle={vehicle} className="mt-4" />
 
                     {vehicle.status !== 'sold' && (
                         <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">

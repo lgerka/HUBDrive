@@ -2,7 +2,10 @@ import { BOT_APP_URL, SUPPORT_PHONE, SUPPORT_TELEGRAM_URL, WEBAPP_ORIGIN, WHATSA
 
 interface StructuredDataProps {
     faq: { q: string; a: string }[];
-    vehicles: { id: string; brand: string; model: string; year: number; priceUSD: number | null; media: unknown }[];
+    vehicles: {
+        id: string; brand: string; model: string; year: number; media: unknown;
+        priceUSD: number | null; priceKeyTurnKZT: number; priceCalc: unknown;
+    }[];
 }
 
 /**
@@ -15,7 +18,7 @@ export function StructuredData({ faq, vehicles }: StructuredDataProps) {
         "@type": "AutoDealer",
         name: "HUBDrive",
         description:
-            "Подбор, проверка и доставка автомобилей из Китая в Казахстан под ключ: договор, растаможка с полной пошлиной, личный менеджер.",
+            "Подбор, проверка и доставка автомобилей из Китая в Казахстан под ключ: договор, официальная растаможка, личный менеджер.",
         url: WEBAPP_ORIGIN,
         image: `${WEBAPP_ORIGIN}/icons/icon-512.png`,
         logo: `${WEBAPP_ORIGIN}/icons/icon-512.png`,
@@ -77,17 +80,13 @@ export function StructuredData({ faq, vehicles }: StructuredDataProps) {
                 vehicleModelDate: String(v.year),
                 url: `${WEBAPP_ORIGIN}/vehicles/${v.id}`,
                 image: Array.isArray(v.media) ? (v.media[0] as string | undefined) : undefined,
-                ...(v.priceUSD
-                    ? {
-                        offers: {
-                            "@type": "Offer",
-                            price: v.priceUSD,
-                            priceCurrency: "USD",
-                            availability: "https://schema.org/InStock",
-                            areaServed: "KZ",
-                        },
-                    }
-                    : {}),
+                // Посчитанная цена под ключ — в тенге, это цена сделки.
+                // До пересчёта — как раньше, в долларах
+                ...(v.priceCalc !== null && v.priceKeyTurnKZT > 0
+                    ? { offers: { "@type": "Offer", price: v.priceKeyTurnKZT, priceCurrency: "KZT", availability: "https://schema.org/InStock", areaServed: "KZ" } }
+                    : v.priceUSD
+                        ? { offers: { "@type": "Offer", price: v.priceUSD, priceCurrency: "USD", availability: "https://schema.org/InStock", areaServed: "KZ" } }
+                        : {}),
             },
         })),
     };

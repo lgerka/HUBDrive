@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
 import { notifyUsersAboutMatch } from '@/lib/server/telegram/notifier';
 import { verifyAdmin } from '@/lib/server/admin';
-import { getExchangeRates, prettyUsd } from '@/lib/server/exchange';
+import { readVehicleInput, turnkeyInputOf, VehicleInputError } from '@/lib/server/vehicleInput';
+import { priceForSave, TurnkeyInputError } from '@/lib/server/turnkeyPrices';
 
 export async function GET(request: Request) {
     try {
@@ -43,59 +45,39 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await request.json();
+        const input = readVehicleInput(await request.json());
 
-        // Вводится закупочная цена в юанях (как приходит из WeChat).
-        // Доллары для клиента и тенге для бюджетов фильтров считаем по курсу дня.
-        const priceChina = Number(body.priceChina) || null;
-        let priceUSD = Number(body.priceUSD) || null;
-        let priceKeyTurnKZT = Number(body.priceKeyTurnKZT) || 0;
-        if ((priceChina && !priceUSD) || (priceUSD && !priceKeyTurnKZT)) {
-            const rates = await getExchangeRates();
-            if (priceChina && !priceUSD) {
-                priceUSD = prettyUsd(priceChina / rates.usdCny); // сразу «красивая» цена вверх
-            }
-            if (priceUSD && !priceKeyTurnKZT) {
-                priceKeyTurnKZT = Math.round((priceUSD * rates.usdKzt) / 10000) * 10000;
-            }
-        }
+        // Цена под ключ считается калькулятором из цены в Китае — до записи,
+        // потому что сразу после создания подборы сверяются с этой ценой и
+        // людям уходят уведомления. Цены из тела запроса не принимаем
+        const price = await priceForSave(turnkeyInputOf(input));
 
         const vehicle = await prisma.vehicle.create({
             data: {
-                brand: body.brand,
-                model: body.model,
-                generation: body.generation || undefined,
-                vin: body.vin || null,
-                year: Number(body.year),
-                priceUSD,
-                priceKeyTurnKZT,
-                priceChina,
-                pricePort: Number(body.pricePort) || null,
-                deliveryEtaWeeks: Number(body.deliveryEtaWeeks) || null,
-                status: body.status,
-                description: body.description || '',
-                bodyType: body.bodyType || 'Crossover',
-                engineType: body.engineType || 'Benzin',
-                engineVolume: Number(body.engineVolume) || 0,
-                powerHp: Number(body.powerHp) || 0,
-                mileage: Number(body.mileage) || 0,
-                transmission: body.transmission || 'Automatic',
-                drivetrain: body.drivetrain || 'AwD',
-                exteriorColor: body.exteriorColor || '',
-                interiorColor: body.interiorColor || '',
-                media: body.media || [],
-                videoUrl: body.videoUrl || null
-            }
+                ...input.fields,
+                priceChina: input.priceChina,
+                priceKeyTurnKZT: price.priceKeyTurnKZT,
+                priceUSD: price.priceUSD,
+                priceCalc: price.priceCalc as never,
+                powertrain: input.powertrain,
+            },
         });
 
         // Trigger notifications as background task
         notifyUsersAboutMatch(vehicle).catch(err => {
             console.error("Background notification error:", err);
         });
+        revalidatePath('/', 'layout');
 
-        return NextResponse.json(vehicle);
+        return NextResponse.json({
+            ...vehicle,
+            ...(price.fallbackRate ? { warning: 'Нацбанк не ответил — цена посчитана по запасному курсу, ночью пересчитается' } : {}),
+        });
     } catch (error) {
+        if (error instanceof VehicleInputError || error instanceof TurnkeyInputError) {
+            return NextResponse.json({ error: error.message }, { status: 400 });
+        }
         console.error('Error creating vehicle:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: 'Машина не сохранена: не удалось посчитать цену. Попробуйте ещё раз' }, { status: 500 });
     }
 }

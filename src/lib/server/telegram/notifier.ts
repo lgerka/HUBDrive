@@ -5,6 +5,7 @@ import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { getChatIds } from './targets';
 import { sendPushToUser } from '@/lib/server/push/webpush';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { vehiclePriceText } from '@/lib/price';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -63,7 +64,7 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
 
             const text = `🔥 Появился новый автомобиль по вашему запросу!\n\n` +
                 `*${vehicle.brand} ${vehicle.model} (${vehicle.year})*\n` +
-                `Цена: ${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸\n\n` +
+                `Цена: ${vehiclePriceText(vehicle) ?? 'по запросу'}\n\n` +
                 `Совпадение: ${matchLevelLabel(match.bestLevel)}\n` +
                 `Посмотрите статус и комплектацию в приложении.`;
 
@@ -79,7 +80,7 @@ export async function notifyUsersAboutMatch(vehicle: Vehicle) {
                 // Метка src=push нужна аналитике переходов из уведомлений.
                 sendPushToUser(user.id, {
                     title: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
-                    body: `Появился автомобиль по вашему запросу — ${vehicle.priceUSD ? `$ ${vehicle.priceUSD.toLocaleString('ru-RU')}` : `${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸`}`,
+                    body: `Появился автомобиль по вашему запросу — ${vehiclePriceText(vehicle) ?? 'цена по запросу'}`,
                     url: `/vehicles/${vehicle.id}?src=push`,
                     image: Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined,
                     tag: `vehicle-${vehicle.id}`,
@@ -155,7 +156,7 @@ export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, sc
     const text = `🎯 *Горячий лид получил предложение*\n\n` +
         `Клиент: ${user.name || user.username || user.telegramId}\n` +
         `Телефон: ${user.phone || 'Не указан'}\n` +
-        `Авто: ${vehicle.brand} ${vehicle.model} (${vehicle.year}) — ${vehicle.priceKeyTurnKZT.toLocaleString('ru-RU')} ₸\n` +
+        `Авто: ${vehicle.brand} ${vehicle.model} (${vehicle.year}) — ${vehiclePriceText(vehicle) ?? 'цена по запросу'}\n` +
         `Совпадение: ${score}%\n\n` +
         `Самое время связаться: ${WEBAPP_URL}/admin/leads/${user.id}`;
 

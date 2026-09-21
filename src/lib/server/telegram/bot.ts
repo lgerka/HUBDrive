@@ -4,6 +4,7 @@ import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { linkAttribution } from '@/lib/server/meta/attribution';
 import { saveSharedContact, handleIncomingMessage, looksLikeSpam } from './contact';
 import { SUPPORT_PHONE } from '@/constants/contacts';
+import { fmtKzt } from '@/lib/price';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -28,14 +29,22 @@ function plural(n: number, one: string, few: string, many: string): string {
  * Считаем на лету: каталог пополняется, и любая цифра в тексте протухает
  * через неделю. Если база молчит — обходимся без цифр, а не врём.
  */
-async function countStock(): Promise<{ total: number; fromPrice: number | null }> {
+async function countStock(): Promise<{ total: number; fromPrice: string | null }> {
     try {
         const rows = await prisma.vehicle.findMany({
             where: { status: { in: ["in_stock", "in_transit"] } },
-            select: { priceUSD: true },
+            select: { priceUSD: true, priceKeyTurnKZT: true, priceCalc: true },
         });
-        const prices = rows.map(r => r.priceUSD).filter((p): p is number => typeof p === "number" && p > 0);
-        return { total: rows.length, fromPrice: prices.length > 0 ? Math.min(...prices) : null };
+        // Когда цены посчитаны калькулятором — называем тенге под ключ,
+        // до этого — доллары, как было
+        const turnkey = rows
+            .filter(r => r.priceCalc !== null && r.priceKeyTurnKZT > 0)
+            .map(r => r.priceKeyTurnKZT);
+        if (turnkey.length > 0) {
+            return { total: rows.length, fromPrice: `${fmtKzt(Math.min(...turnkey))} под ключ` };
+        }
+        const usd = rows.map(r => r.priceUSD).filter((p): p is number => typeof p === "number" && p > 0);
+        return { total: rows.length, fromPrice: usd.length > 0 ? `$${Math.min(...usd).toLocaleString("ru-RU")}` : null };
     } catch {
         return { total: 0, fromPrice: null };
     }
@@ -54,7 +63,7 @@ export function initBotCommands() {
             "<b>Без доплат в конце.</b>",
             "",
             stock.total > 0
-                ? `🚗 В наличии <b>${stock.total} ${plural(stock.total, "автомобиль", "автомобиля", "автомобилей")}</b>${stock.fromPrice ? ` — от <b>$${stock.fromPrice.toLocaleString("ru-RU")}</b>` : ""}`
+                ? `🚗 В наличии <b>${stock.total} ${plural(stock.total, "автомобиль", "автомобиля", "автомобилей")}</b>${stock.fromPrice ? ` — от <b>${stock.fromPrice}</b>` : ""}`
                 : "🚗 Привезём любую машину из Китая под заказ",
             "⏱ Доставка 4–8 недель",
             "🔍 Проверяем машину до оплаты, отчёт с фото",

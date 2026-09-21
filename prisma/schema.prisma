@@ -208,12 +208,21 @@ model Vehicle {
   interiorColor String?
 
   trimOptions      Json?
+  /// Цена под ключ в Алматы, ₸, округлена вверх до 100 000. Считается калькулятором
   priceKeyTurnKZT  Int
+  /// Цена под ключ, $, из того же итога, округлена вверх до 500
   priceUSD         Int?
+  /// Цена в Китае, ¥ — единственный ввод, из него считается всё остальное
   priceChina       Int?
   pricePort        Int?
   deliveryEtaWeeks Int?
   paymentOptions   Json?
+
+  /// ice | bev | erev | phev. Пусто — выводится из engineType.
+  /// Нужен калькулятору: «Гибрид» не различает EREV и PHEV, а это пошлина 0% против 15%
+  powertrain       String?
+  /// Снимок расчёта цены под ключ: курс, версия настроек, допущения. Без комиссии, наружу не отдаётся
+  priceCalc        Json?
 
   status      VehicleStatus @default(in_stock)
   media       Json?

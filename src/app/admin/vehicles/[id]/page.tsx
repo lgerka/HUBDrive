@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Save, Plus, ChevronRight, Info, Video, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
+import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
 
 // Деньги: только цифры в состоянии, разделители на экране; объём: цифры и одна точка
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
@@ -28,15 +29,8 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  // Курс ¥ за $1 — для предпросмотра клиентской цены
-  const [usdRate, setUsdRate] = useState(0);
-  useEffect(() => {
-    fetch("/api/admin/exchange-rates", { headers: { "x-telegram-init-data": initData || "" } })
-      .then(res => (res.ok ? res.json() : null))
-      .then(d => { if (d?.usdCny) setUsdRate(d.usdCny); })
-      .catch(() => { });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Нынешняя цена в каталоге — чтобы в превью было видно «было → станет»
+  const [current, setCurrent] = useState<{ kzt: number; usd: number | null; turnkey: boolean } | undefined>();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -47,6 +41,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     year: new Date().getFullYear(),
     bodyType: "Кроссовер",
     engineType: "Бензин",
+    powertrain: "" as string, // тип гибрида: erev | phev
     engineVolume: "" as string, // строка: иначе десятичный ввод «скачет»
     powerHp: 150,
     transmission: "Автомат",
@@ -75,8 +70,10 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
         });
         if (res.ok) {
           const data = await res.json();
+          setCurrent({ kzt: data.priceKeyTurnKZT || 0, usd: data.priceUSD ?? null, turnkey: data.priceCalc != null });
           setFormData({
             ...data,
+            powertrain: data.powertrain || "",
             media: data.media || [],
             engineVolume: data.engineVolume ? String(data.engineVolume) : "",
             powerHp: data.powerHp || 0,
@@ -103,6 +100,20 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
   }, [initData, isReady, isNew, unwrappedParams.id]);
 
   const handleSave = async () => {
+    // Сначала то, без чего цена под ключ посчитается неверно
+    const thisYear = new Date().getFullYear();
+    if (!Number.isInteger(Number(formData.year)) || Number(formData.year) < 1990 || Number(formData.year) > thisYear + 1) {
+      alert(`Укажите год выпуска — от 1990 до ${thisYear + 1}`);
+      return;
+    }
+    if (formData.engineType.startsWith("Гибрид") && !formData.powertrain) {
+      alert("Выберите тип гибрида — от него зависит пошлина");
+      return;
+    }
+    if (!formData.engineType.startsWith("Электро") && !(Number(formData.engineVolume) > 0)) {
+      alert("Укажите объём двигателя — от него зависит утильсбор");
+      return;
+    }
     // Публикация без фото — только осознанно
     if (formData.media.length === 0 && formData.status !== "hidden") {
       if (!confirm("У автомобиля нет ни одного фото — в каталоге он будет без картинки. Сохранить с публичным статусом всё равно?\n\nНажмите «Отмена», чтобы добавить фото или выбрать статус «Скрыто».")) {
@@ -121,7 +132,9 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
       if (res.ok) {
         router.push("/admin/vehicles");
       } else {
-          alert('Ошибка при сохранении');
+        // Сервер говорит, что именно не так
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Ошибка при сохранении");
       }
     } catch (err) {
       console.error(err);
@@ -311,13 +324,36 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                     <select 
                       className="w-full appearance-none bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 pr-10 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all" 
                       value={formData.engineType} 
-                      onChange={e => setFormData({...formData, engineType: e.target.value})}
+                      onChange={e => setFormData({...formData, engineType: e.target.value, powertrain: ""})}
                     >
                       <option>Бензин</option><option>Электро</option><option>Гибрид</option><option>Дизель</option>
+                      {/* В базе встречается и «Бензин, турбо (1.4T 280TSI)». Без своей строки
+                          список показал бы «Бензин», а сохранил бы исходное — не видно, что лежит на самом деле */}
+                      {!["Бензин", "Электро", "Гибрид", "Дизель"].includes(formData.engineType) && (
+                        <option value={formData.engineType}>{formData.engineType}</option>
+                      )}
                     </select>
                     <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                   </div>
                 </div>
+                {/* EREV и обычный гибрид для пошлины — 0% против 15% */}
+                {formData.engineType.startsWith("Гибрид") && (
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-label font-bold uppercase tracking-widest text-slate-400">Тип гибрида</label>
+                    <div className="relative">
+                      <select
+                        className="w-full appearance-none bg-surface-container-low/50 border-none rounded-2xl px-4 py-4 pr-10 focus:ring-1 focus:ring-primary-container text-on-surface font-headline font-medium outline-none transition-all"
+                        value={formData.powertrain}
+                        onChange={e => setFormData({...formData, powertrain: e.target.value})}
+                      >
+                        <option value="">Выберите…</option>
+                        <option value="erev">Последовательный (EREV) — двигатель только заряжает батарею</option>
+                        <option value="phev">Обычный (PHEV) — двигатель крутит колёса</option>
+                      </select>
+                      <ChevronRight className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                    </div>
+                  </div>
+                )}
                 {/* Для электро объём ДВС скрываем, а не оставляем «мёртвым» полем */}
                 {formData.engineType !== "Электро" && (
                   <div className="space-y-3">
@@ -513,20 +549,20 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                       placeholder="185 000"
                       className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
                       value={fmtMoney(formData.priceChina)}
-                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value)), priceUSD: 0, priceKeyTurnKZT: 0})}
+                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value))})}
                     />
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
                   </div>
-                  {formData.priceChina > 0 && usdRate > 0 && (
-                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
-                      <span className="text-sm font-medium text-emerald-700">Клиент увидит:</span>
-                      <span className="font-headline font-extrabold text-emerald-700">
-                        $ {(Math.ceil(formData.priceChina / usdRate / 100) * 100).toLocaleString("ru-RU")}
-                      </span>
-                      <span className="text-[11px] text-emerald-600/70 ml-auto">курс ¥{usdRate} за $1</span>
-                    </div>
-                  )}
-                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Доллары и тенге посчитаются автоматически по курсу дня.</p>
+                  <TurnkeyPreviewBox
+                    initData={initData}
+                    priceChina={String(formData.priceChina || "")}
+                    engineType={formData.engineType}
+                    powertrain={formData.powertrain}
+                    engineVolume={formData.engineVolume}
+                    year={String(formData.year || "")}
+                    current={current}
+                  />
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ посчитает калькулятор и будет пересчитывать каждое утро. У машин в резерве, проданных и выданных цена не меняется.</p>
                 </div>
               </div>
             </div>

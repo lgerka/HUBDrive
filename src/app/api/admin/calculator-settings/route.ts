@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin, adminIdentity } from '@/lib/server/admin';
 import { getCalcSettings, saveCalcSettings } from '@/lib/server/calculatorSettings';
+import { recalcAllTurnkeyPrices } from '@/lib/server/turnkeyPrices';
 import { applyCalcPatch, validateSettings, rejectedPaths } from '@/lib/calculatorSettings';
 
 /** Настройки калькулятора: комиссия, расходы, логистика по городам, ставки. */
@@ -80,5 +81,17 @@ export async function PUT(request: Request) {
         );
     }
 
-    return NextResponse.json({ ok: true, ...result.stored });
+    // Новая комиссия или логистика должна сразу дойти до цен в каталоге.
+    // Если пересчёт не прошёл, настройки не откатываем: они уже сохранены
+    // и верны, а цены догонит утренний пересчёт. Но говорим об этом прямо
+    let recalc: { changed: number; total: number } | { error: string } | null;
+    try {
+        const s = await recalcAllTurnkeyPrices('settings');
+        recalc = s.enabled ? { changed: s.changed, total: s.total } : null;
+    } catch (error) {
+        console.error('[настройки] цены в каталоге не пересчитались:', error);
+        recalc = { error: 'Цены в каталоге не пересчитались — это сделает утренний пересчёт' };
+    }
+
+    return NextResponse.json({ ok: true, ...result.stored, recalc });
 }
