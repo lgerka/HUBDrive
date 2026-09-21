@@ -7,6 +7,7 @@ import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Video, UploadCloud, Chevron
 import { cn } from "@/lib/utils";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
+import { MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from "@/lib/turnkey";
 
 // Мастер создания карточки авто — шаги по PRD §19.4
 const STEPS = [
@@ -131,6 +132,7 @@ export default function AdminNewVehiclePage() {
       if (!Number.isInteger(y) || y < 1990 || y > thisYear + 1) return `Укажите год выпуска — от 1990 до ${thisYear + 1}`;
       if (formData.engineType === "Гибрид" && !formData.powertrain) return "Выберите тип гибрида — от него зависит пошлина";
       if (formData.engineType !== "Электро" && !(Number(formData.engineVolume) > 0)) return "Укажите объём двигателя — от него зависит утильсбор";
+      if (formData.engineType !== "Электро" && Number(formData.engineVolume) > MAX_ENGINE_LITRES) return ENGINE_LITRES_MESSAGE;
     }
     if (s === 4) {
       if (!formData.priceChina || Number(formData.priceChina) <= 0) return "Укажите цену в юанях — как она пришла из Китая";
@@ -181,6 +183,9 @@ export default function AdminNewVehiclePage() {
       });
 
       if (res.ok) {
+        // Машина сохранена, но цена могла посчитаться по запасному курсу — менеджеру надо знать
+        const data = await res.json().catch(() => ({}));
+        if (data.warning) alert(data.warning);
         router.push("/admin/vehicles");
         router.refresh();
       } else {

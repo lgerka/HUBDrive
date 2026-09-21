@@ -19,23 +19,32 @@ export const revalidate = 3600;
 
 type BrandVehicle = { priceUSD: number | null; priceKeyTurnKZT: number; priceCalc: unknown };
 
-/** Цена в списке: под ключ в тенге, если посчитана калькулятором, иначе как раньше. */
+// Цифру называем только посчитанную под ключ: без расчёта в полях цены
+// лежит цена в Китае, и «от $X под ключ» было бы враньём
+const isTurnkey = (v: BrandVehicle) => v.priceCalc !== null && v.priceKeyTurnKZT > 0;
+
+/** Цена в списке — под ключ в тенге. */
 function priceText(v: BrandVehicle): string {
-    if (v.priceCalc !== null && v.priceKeyTurnKZT > 0) return fmtKzt(v.priceKeyTurnKZT);
-    return v.priceUSD ? `$${v.priceUSD.toLocaleString('ru-RU')}` : 'по запросу';
+    return isTurnkey(v) ? fmtKzt(v.priceKeyTurnKZT) : 'по запросу';
 }
 
-/** «от 9 500 000 ₸» — по ценам под ключ; пока их нет — по долларам, как раньше. */
+/** «1 автомобиль», «3 автомобиля», «12 автомобилей». */
+function cars(n: number): string {
+    const mod10 = n % 10, mod100 = n % 100;
+    const word = mod10 === 1 && mod100 !== 11 ? 'автомобиль'
+        : mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20) ? 'автомобиля' : 'автомобилей';
+    return `${n} ${word}`;
+}
+
+/** «от 9 500 000 ₸» — по ценам под ключ. */
 function fromPrice(vehicles: BrandVehicle[]): string | null {
-    const turnkey = vehicles.filter(v => v.priceCalc !== null && v.priceKeyTurnKZT > 0).map(v => v.priceKeyTurnKZT);
-    if (turnkey.length > 0) return fmtKzt(Math.min(...turnkey));
-    const usd = vehicles.map(v => v.priceUSD).filter((p): p is number => Boolean(p));
-    return usd.length > 0 ? `$${Math.min(...usd).toLocaleString('ru-RU')}` : null;
+    const turnkey = vehicles.filter(isTurnkey).map(v => v.priceKeyTurnKZT);
+    return turnkey.length > 0 ? fmtKzt(Math.min(...turnkey)) : null;
 }
 
 async function getVehicles(brand: string) {
     try {
-        return await prisma.vehicle.findMany({
+        const rows = await prisma.vehicle.findMany({
             where: {
                 brand: { equals: brand, mode: 'insensitive' },
                 status: { notIn: ['hidden', 'sold', 'delivered'] },
@@ -46,8 +55,11 @@ async function getVehicles(brand: string) {
                 // Только чтобы знать, посчитана ли цена под ключ
                 priceCalc: true,
             },
-            orderBy: { priceUSD: 'asc' },
+            orderBy: { priceKeyTurnKZT: 'asc' },
         });
+        // Машины без посчитанной цены — в конец: у них в цене лежит цена в Китае,
+        // и по ней они встали бы первыми как самые дешёвые, хотя цены не показывают
+        return rows.sort((a, b) => Number(!isTurnkey(a)) - Number(!isTurnkey(b)));
     } catch (error) {
         console.error('[brands] не удалось прочитать список:', error);
         return [];
@@ -67,8 +79,9 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
     const from = fromPrice(vehicles);
 
     const title = `${info.brand} из Китая в Казахстан — цены под ключ`;
-    const description = from
-        ? `${info.brand} из Китая с доставкой и растаможкой: ${vehicles.length} в наличии, от ${from} под ключ. Проверяем машину до оплаты, цена фиксируется в договоре.`
+    // Наличие и цена — отдельно: машина без посчитанной цены всё равно в наличии
+    const description = vehicles.length > 0
+        ? `${info.brand} из Китая с доставкой и растаможкой: ${cars(vehicles.length)} в наличии${from ? `, от ${from} под ключ` : ''}. Проверяем машину до оплаты, цена фиксируется в договоре.`
         : `${info.brand} из Китая под заказ: доставка, официальная растаможка и оформление в Казахстане. Проверяем машину до оплаты.`;
 
     return {
@@ -129,8 +142,8 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                 {info.brand} из Китая в Казахстан
             </h1>
             <p className="mt-3 text-on-surface-variant">
-                {from
-                    ? `${vehicles.length} ${vehicles.length === 1 ? 'автомобиль' : 'автомобилей'} в наличии, от ${from} под ключ`
+                {vehicles.length > 0
+                    ? `${cars(vehicles.length)} в наличии${from ? `, от ${from} под ключ` : ''}`
                     : 'Привозим под заказ'}
             </p>
 

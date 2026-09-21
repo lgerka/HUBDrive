@@ -26,7 +26,15 @@ import {
 const WHATSAPP_TEXT =
     "Здравствуйте! Хочу узнать цену под ключ на авто из Китая.";
 
-export function ContactWays() {
+/** Русское склонение — иначе «51 машин». */
+function machines(n: number): string {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'машины';
+    return 'машин';
+}
+
+/** total — сколько машин в каталоге; число из базы, а не из текста. */
+export function ContactWays({ total }: { total?: number }) {
     return (
         <section className="bg-white py-16">
             <div className="mx-auto max-w-6xl px-5">
@@ -64,8 +72,11 @@ export function ContactWays() {
                         </span>
                         <span className="font-headline text-lg font-bold text-slate-900">Telegram</span>
                         <span className="text-sm leading-relaxed text-slate-500">
-                            Каталог из {""}
-                            <span className="whitespace-nowrap">51 машины</span> и переписка с менеджером
+                            {total && total > 0 ? (
+                                <>Каталог из <span className="whitespace-nowrap">{total} {machines(total)}</span> и переписка с менеджером</>
+                            ) : (
+                                <>Каталог машин и переписка с менеджером</>
+                            )}
                         </span>
                     </BotLink>
 

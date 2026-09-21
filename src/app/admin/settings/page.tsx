@@ -345,7 +345,7 @@ export default function AdminSettingsPage() {
                        <p className="text-3xl font-headline font-extrabold">₸ {rates.usdKzt.toLocaleString("ru-RU")}</p>
                     </div>
                     <p className="sm:col-span-2 text-[11px] text-muted-foreground">
-                       Обновлено: {new Date(rates.updatedAt).toLocaleString("ru-RU")} · источник: {rates.source}. Курс используется для пересчёта цен: юани → доллары при импорте, доллары → тенге для бюджетов фильтров.
+                       Обновлено: {new Date(rates.updatedAt).toLocaleString("ru-RU")} · источник: {rates.source}. Это справочный рыночный курс. Цены под ключ в каталоге считаются по курсу Нацбанка — он в разделе «Калькулятор».
                     </p>
                  </div>
                ) : (

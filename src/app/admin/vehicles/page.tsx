@@ -4,6 +4,7 @@ import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2, TrendingUp, Search, Edit, Trash2, Car } from "lucide-react";
+import { fmtKzt, fmtUsd } from "@/lib/price";
 
 // Локальный тип вместо импорта из @prisma/client (серверная lib)
 type VehicleStatus = 'in_stock' | 'in_transit' | 'reserved' | 'sold' | 'delivered' | 'hidden';
@@ -18,7 +19,19 @@ interface AdminVehicle {
   status: VehicleStatus;
   priceKeyTurnKZT: number;
   priceUSD?: number | null;
+  priceChina?: number | null;
   media?: string[];
+  /** Цена посчитана калькулятором под ключ — её и видит клиент. */
+  turnkey?: boolean;
+  /** Почему последний пересчёт каталога машину пропустил. */
+  skipReason?: string | null;
+}
+
+/** Почему у машины не цена под ключ — чтобы менеджер знал, что поправить. */
+function staleReason(v: AdminVehicle): string {
+  if (v.skipReason) return `${v.skipReason} — тогда цена посчитается`;
+  if (!v.priceChina) return "Нет цены в Китае, ¥ — укажите её, и цена посчитается";
+  return "Посчитается при сохранении машины или ближайшем пересчёте каталога";
 }
 
 const statusMap: Record<string, { label: string; colorClass: string }> = {
@@ -59,7 +72,7 @@ export default function AdminVehiclesPage() {
       try {
         const headers: Record<string, string> = {};
         if (initData) headers["x-telegram-init-data"] = initData;
-        const res = await fetch("/api/admin/vehicles", { headers });
+        const res = await fetch("/api/admin/vehicles?all=1", { headers });
         if (res.ok) {
           const json = await res.json();
           // API возвращает { data: [], pagination: {} } после фикса пагинации
@@ -82,7 +95,12 @@ export default function AdminVehiclesPage() {
     );
   }
 
-  const totalValue = vehicles.reduce((sum, v) => sum + (v.priceKeyTurnKZT || 0), 0);
+  // Стоимость того, что ещё можно продать, — только по ценам под ключ:
+  // у непосчитанных в цене лежит цена в Китае, её с ними не складываем
+  const forSale = vehicles.filter(v => v.status === 'in_stock' || v.status === 'in_transit' || v.status === 'reserved');
+  const totalValue = forSale.filter(v => v.turnkey).reduce((sum, v) => sum + (v.priceKeyTurnKZT || 0), 0);
+  const forSaleUnpriced = forSale.filter(v => !v.turnkey).length;
+  const staleCount = vehicles.filter(v => (!v.turnkey || v.skipReason) && v.status !== 'hidden').length;
   const inTransitCount = vehicles.filter(v => v.status === 'in_transit').length;
   const soldCount = vehicles.filter(v => v.status === 'sold' || v.status === 'delivered').length;
   const q = query.trim().toLowerCase();
@@ -125,6 +143,9 @@ export default function AdminVehiclesPage() {
             <h2 className="text-4xl sm:text-5xl font-headline font-extrabold text-on-surface tracking-tight">
               {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalValue)}
             </h2>
+            {forSaleUnpriced > 0 && (
+              <p className="mt-1 text-xs font-semibold text-amber-700">+ {forSaleUnpriced} в продаже без цены под ключ</p>
+            )}
           </div>
           <div className="flex gap-8 text-right bg-slate-50 py-3 px-6 rounded-2xl">
             <div>
@@ -150,6 +171,11 @@ export default function AdminVehiclesPage() {
       <div className="bg-surface-container-lowest rounded-3xl shadow-[0px_12px_32px_rgba(25,28,30,0.02)] overflow-hidden border border-slate-100">
         <div className="px-8 py-6 border-b border-surface-container-low flex justify-between items-center bg-white">
           <h3 className="font-headline font-extrabold text-xl tracking-tight">Активные предложения</h3>
+          {staleCount > 0 && (
+            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
+              Нужно поправить: {staleCount}
+            </span>
+          )}
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left border-collapse min-w-[800px]">
@@ -195,9 +221,28 @@ export default function AdminVehiclesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <span className="font-headline font-extrabold text-sm tracking-tight">
-                        {v.priceUSD ? `$ ${v.priceUSD.toLocaleString('ru-RU')}` : new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(v.priceKeyTurnKZT)}
-                      </span>
+                      {/* Та же цена, что у клиента: тенге крупно, доллары под ней */}
+                      <div className="flex flex-col">
+                        <span className="font-headline font-extrabold text-sm tracking-tight whitespace-nowrap">
+                          {v.priceKeyTurnKZT > 0 ? fmtKzt(v.priceKeyTurnKZT) : "—"}
+                        </span>
+                        {v.priceUSD ? <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">{fmtUsd(v.priceUSD)}</span> : null}
+                        {v.turnkey && v.skipReason ? (
+                          // Цена под ключ была, но последний пересчёт машину пропустил —
+                          // клиент видит прежнюю цифру, её надо поправить
+                          <>
+                            <span className="mt-1 w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700">цена устарела</span>
+                            <span className="mt-1 max-w-[180px] text-[11px] leading-snug text-amber-700/80">{v.skipReason}</span>
+                          </>
+                        ) : v.turnkey ? (
+                          <span className="mt-1 w-fit rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">под ключ</span>
+                        ) : (
+                          <>
+                            <span className="mt-1 w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700">старая цена</span>
+                            <span className="mt-1 max-w-[180px] text-[11px] leading-snug text-amber-700/80">{staleReason(v)}</span>
+                          </>
+                        )}
+                      </div>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-1">

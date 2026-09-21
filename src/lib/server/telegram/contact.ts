@@ -5,6 +5,7 @@ import { attributionForUser } from '@/lib/server/meta/attribution';
 import { notifyManagerAboutNewContact } from './notifier';
 import { reportMissingCar, mentionsCar } from '../demand';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { escapeHtml } from '@/lib/html';
 
 /**
  * Человек поделился номером телефона через Telegram.
@@ -278,7 +279,7 @@ async function notifyManagerAboutMessage(
         // Номер сразу под именем: менеджеру нужно позвонить или написать
         // в WhatsApp, а не разбирать, чем этот человек отличается от других
         const phoneLine = user.phone
-            ? `📞 <b>${user.phone}</b>`
+            ? `📞 <b>${escapeHtml(String(user.phone))}</b>`
             : '⚠️ <b>Телефона нет</b> — только переписка в Telegram';
         const waLink = user.phone
             ? `<a href="https://wa.me/${String(user.phone).replace(/\D/g, '')}">Написать в WhatsApp</a>`
@@ -289,10 +290,11 @@ async function notifyManagerAboutMessage(
         const message = [
             user.phone ? '🚗 <b>Новая заявка</b>' : '💬 <b>Написали боту</b>',
             '',
-            `<b>Клиент:</b> ${user.name || 'без имени'}`,
+            // Текст от человека экранируем: «<20 млн» — и Telegram не примет сообщение
+            `<b>Клиент:</b> ${escapeHtml(user.name || 'без имени')}`,
             phoneLine,
             '',
-            `<b>Что ищет:</b> ${text.slice(0, 300)}`,
+            `<b>Что ищет:</b> ${escapeHtml(text.slice(0, 300))}`,
             '',
             [waLink, `<a href="${chatLink}">Telegram</a>`, `<a href="${WEBAPP_ORIGIN}/admin/leads/${user.id}">Карточка</a>`]
                 .filter(Boolean).join(' · '),

@@ -109,6 +109,10 @@ export type TurnkeyOutcome =
     | { ok: true; kzt: number; usd: number; rawKzt: number; powertrain: Powertrain; result: CalcResult; snapshot: TurnkeySnapshot }
     | { ok: false; reason: 'no_price' | 'no_engine_volume' | 'bad_year' | 'no_rates'; message: string };
 
+/** Больше девяти литров у серийных машин не бывает — значит, ввели кубические сантиметры. */
+export const MAX_ENGINE_LITRES = 9;
+export const ENGINE_LITRES_MESSAGE = 'Объём двигателя — в литрах, например 1.5 (а не 1498)';
+
 export function computeTurnkey(
     input: TurnkeyInput,
     rates: TurnkeyRates,
@@ -125,6 +129,11 @@ export function computeTurnkey(
     // внедорожнике это два миллиона мимо, и без единого признака на экране
     if (powertrain !== 'bev' && !((input.engineVolume ?? 0) > 0)) {
         return { ok: false, reason: 'no_engine_volume', message: 'Укажите объём двигателя' };
+    }
+    // Объём в литрах. «1998» вместо «2.0» — это два миллиона литров и верхняя
+    // ступень утильсбора: +1,7 млн ₸ без единой ошибки на экране
+    if (powertrain !== 'bev' && (input.engineVolume ?? 0) > MAX_ENGINE_LITRES) {
+        return { ok: false, reason: 'no_engine_volume', message: ENGINE_LITRES_MESSAGE };
     }
     const thisYear = now.getFullYear();
     if (!Number.isInteger(input.year) || input.year < 1990 || input.year > thisYear + 1) {

@@ -91,8 +91,11 @@ function CatalogContent() {
 
             return matchesSearch && matchesStatus && matchesBrand;
         }).sort((a, b) => {
-            if (sort === 'price_asc') return a.priceKeyTurnKZT - b.priceKeyTurnKZT;
-            if (sort === 'price_desc') return b.priceKeyTurnKZT - a.priceKeyTurnKZT;
+            // Машины «Цена по запросу» при сортировке по цене — всегда в конце:
+            // в их цене лежит цена в Китае, и они встали бы первыми как самые дешёвые
+            const unpriced = (v: typeof a) => Number(!(v as { turnkey?: boolean }).turnkey);
+            if (sort === 'price_asc') return unpriced(a) - unpriced(b) || a.priceKeyTurnKZT - b.priceKeyTurnKZT;
+            if (sort === 'price_desc') return unpriced(a) - unpriced(b) || b.priceKeyTurnKZT - a.priceKeyTurnKZT;
             if (sort === 'year_desc') return b.year - a.year;
             // PRD §9: по популярности (просмотры + избранное, считает API)
             if (sort === 'popular') return ((b as any).popularity ?? 0) - ((a as any).popularity ?? 0);

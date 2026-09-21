@@ -88,6 +88,14 @@ async function fetchFromBank(): Promise<NbkRates | null> {
     }
 }
 
+/**
+ * Когда банк последний раз не ответил. Пока кэш есть, после неудачи десять
+ * минут банк не дёргаем: иначе каждое превью цены в админке ждало бы
+ * по десять секунд таймаута, а отдало бы тот же кэш.
+ */
+let lastFailAt = 0;
+const RETRY_AFTER_FAIL_MS = 10 * 60 * 1000;
+
 export async function getNbkRates(forceRefresh = false): Promise<NbkRates> {
     let cached: NbkRates | null = null;
     try {
@@ -101,8 +109,11 @@ export async function getNbkRates(forceRefresh = false): Promise<NbkRates> {
 
     const isStale = !cached || Date.now() - new Date(cached.updatedAt).getTime() > TTL_MS;
 
-    if (forceRefresh || isStale) {
+    const recentlyFailed = Boolean(cached) && Date.now() - lastFailAt < RETRY_AFTER_FAIL_MS;
+
+    if (forceRefresh || (isStale && !recentlyFailed)) {
         const fresh = await fetchFromBank();
+        if (!fresh) lastFailAt = Date.now();
         if (fresh) {
             try {
                 await prisma.systemSettings.upsert({

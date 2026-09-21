@@ -1,11 +1,11 @@
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
-import { getNbkRates } from '@/lib/server/nbk';
+import { getNbkRates, type NbkRates } from '@/lib/server/nbk';
 import { getCalcSettings } from '@/lib/server/calculatorSettings';
 import {
     computeTurnkey,
-    FROZEN_PRICE_STATUSES,
+    isPriceFrozen,
     type TurnkeyInput,
     type TurnkeySnapshot,
 } from '@/lib/turnkey';
@@ -27,6 +27,18 @@ const RECALC_LOCK = 724_101;
 
 export class TurnkeyInputError extends Error {}
 
+/** Банк не ответил ни разу — посчитано по запасному курсу из кода. */
+export const FALLBACK_WARNING =
+    'Нацбанк не ответил — цена посчитана по запасному курсу. Пересчитается при следующем пересчёте каталога или при повторном сохранении машины';
+
+/** То же, но машина в сделке: цена теперь зафиксирована и сама не пересчитается. */
+export const FALLBACK_WARNING_FROZEN =
+    'Нацбанк не ответил — цена посчитана по запасному курсу и зафиксирована сделкой. Чтобы пересчитать, верните статус «В наличии», сохраните, а потом снова поставьте нужный';
+
+export function fallbackWarning(status: string): string {
+    return isPriceFrozen(status) ? FALLBACK_WARNING_FROZEN : FALLBACK_WARNING;
+}
+
 export interface PriceForSave {
     priceKeyTurnKZT: number;
     priceUSD: number;
@@ -44,8 +56,8 @@ export interface PriceForSave {
  * под ключ. Ошибку чтения настроек не глушим: машина с ценой по заводским
  * значениям хуже несохранённой.
  */
-export async function priceForSave(input: TurnkeyInput): Promise<PriceForSave> {
-    const [rates, stored] = await Promise.all([getNbkRates(), getCalcSettings()]);
+export async function priceForSave(input: TurnkeyInput, knownRates?: NbkRates): Promise<PriceForSave> {
+    const [rates, stored] = await Promise.all([knownRates ?? getNbkRates(), getCalcSettings()]);
     const outcome = computeTurnkey(input, rates, stored.settings, stored.version);
     if (!outcome.ok) throw new TurnkeyInputError(outcome.message);
     return {
@@ -55,6 +67,30 @@ export async function priceForSave(input: TurnkeyInput): Promise<PriceForSave> {
         powertrain: outcome.powertrain,
         fallbackRate: rates.source === 'fallback',
     };
+}
+
+/**
+ * Записать машину под той же блокировкой, что и массовый пересчёт.
+ *
+ * Иначе пересчёт, прочитавший машины до сохранения, записал бы поверх новой
+ * цены расчёт по старым юаням, а сохранение, прочитавшее настройки до их
+ * смены, — цену по старой комиссии. Курс лучше получить до вызова: банк
+ * может отвечать секундами, а блокировку столько держать незачем.
+ */
+export async function withRecalcLock<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+    return prisma.$transaction(async tx => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(${RECALC_LOCK})`;
+        return fn(tx);
+    }, { timeout: 30_000, maxWait: 15_000 });
+}
+
+/**
+ * Цена машины зафиксирована: машина в сделке и цена под ключ у неё уже
+ * посчитана. Если не посчитана ни разу, в полях цены лежит цена в Китае —
+ * её фиксировать нечего, такую машину считаем один раз, как все.
+ */
+export function isFrozenForRecalc(status: string, priceCalc: unknown): boolean {
+    return isPriceFrozen(status) && priceCalc !== null && priceCalc !== undefined;
 }
 
 export type RecalcReason = 'cron' | 'settings' | 'rate' | 'manual';
@@ -87,16 +123,19 @@ export interface RecalcSummary {
     total: number;
     changed: number;
     frozen: number;
+    /** Машины в сделке, чью цену не трогали, — чтобы менеджер видел, какие именно. */
+    frozenList: { id: string; name: string; status: string }[];
     skipped: { id: string; name: string; reason: string }[];
     rows: RecalcRow[];
 }
 
 /**
- * Пересчитать цены всех машин, кроме тех, что уже в сделке.
+ * Пересчитать цены всех машин, кроме тех, что уже в сделке с посчитанной ценой.
  *
- * Идёт под блокировкой: ночной пересчёт и сохранение настроек могут совпасть,
- * и тогда пересчёт по старым настройкам записался бы последним. Настройки
- * и курс читаются уже под блокировкой. Пересчёт идемпотентен — повторный
+ * Идёт под блокировкой: ночной пересчёт, сохранение настроек и сохранение
+ * машины в админке могут совпасть, и тогда расчёт по старым данным записался
+ * бы последним. Настройки и машины читаются уже под блокировкой, курс — до
+ * неё: банк может отвечать секундами. Пересчёт идемпотентен — повторный
  * запуск с теми же данными ничего не меняет, поэтому пропущенный или
  * повторный ночной запуск безопасен.
  *
@@ -117,7 +156,7 @@ export async function recalcAllTurnkeyPrices(
         return {
             reason, dryRun, enabled: false, at: new Date().toISOString(),
             rateDate: '', kztPerUsd: 0, kztPerCny: 0, settingsVersion: 0,
-            total: 0, changed: 0, frozen: 0, skipped: [], rows: [],
+            total: 0, changed: 0, frozen: 0, frozenList: [], skipped: [], rows: [],
         };
     }
 
@@ -134,7 +173,7 @@ export async function recalcAllTurnkeyPrices(
             select: {
                 id: true, brand: true, model: true, year: true, status: true,
                 engineType: true, engineVolume: true, powertrain: true,
-                priceChina: true, priceKeyTurnKZT: true, priceUSD: true,
+                priceChina: true, priceKeyTurnKZT: true, priceUSD: true, priceCalc: true,
             },
             orderBy: { priceKeyTurnKZT: 'asc' },
         });
@@ -142,12 +181,12 @@ export async function recalcAllTurnkeyPrices(
         const now = new Date();
         const rows: (RecalcRow & { snapshot: TurnkeySnapshot })[] = [];
         const skipped: RecalcSummary['skipped'] = [];
-        let frozen = 0;
+        const frozenList: RecalcSummary['frozenList'] = [];
 
         for (const v of vehicles) {
             const name = `${v.brand.trim()} ${v.model.trim()}`.trim();
-            if ((FROZEN_PRICE_STATUSES as readonly string[]).includes(v.status)) {
-                frozen++;
+            if (isFrozenForRecalc(v.status, v.priceCalc)) {
+                frozenList.push({ id: v.id, name, status: v.status });
                 continue;
             }
             const outcome = computeTurnkey(v, rates, stored.settings, stored.version, now);
@@ -180,17 +219,22 @@ export async function recalcAllTurnkeyPrices(
             settingsVersion: stored.version,
             total: vehicles.length,
             changed,
-            frozen,
+            frozen: frozenList.length,
+            frozenList,
             skipped,
             rows: rows.map(({ snapshot: _snapshot, ...r }) => r),
         };
 
         if (!dryRun && rows.length > 0) {
             // Одним запросом, а не пятьюдесятью: либо пересчитаны все, либо никто.
-            // updatedAt не трогаем — иначе у всех машин в sitemap станет одна дата
+            // updatedAt сдвигаем только тем, у кого цена правда сменилась: по нему
+            // sitemap говорит поисковику, что страницу пора перечитать
             await tx.$executeRaw`
                 UPDATE "Vehicle" AS v
-                SET "priceKeyTurnKZT" = x.kzt, "priceUSD" = x.usd, "priceCalc" = x.calc
+                SET "priceKeyTurnKZT" = x.kzt, "priceUSD" = x.usd, "priceCalc" = x.calc,
+                    "updatedAt" = CASE
+                        WHEN v."priceKeyTurnKZT" IS DISTINCT FROM x.kzt OR v."priceUSD" IS DISTINCT FROM x.usd
+                        THEN now() ELSE v."updatedAt" END
                 FROM (VALUES ${Prisma.join(rows.map(r =>
                     Prisma.sql`(${r.id}, ${r.after.kzt}::int, ${r.after.usd}::int, ${JSON.stringify(r.snapshot)}::jsonb)`
                 ))}) AS x(id, kzt, usd, calc)
@@ -203,7 +247,7 @@ export async function recalcAllTurnkeyPrices(
                 at: result.at, reason, rateDate: result.rateDate,
                 kztPerUsd: result.kztPerUsd, kztPerCny: result.kztPerCny,
                 settingsVersion: result.settingsVersion,
-                total: result.total, changed, frozen, skipped,
+                total: result.total, changed, frozen: frozenList.length, frozenList, skipped,
             };
             await tx.systemSettings.upsert({
                 where: { key: STAMP_KEY },
@@ -232,6 +276,7 @@ export interface RecalcStamp {
     total: number;
     changed: number;
     frozen: number;
+    frozenList?: RecalcSummary['frozenList'];
     skipped: RecalcSummary['skipped'];
 }
 

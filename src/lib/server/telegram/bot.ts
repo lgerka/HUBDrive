@@ -35,16 +35,15 @@ async function countStock(): Promise<{ total: number; fromPrice: string | null }
             where: { status: { in: ["in_stock", "in_transit"] } },
             select: { priceUSD: true, priceKeyTurnKZT: true, priceCalc: true },
         });
-        // Когда цены посчитаны калькулятором — называем тенге под ключ,
-        // до этого — доллары, как было
+        // «от» — только по ценам, посчитанным под ключ: без расчёта в полях
+        // цены лежит цена в Китае
         const turnkey = rows
             .filter(r => r.priceCalc !== null && r.priceKeyTurnKZT > 0)
             .map(r => r.priceKeyTurnKZT);
-        if (turnkey.length > 0) {
-            return { total: rows.length, fromPrice: `${fmtKzt(Math.min(...turnkey))} под ключ` };
-        }
-        const usd = rows.map(r => r.priceUSD).filter((p): p is number => typeof p === "number" && p > 0);
-        return { total: rows.length, fromPrice: usd.length > 0 ? `$${Math.min(...usd).toLocaleString("ru-RU")}` : null };
+        return {
+            total: rows.length,
+            fromPrice: turnkey.length > 0 ? `${fmtKzt(Math.min(...turnkey))} под ключ` : null,
+        };
     } catch {
         return { total: 0, fromPrice: null };
     }

@@ -7,9 +7,9 @@ import { TURNKEY_INCLUDED, TURNKEY_NOTE, powertrainOf, wtoNote } from '@/lib/tur
  * Цена машины для клиента — в карточке и на странице машины.
  *
  * Тенге крупно, доллары ниже: бюджеты подборов в тенге, и платят в тенге.
- * Подпись «под ключ» — только если цена действительно посчитана
- * калькулятором. До пересчёта в поле цены лежит цена в Китае, и назвать её
- * «под ключ» значило бы соврать на полтора миллиона вниз.
+ * Цифру показываем, только если цена действительно посчитана калькулятором.
+ * Без расчёта в поле цены лежит цена в Китае, и назвать её клиенту значило
+ * бы соврать на полтора миллиона вниз.
  */
 interface PriceVehicle {
     priceKeyTurnKZT: number;
@@ -28,19 +28,15 @@ interface Props {
 export function TurnkeyPrice({ vehicle, size, className }: Props) {
     const kzt = vehicle.priceKeyTurnKZT;
     const usd = vehicle.priceUSD;
-    const main = size === 'card' ? 'text-xl' : 'text-2xl md:text-3xl tracking-tight';
+    // Тенге длиннее долларов: «38 400 000 ₸» не должен переносить знак валюты
+    // на новую строку в узкой карточке сетки
+    const main = cn('whitespace-nowrap', size === 'card' ? 'text-xl' : 'text-2xl tracking-tight');
 
-    if (!(kzt > 0) && !(usd && usd > 0)) {
+    // Не посчитана калькулятором (например, нет цены в Китае) — цифру не
+    // называем вовсе: в этих полях лежит цена в Китае, а клиент прочитал бы
+    // её как итоговую
+    if (!vehicle.turnkey || !(kzt > 0)) {
         return <p className={cn('font-headline font-extrabold text-on-surface', main, className)}>Цена по запросу</p>;
-    }
-
-    // Ещё не пересчитана калькулятором — показываем как раньше, без «под ключ»
-    if (!vehicle.turnkey) {
-        return (
-            <p className={cn('font-headline font-extrabold text-on-surface', main, className)}>
-                {usd && usd > 0 ? fmtUsd(usd) : fmtKzt(kzt)}
-            </p>
-        );
     }
 
     return (

@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import { getChatIds } from './telegram/targets';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
+import { escapeHtml } from '@/lib/html';
 
 /**
  * Спрос на машины, которых у нас нет.
@@ -147,7 +148,7 @@ export async function reportMissingCar(input: {
 
     const digits = input.phone ? input.phone.replace(/\D/g, '') : '';
     const contact = input.phone
-        ? `📞 <b>${input.phone}</b>`
+        ? `📞 <b>${escapeHtml(input.phone)}</b>`
         : '⚠️ <b>Телефона нет</b> — только переписка';
 
     const links = [
@@ -161,14 +162,15 @@ export async function reportMissingCar(input: {
 
     const text = [
         hint.mentioned
-            ? `🚗 <b>Просят: ${hint.mentioned}</b> — в наличии нет`
+            ? `🚗 <b>Просят: ${escapeHtml(String(hint.mentioned))}</b> — в наличии нет`
             : '🚗 <b>Запрос на машину</b>',
         '',
-        `<i>«${input.request.slice(0, 300)}»</i>`,
+        // Текст от человека экранируем: «<20 млн» — и Telegram не примет сообщение
+        `<i>«${escapeHtml(input.request.slice(0, 300))}»</i>`,
         '',
-        `<b>Клиент:</b> ${input.name || 'без имени'}`,
+        `<b>Клиент:</b> ${escapeHtml(input.name || 'без имени')}`,
         contact,
-        `<b>Откуда:</b> ${input.source}`,
+        `<b>Откуда:</b> ${escapeHtml(input.source)}`,
         '',
         links,
     ].filter(Boolean).join('\n');

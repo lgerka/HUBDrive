@@ -5,6 +5,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, CircleHelp, Phone, MapPin, SlidersHorizontal, Eye, Filter as FilterIcon, LogIn, Send, PhoneForwarded, Calendar, ArrowLeft, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fmtKzt } from "@/lib/price";
 
 /** Как называем каналы в карточке — те же слова, что в списке лидов. */
 const LEAD_SOURCE_LABEL: Record<string, string> = {
@@ -79,8 +80,17 @@ export default function AdminLeadProfile({ params }: { params: Promise<{ id: str
   const getEventDetails = (event: any) => {
       switch (event.type) {
         case 'vehicle_opened': return { title: `Просмотрел ${event.meta?.brand || 'Авто'} ${event.meta?.model || ''}`, desc: event.meta?.priceChina ? `Цена: ¥${event.meta.priceChina}` : 'Просмотр карточки авто' };
-        case 'filter_created': return { title: 'Создал фильтр', desc: `Бренд: ${event.meta?.brand || 'Любой'}` };
-        case 'filter_updated': return { title: 'Обновил фильтр', desc: `Бюджет до ${event.meta?.budgetMax || 'без ограничений'}` };
+        case 'filter_created':
+        case 'filter_updated': {
+            // Бюджет подбора — в тенге. В старых событиях обновления его не писали
+            const budget = event.meta?.budgetMax
+                ? `бюджет до ${fmtKzt(Number(event.meta.budgetMax))}`
+                : event.meta && 'budgetMax' in event.meta ? 'бюджет без ограничений' : 'бюджет не записан';
+            return {
+                title: event.type === 'filter_created' ? 'Создал фильтр' : 'Обновил фильтр',
+                desc: [event.meta?.title, budget].filter(Boolean).join(' · '),
+            };
+        }
         case 'user_registered': return { title: 'Регистрация', desc: 'Первый вход в приложение' };
         case 'contact_clicked': return { title: 'Нажал "Связаться"', desc: `По авто ${event.meta?.brand || ''}` };
         case 'favorite_added': return { title: 'Добавил в избранное', desc: `Заинтересован в ${event.meta?.brand || 'авто'}` };

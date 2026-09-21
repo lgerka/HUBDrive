@@ -89,7 +89,7 @@ async function AllVehiclesIndex() {
                             {v.brand} {v.model} {v.year}
                             {v.priceCalc !== null && v.priceKeyTurnKZT > 0
                                 ? ` — ${fmtKzt(v.priceKeyTurnKZT)}`
-                                : v.priceUSD ? ` — $${v.priceUSD.toLocaleString("ru-RU")}` : ""}
+                                : ""}
                         </Link>
                     </li>
                 ))}

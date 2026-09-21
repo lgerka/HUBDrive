@@ -6,6 +6,7 @@ import {
     ShieldCheck, FileText, Truck, Wallet, UserRound, BadgeCheck,
     Search, MessagesSquare, KeyRound, ArrowRight, Send, Phone, MessageCircle,
 } from "lucide-react";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 import { TurnkeyPrice } from "@/components/hubdrive/vehicles/turnkey-price";
 import { SUPPORT_PHONE, SUPPORT_PHONE_DISPLAY, SUPPORT_PHONE_DISPLAY as PHONE, SUPPORT_TELEGRAM_URL, whatsappLink } from "@/constants/contacts";
@@ -32,20 +33,29 @@ const HERO_IMAGE = "https://lqryygrbuumxenzmyqik.supabase.co/storage/v1/object/p
  */
 async function getShowcase() {
     try {
-        const [pool, total] = await Promise.all([
+        const forSale = { status: { in: ["in_stock" as const, "in_transit" as const] } };
+        const select = {
+            id: true, brand: true, model: true, year: true, mileage: true, media: true,
+            priceUSD: true, priceKeyTurnKZT: true, engineType: true, powertrain: true,
+            // Только чтобы знать, посчитана ли цена под ключ
+            priceCalc: true,
+        };
+        const [priced, total] = await Promise.all([
+            // На витрине под заголовком «цены с доставкой и таможней» — машины
+            // с посчитанной ценой под ключ. Отбираем в запросе, а не после take:
+            // иначе непосчитанные с ценой Китая заняли бы пул как самые дешёвые
             prisma.vehicle.findMany({
-                where: { status: { in: ["in_stock", "in_transit"] } },
-                orderBy: [{ priceUSD: "asc" }, { createdAt: "desc" }],
+                where: { ...forSale, priceCalc: { not: Prisma.DbNull }, priceKeyTurnKZT: { gt: 0 } },
+                orderBy: [{ priceKeyTurnKZT: "asc" }, { createdAt: "desc" }],
                 take: 60,
-                select: {
-                    id: true, brand: true, model: true, year: true, mileage: true, media: true,
-                    priceUSD: true, priceKeyTurnKZT: true, engineType: true, powertrain: true,
-                    // Только чтобы знать, посчитана ли цена под ключ
-                    priceCalc: true,
-                },
+                select,
             }),
             prisma.vehicle.count({ where: { status: { notIn: ["hidden"] } } }),
         ]);
+        // Посчитанных нет вовсе — показываем машины «Цена по запросу», но секцию не прячем
+        const pool = priced.length > 0
+            ? priced
+            : await prisma.vehicle.findMany({ where: forSale, orderBy: { createdAt: "desc" }, take: 60, select });
 
         const byBrand = new Map<string, typeof pool>();
         for (const v of pool) {
@@ -223,7 +233,8 @@ export default async function LandingPage() {
                 </div>
             </section>
 
-            <ContactWays />
+            {/* То же число, что «Авто в каталоге» в первом экране и в самом каталоге */}
+            <ContactWays total={total} />
 
             {/* Гарантии */}
             <section className="bg-slate-50 py-16">

@@ -3,8 +3,10 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { readVehicleInput, turnkeyInputOf, VehicleInputError } from '@/lib/server/vehicleInput';
-import { priceForSave, TurnkeyInputError } from '@/lib/server/turnkeyPrices';
+import { priceForSave, TurnkeyInputError, withRecalcLock, isFrozenForRecalc, fallbackWarning } from '@/lib/server/turnkeyPrices';
+import { getNbkRates } from '@/lib/server/nbk';
 import { isPriceFrozen } from '@/lib/turnkey';
+import type { PriceForSave } from '@/lib/server/turnkeyPrices';
 
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -31,34 +33,56 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const input = readVehicleInput(await request.json());
-        const existing = await prisma.vehicle.findUnique({ where: { id }, select: { id: true } });
-        if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        const rates = await getNbkRates();
 
-        // Машина в сделке — цена зафиксирована договором. Правка описания или
-        // статуса не должна пересчитать её по сегодняшнему курсу
-        const frozen = isPriceFrozen(input.fields.status);
-        const price = frozen ? null : await priceForSave(turnkeyInputOf(input));
+        const result = await withRecalcLock(async tx => {
+            const existing = await tx.vehicle.findUnique({ where: { id }, select: { id: true, priceCalc: true } });
+            if (!existing) return null;
 
-        const updated = await prisma.vehicle.update({
-            where: { id },
-            data: {
-                ...input.fields,
-                priceChina: input.priceChina,
-                powertrain: input.powertrain,
-                ...(price
-                    ? {
-                        priceKeyTurnKZT: price.priceKeyTurnKZT,
-                        priceUSD: price.priceUSD,
-                        priceCalc: price.priceCalc as never,
-                    }
-                    : {}),
-            },
+            // Машина в сделке — цена зафиксирована договором. Правка описания или
+            // статуса не должна пересчитать её по сегодняшнему курсу. Но если
+            // цена под ключ у неё ни разу не считалась, фиксировать нечего
+            const frozen = isFrozenForRecalc(input.fields.status, existing.priceCalc);
+            let price: PriceForSave | null = null;
+            let priceSkipped: string | null = null;
+            if (!frozen) {
+                try {
+                    price = await priceForSave(turnkeyInputOf(input), rates);
+                } catch (e) {
+                    // Старая машина в сделке, заведённая ещё без цены в Китае:
+                    // цену не посчитать, но правку описания или статуса сохраняем
+                    // — как и массовый пересчёт, который такие машины пропускает
+                    if (!(e instanceof TurnkeyInputError) || !isPriceFrozen(input.fields.status)) throw e;
+                    priceSkipped = e.message;
+                }
+            }
+
+            const updated = await tx.vehicle.update({
+                where: { id },
+                data: {
+                    ...input.fields,
+                    priceChina: input.priceChina,
+                    powertrain: input.powertrain,
+                    ...(price
+                        ? {
+                            priceKeyTurnKZT: price.priceKeyTurnKZT,
+                            priceUSD: price.priceUSD,
+                            priceCalc: price.priceCalc as never,
+                        }
+                        : {}),
+                },
+            });
+            return { updated, price, priceSkipped };
         });
+        if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        const { updated, price, priceSkipped } = result;
         revalidatePath('/', 'layout');
 
         return NextResponse.json({
             ...updated,
-            ...(price?.fallbackRate ? { warning: 'Нацбанк не ответил — цена посчитана по запасному курсу, ночью пересчитается' } : {}),
+            ...(priceSkipped
+                ? { warning: `Сохранено, но цена под ключ не посчитана: ${priceSkipped}. Клиент видит «Цена по запросу».` }
+                : price?.fallbackRate ? { warning: fallbackWarning(updated.status) } : {}),
         });
     } catch (e) {
         if (e instanceof VehicleInputError || e instanceof TurnkeyInputError) {

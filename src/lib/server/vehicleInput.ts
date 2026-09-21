@@ -1,4 +1,4 @@
-import { isPowertrain } from '@/lib/turnkey';
+import { isPowertrain, MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from '@/lib/turnkey';
 import type { Powertrain } from '@/lib/calculator';
 
 /**
@@ -74,6 +74,7 @@ export function readVehicleInput(body: Record<string, unknown>): VehicleInput {
     }
 
     const engineVolume = isElectric ? 0 : num(body.engineVolume);
+    if (engineVolume > MAX_ENGINE_LITRES) throw new VehicleInputError(ENGINE_LITRES_MESSAGE);
     const priceChina = Math.trunc(num(body.priceChina)) || null;
 
     return {

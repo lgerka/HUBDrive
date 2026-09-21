@@ -183,9 +183,10 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                         </span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
+                    {/* В узкой карточке кнопка уходит под цену, а не обрезается */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                         <TurnkeyPrice vehicle={vehicle as Vehicle & { turnkey?: boolean }} size="card-lg" />
-                        <button className="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-3 rounded-full active:scale-95 transition-transform duration-200">
+                        <button className="shrink-0 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-3 rounded-full active:scale-95 transition-transform duration-200">
                             Подробнее
                         </button>
                     </div>

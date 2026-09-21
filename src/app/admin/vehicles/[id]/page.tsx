@@ -7,6 +7,7 @@ import { Loader2, ArrowLeft, Save, Plus, ChevronRight, Info, Video, UploadCloud 
 import { Button } from "@/components/ui/button";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
+import { isPriceFrozen, MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from "@/lib/turnkey";
 
 // Деньги: только цифры в состоянии, разделители на экране; объём: цифры и одна точка
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
@@ -106,12 +107,22 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
       alert(`Укажите год выпуска — от 1990 до ${thisYear + 1}`);
       return;
     }
+    // Без юаней цену под ключ не посчитать. Исключение — машина в сделке:
+    // её правку сервер сохранит и без цены
+    if (!(Number(formData.priceChina) > 0) && !isPriceFrozen(formData.status)) {
+      alert("Укажите цену в Китае, ¥ — из неё считается цена под ключ");
+      return;
+    }
     if (formData.engineType.startsWith("Гибрид") && !formData.powertrain) {
       alert("Выберите тип гибрида — от него зависит пошлина");
       return;
     }
     if (!formData.engineType.startsWith("Электро") && !(Number(formData.engineVolume) > 0)) {
       alert("Укажите объём двигателя — от него зависит утильсбор");
+      return;
+    }
+    if (!formData.engineType.startsWith("Электро") && Number(formData.engineVolume) > MAX_ENGINE_LITRES) {
+      alert(ENGINE_LITRES_MESSAGE);
       return;
     }
     // Публикация без фото — только осознанно
@@ -130,6 +141,9 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
         body: JSON.stringify(formData)
       });
       if (res.ok) {
+        // Машина сохранена, но цена могла посчитаться по запасному курсу — менеджеру надо знать
+        const data = await res.json().catch(() => ({}));
+        if (data.warning) alert(data.warning);
         router.push("/admin/vehicles");
       } else {
         // Сервер говорит, что именно не так
@@ -138,6 +152,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
       }
     } catch (err) {
       console.error(err);
+      alert("Нет связи с сервером — машина не сохранена");
     } finally {
       setIsSaving(false);
     }
@@ -561,8 +576,9 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                     engineVolume={formData.engineVolume}
                     year={String(formData.year || "")}
                     current={current}
+                    frozen={isPriceFrozen(formData.status) && Boolean(current?.turnkey)}
                   />
-                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ посчитает калькулятор и будет пересчитывать каждое утро. У машин в резерве, проданных и выданных цена не меняется.</p>
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ посчитает калькулятор и будет пересчитывать каждое утро. У машин в брони, проданных и выданных цена не меняется, если уже была посчитана.</p>
                 </div>
               </div>
             </div>

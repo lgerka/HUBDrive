@@ -107,7 +107,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 type: 'filter_updated',
                 userId: filterToUpdate.userId,
                 filterId: updatedFilter.id,
-                meta: { purchasePlan: updatedFilter.purchasePlan },
+                meta: { purchasePlan: updatedFilter.purchasePlan, budgetMax: updatedFilter.budgetMax, title: updatedFilter.title },
             },
         }).catch(err => console.error('Error logging filter_updated:', err));
 

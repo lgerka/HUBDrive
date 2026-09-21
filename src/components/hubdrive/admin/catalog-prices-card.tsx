@@ -32,6 +32,7 @@ interface Summary {
     total: number;
     changed: number;
     frozen: number;
+    frozenList?: { id: string; name: string; status: string }[];
     skipped: { id: string; name: string; reason: string }[];
     rows: Row[];
 }
@@ -43,6 +44,40 @@ interface Stamp {
     kztPerUsd: number;
     changed: number;
     total: number;
+    frozen?: number;
+    frozenList?: { id: string; name: string; status: string }[];
+    skipped?: { id: string; name: string; reason: string }[];
+}
+
+const STATUS: Record<string, string> = { reserved: "в брони", sold: "продана", delivered: "выдана" };
+
+/**
+ * Машины, у которых клиент видит не свежий расчёт: без цены в ¥ — «Цена по
+ * запросу», в сделке — цена, зафиксированная при сделке. Со ссылками, чтобы
+ * менеджер сразу открыл и поправил.
+ */
+function LeftOut({ skipped, frozenList }: { skipped: Stamp["skipped"]; frozenList: Stamp["frozenList"] }) {
+    if (!skipped?.length && !frozenList?.length) return null;
+    return (
+        <div className="mt-3 space-y-2 text-xs">
+            {skipped && skipped.length > 0 && (
+                <div className="rounded-lg bg-amber-50 p-2.5 text-amber-800">
+                    <p className="font-bold">Не пересчитаны — у клиента остаётся прежняя цена под ключ, а если её не было — «Цена по запросу»:</p>
+                    {skipped.map(s => (
+                        <p key={s.id}>• <a href={`/admin/vehicles/${s.id}`} className="underline">{s.name}</a> — {s.reason}</p>
+                    ))}
+                </div>
+            )}
+            {frozenList && frozenList.length > 0 && (
+                <div className="rounded-lg bg-slate-50 p-2.5 text-slate-600">
+                    <p className="font-bold">В сделке — цена зафиксирована и не пересчитывается:</p>
+                    {frozenList.map(f => (
+                        <p key={f.id}>• <a href={`/admin/vehicles/${f.id}`} className="underline">{f.name}</a> — {STATUS[f.status] ?? f.status}</p>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
 
 const REASON: Record<string, string> = {
@@ -83,7 +118,11 @@ export function CatalogPricesCard({ headers }: { headers: Record<string, string>
                 setPreview(data);
             } else {
                 setPreview(null);
-                setDone(`Готово: пересчитано ${data.rows.length} машин, изменилось ${data.changed}. Клиенты уже видят цены под ключ.`);
+                const skipped = data.skipped?.length ?? 0;
+                const frozen = data.frozen ?? 0;
+                setDone(`Готово: пересчитано ${data.rows.length} машин, изменилось ${data.changed}. Клиенты уже видят цены под ключ.`
+                    + (skipped > 0 ? ` Не пересчитано ${skipped} — они перечислены ниже.` : "")
+                    + (frozen > 0 ? ` У ${frozen} машин в сделке цена зафиксирована.` : ""));
                 await loadStamp();
             }
         } catch {
@@ -114,8 +153,8 @@ export function CatalogPricesCard({ headers }: { headers: Record<string, string>
                 </p>
             ) : (
                 <p className="mt-1 text-sm text-slate-500">
-                    Сейчас в каталоге у большинства машин <b>цена в Китае</b>, переведённая в тенге, — без пошлины, НДС,
-                    утильсбора, логистики и комиссии. Посмотрите, как изменятся цены, и включите цены под ключ.
+                    У машин без расчёта клиенты видят <b>«Цена по запросу»</b>: в базе у них цена в Китае, без пошлины, НДС,
+                    утильсбора, логистики и комиссии. Посмотрите, как изменятся цены, и включите цены под ключ — цена появится у всех.
                     Новые и отредактированные машины уже считаются под ключ.
                 </p>
             )}
@@ -154,20 +193,17 @@ export function CatalogPricesCard({ headers }: { headers: Record<string, string>
                 </p>
             )}
 
+            {enabled && !preview && <LeftOut skipped={stamp!.skipped} frozenList={stamp!.frozenList} />}
+
             {preview && (
                 <div className="mt-4 space-y-3">
                     <p className="text-xs text-slate-500">
                         Курс Нацбанка на {preview.rateDate}: {preview.kztPerUsd.toFixed(2)} ₸/$ · посчитано {preview.rows.length},
                         изменится {preview.changed}
                         {ratio ? <>, в среднем цена станет <b>в {ratio.toFixed(2).replace(".", ",")} раза выше</b></> : null}.
-                        {" "}{preview.frozen} в резерве, проданы или выданы — их цену не трогаем.
+                        {preview.frozen > 0 ? <>{" "}{preview.frozen} в сделке с уже посчитанной ценой — её не трогаем.</> : null}
                     </p>
-                    {preview.skipped.length > 0 && (
-                        <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
-                            <p className="font-bold">Не посчитать — останутся как есть:</p>
-                            {preview.skipped.map(s => <p key={s.id}>• {s.name} — {s.reason}</p>)}
-                        </div>
-                    )}
+                    <LeftOut skipped={preview.skipped} frozenList={preview.frozenList} />
                     <div className="max-h-[420px] overflow-auto rounded-xl border">
                         <table className="w-full text-xs">
                             <thead className="sticky top-0 bg-slate-50 text-left text-slate-500">

@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { vehiclePriceText } from '@/lib/price';
+import { escapeHtml } from '@/lib/html';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
@@ -90,16 +91,17 @@ export async function POST(request: Request) {
         const message = [
             '<b>Новая заявка HUBDrive</b>',
             '',
-            `<b>Клиент:</b> ${name} (${contact})`,
+            // Имя и прочее от человека экранируем: «<» в имени — и Telegram не примет заявку
+            `<b>Клиент:</b> ${escapeHtml(name)} (${escapeHtml(contact)})`,
             dbUser.phone
-                ? `<b>Телефон:</b> ${dbUser.phone}`
+                ? `<b>Телефон:</b> ${escapeHtml(dbUser.phone)}`
                 : '<b>Телефон:</b> не оставил — пишите в Telegram',
-            `<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+            `<b>Машина:</b> ${escapeHtml(`${vehicle.brand} ${vehicle.model}`)} ${vehicle.year}`,
             `<b>Цена:</b> ${price}`,
             '',
             // Первым делом — как связаться, и только потом всё остальное
             `<a href="${chatLink}">Написать клиенту в Telegram</a>`,
-            dbUser.phone ? `<a href="tel:${dbUser.phone.replace(/[^\d+]/g, '')}">Позвонить: ${dbUser.phone}</a>` : '',
+            dbUser.phone ? `<a href="tel:${dbUser.phone.replace(/[^\d+]/g, '')}">Позвонить: ${escapeHtml(dbUser.phone)}</a>` : '',
             `<a href="${WEBAPP_URL}/admin/leads/${dbUser.id}">Карточка клиента в админке</a>`,
             `<a href="${WEBAPP_URL}/vehicles/${vehicle.id}">Автомобиль из заявки</a>`,
         ].filter(Boolean).join('\n');

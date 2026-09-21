@@ -52,8 +52,10 @@ function NewFilterContent() {
             metaTrack('Search', {
                 search_string: [data?.brand, data?.model].filter(Boolean).join(' ') || 'подбор авто',
                 content_category: data?.brand ?? undefined,
-                value: data?.priceMaxUSD ?? data?.budgetMax ?? undefined,
-                currency: 'USD',
+                // Бюджет подбора в тенге — так и сообщаем, иначе Meta прочтёт
+                // 15 000 000 как доллары
+                value: data?.budgetMax || undefined,
+                currency: 'KZT',
             });
             router.push('/filters');
         } catch (err) {

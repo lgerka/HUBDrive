@@ -9,7 +9,11 @@ export async function GET(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);
         if (!isAdmin) {
-            // Откуда приходят люди: считаем по всем, кто есть в базе
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Откуда приходят люди: считаем по всем, кто есть в базе.
+        // Только для админа — раньше это уходило анониму вместе с 401
         const usersForSource = await prisma.user.findMany({
             select: {
                 id: true,
@@ -36,10 +40,6 @@ export async function GET(request: Request) {
             prisma.landingLead.count({ where: { OR: [{ fbc: { not: null } }, { fbp: { not: null } }] } }),
         ]);
 
-        return NextResponse.json({
-            sources,
-            landingLeads: { total: landingLeadsTotal, fromAds: landingLeadsFromAds }, error: 'Unauthorized' }, { status: 401 });
-        }
 
         const now = Date.now();
         const dayAgo = new Date(now - DAY);
@@ -146,6 +146,8 @@ export async function GET(request: Request) {
                 count: Number(r.count),
             })),
             topVehicle,
+            sources,
+            landingLeads: { total: landingLeadsTotal, fromAds: landingLeadsFromAds },
             latestLeads: hotLeadsList.map((user: any) => ({
                 id: user.id,
                 name: user.firstName + (user.lastName ? ` ${user.lastName}` : ''),

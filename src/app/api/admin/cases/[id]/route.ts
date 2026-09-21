@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 
@@ -46,6 +47,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
             },
         });
 
+        // Страница кейса кэшируется — без этого старая версия висела бы до 10 минут
+        revalidatePath('/cases');
+        revalidatePath(`/cases/${id}`);
         return NextResponse.json(caseItem);
     } catch {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -61,6 +65,9 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
         const { id } = await context.params;
         await prisma.case.delete({ where: { id } });
+        // Удалённый кейс (имя и отзыв клиента) не должен оставаться в кэше
+        revalidatePath('/cases');
+        revalidatePath(`/cases/${id}`);
 
         return NextResponse.json({ success: true });
     } catch {

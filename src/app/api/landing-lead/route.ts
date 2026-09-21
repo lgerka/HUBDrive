@@ -5,6 +5,8 @@ import { sendMetaEvent, requestSignals } from '@/lib/server/meta/capi';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
 import { prisma as db } from '@/lib/server/prisma';
 import { normalizePhone } from '@/lib/server/phone';
+import { vehiclePriceText } from '@/lib/price';
+import { escapeHtml } from '@/lib/html';
 import { LEAD_VALUE_USD } from '@/constants/contacts';
 import { reportMissingCar } from '@/lib/server/demand';
 
@@ -68,19 +70,27 @@ export async function POST(request: Request) {
 
         // Подмешиваем машину в комментарий: отдельного поля нет, а менеджеру
         // нужно понимать, о чём разговор
+        // Цену — ту, что видел клиент: менеджер отвечает человеку с рекламы,
+        // и разговор начинается с неё
         let vehicleNote = '';
+        let vehiclePrice: string | null = null;
         if (vehicleId) {
             const car = await prisma.vehicle.findUnique({
                 where: { id: vehicleId },
-                select: { brand: true, model: true, year: true },
+                select: { brand: true, model: true, year: true, priceKeyTurnKZT: true, priceUSD: true, priceCalc: true },
             }).catch(() => null);
-            if (car) vehicleNote = `${car.brand} ${car.model} ${car.year}`;
+            if (car) {
+                vehicleNote = `${car.brand} ${car.model} ${car.year}`;
+                vehiclePrice = vehiclePriceText(car);
+            }
         }
 
         const lead = await prisma.landingLead.create({
             data: {
                 name,
                 phone,
+                // Цену сюда не пишем: из комментария вечерний список пополнения
+                // достаёт пожелания клиента, и «₸ под ключ» сбил бы его бюджет и город
                 comment: [vehicleNote && `Интересует: ${vehicleNote}`, comment].filter(Boolean).join('. ') || null,
                 source: vehicleId ? 'vehicle' : 'landing',
                 fbp, fbc, ip, userAgent, utmSource, utmCampaign, utmContent,
@@ -92,11 +102,13 @@ export async function POST(request: Request) {
             const message = [
                 '🟠 <b>Заявка с сайта</b>',
                 '',
-                `<b>Имя:</b> ${name}`,
-                `<b>Телефон:</b> ${phone}`,
-                vehicleNote ? `<b>Машина:</b> ${vehicleNote}` : '',
-                comment ? `<b>Комментарий:</b> ${comment}` : '',
-                utmContent || utmCampaign ? `<b>Объявление:</b> ${[utmCampaign, utmContent].filter(Boolean).join(' · ')}` : '',
+                // Всё, что ввёл человек, экранируем: «<» в имени — и Telegram не примет заявку
+                `<b>Имя:</b> ${escapeHtml(name)}`,
+                `<b>Телефон:</b> ${escapeHtml(phone)}`,
+                vehicleNote ? `<b>Машина:</b> <a href="${WEBAPP_ORIGIN}/vehicles/${encodeURIComponent(vehicleId ?? '')}">${escapeHtml(vehicleNote)}</a>` : '',
+                vehicleNote ? `<b>Цена:</b> ${vehiclePrice ?? 'не посчитана'}` : '',
+                comment ? `<b>Комментарий:</b> ${escapeHtml(comment)}` : '',
+                utmContent || utmCampaign ? `<b>Объявление:</b> ${escapeHtml([utmCampaign, utmContent].filter(Boolean).join(' · '))}` : '',
                 '',
                 vehicleId
                     ? '<i>Заявка из карточки автомобиля. Человек не в Telegram — звоните.</i>'

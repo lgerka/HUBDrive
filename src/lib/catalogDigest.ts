@@ -20,6 +20,7 @@
  * а не превращается в правдоподобную выдумку.
  */
 
+import { escapeHtml } from './html';
 import {
     CATALOG_MODELS, CATALOG_BRANDS,
     type CatalogModel, type Powertrain,
@@ -790,10 +791,7 @@ const POWERTRAIN_EN: Record<Powertrain, string> = {
     ICE: 'ICE', HYBRID: 'hybrid — please specify PHEV or HEV',
 };
 
-/** Telegram понимает ограниченный HTML: всё, что пришло от людей, экранируем. */
-export function escapeHtml(text: string): string {
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+export { escapeHtml };
 
 function plural(n: number, one: string, few: string, many: string): string {
     const mod10 = n % 10;

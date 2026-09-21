@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/server/prisma';
 import { vehiclePriceText } from '@/lib/price';
+import { escapeHtml } from '@/lib/html';
 import { resolveWebUser } from '@/lib/server/webUser';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
@@ -68,16 +69,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Чат для заявок не настроен' }, { status: 500 });
         }
 
-        const usernameLine = dbUser.username ? `@${dbUser.username}` : `ID ${dbUser.telegramId}`;
+        const usernameLine = dbUser.username ? `@${escapeHtml(dbUser.username)}` : `ID ${dbUser.telegramId}`;
         const carLine = vehicle
-            ? `<b>Ориентир:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}${vehiclePriceText(vehicle) ? ` — ${vehiclePriceText(vehicle)}` : ''}`
+            ? `<b>Ориентир:</b> ${escapeHtml(`${vehicle.brand} ${vehicle.model}`)} ${vehicle.year}${vehiclePriceText(vehicle) ? ` — ${vehiclePriceText(vehicle)}` : ''}`
             : '<b>Ориентир:</b> не указан';
 
         const message = [
             '🔎 <b>Заявка: подобрать похожий автомобиль</b>',
             '',
-            `<b>Клиент:</b> ${name} (${usernameLine})`,
-            `<b>Телефон:</b> ${phone}`,
+            // Имя и телефон от человека экранируем: «<» — и Telegram не примет заявку
+            `<b>Клиент:</b> ${escapeHtml(name)} (${usernameLine})`,
+            `<b>Телефон:</b> ${escapeHtml(phone)}`,
             carLine,
             vehicle ? `\n<a href="${WEBAPP_URL}/vehicles/${vehicle.id}">Открыть карточку</a>` : '',
         ].filter(Boolean).join('\n');

@@ -81,12 +81,10 @@ export function StructuredData({ faq, vehicles }: StructuredDataProps) {
                 url: `${WEBAPP_ORIGIN}/vehicles/${v.id}`,
                 image: Array.isArray(v.media) ? (v.media[0] as string | undefined) : undefined,
                 // Посчитанная цена под ключ — в тенге, это цена сделки.
-                // До пересчёта — как раньше, в долларах
+                // Без расчёта цену не называем: там лежит цена в Китае
                 ...(v.priceCalc !== null && v.priceKeyTurnKZT > 0
                     ? { offers: { "@type": "Offer", price: v.priceKeyTurnKZT, priceCurrency: "KZT", availability: "https://schema.org/InStock", areaServed: "KZ" } }
-                    : v.priceUSD
-                        ? { offers: { "@type": "Offer", price: v.priceUSD, priceCurrency: "USD", availability: "https://schema.org/InStock", areaServed: "KZ" } }
-                        : {}),
+                    : {}),
             },
         })),
     };

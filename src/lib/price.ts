@@ -17,14 +17,11 @@ export function fmtKzt(kzt: number): string {
 }
 
 /**
- * Цена машины одной строкой — для сообщений в Telegram и пушей.
- * Посчитана калькулятором: «9 500 000 ₸ ($ 19 500) под ключ»; иначе — как было раньше.
+ * Цена машины одной строкой — для сообщений в Telegram и пушей:
+ * «9 500 000 ₸ ($ 19 500) под ключ». Не посчитана калькулятором — null:
+ * в полях цены тогда лежит цена в Китае, называть её нельзя никому.
  */
 export function vehiclePriceText(v: { priceKeyTurnKZT: number; priceUSD: number | null; priceCalc?: unknown }): string | null {
-    if (v.priceCalc != null && v.priceKeyTurnKZT > 0) {
-        return `${fmtKzt(v.priceKeyTurnKZT)}${v.priceUSD ? ` ($ ${v.priceUSD.toLocaleString('ru-RU')})` : ''} под ключ`;
-    }
-    if (v.priceUSD) return `$ ${v.priceUSD.toLocaleString('ru-RU')}`;
-    if (v.priceKeyTurnKZT > 0) return fmtKzt(v.priceKeyTurnKZT);
-    return null;
+    if (v.priceCalc == null || !(v.priceKeyTurnKZT > 0)) return null;
+    return `${fmtKzt(v.priceKeyTurnKZT)}${v.priceUSD ? ` ($ ${v.priceUSD.toLocaleString('ru-RU')})` : ''} под ключ`;
 }

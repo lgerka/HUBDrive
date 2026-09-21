@@ -6,6 +6,7 @@ import { sendMetaEvent } from '@/lib/server/meta/capi';
 import { LEAD_VALUE_USD, WEBAPP_ORIGIN } from '@/constants/contacts';
 import { getChatIds } from '@/lib/server/telegram/targets';
 import { reportMissingCar } from '@/lib/server/demand';
+import { escapeHtml } from '@/lib/html';
 
 /**
  * Обращение, которое случилось вне сайта: человек написал в WhatsApp,
@@ -147,8 +148,8 @@ export async function POST(request: Request) {
         await announceToTeam([
             '📝 <b>Обращение записано вручную</b>',
             '',
-            `<b>Клиент:</b> ${name || 'без имени'}`,
-            `<b>Телефон:</b> ${phone}`,
+            `<b>Клиент:</b> ${escapeHtml(name || 'без имени')}`,
+            `<b>Телефон:</b> ${escapeHtml(phone)}`,
             `<b>Канал:</b> ${channel.label}`,
             `<b>Записал:</b> ${author}`,
             '',
@@ -188,12 +189,12 @@ export async function POST(request: Request) {
     await announceToTeam([
         '📝 <b>Обращение записано вручную</b>',
         '',
-        `<b>Клиент:</b> ${name || 'без имени'}`,
-        `<b>Телефон:</b> ${phone}`,
+        `<b>Клиент:</b> ${escapeHtml(name || 'без имени')}`,
+        `<b>Телефон:</b> ${escapeHtml(phone)}`,
         `<b>Канал:</b> ${channel.label}`,
         `<b>Записал:</b> ${author}`,
-        vehicle ? `<b>Машина:</b> ${vehicle.brand} ${vehicle.model} ${vehicle.year}` : '',
-        (body.comment ?? '').trim() ? `<b>Просит:</b> ${(body.comment ?? '').trim()}` : '',
+        vehicle ? `<b>Машина:</b> ${escapeHtml(`${vehicle.brand} ${vehicle.model}`)} ${vehicle.year}` : '',
+        (body.comment ?? '').trim() ? `<b>Просит:</b> ${escapeHtml((body.comment ?? '').trim())}` : '',
         '',
         `<a href="tel:${phone.replace(/[^\d+]/g, '')}">Позвонить</a>`,
         `<a href="${WEBAPP_ORIGIN}/admin/landing-leads">Все заявки</a>`,

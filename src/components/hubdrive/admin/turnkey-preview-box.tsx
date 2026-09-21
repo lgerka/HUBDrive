@@ -32,9 +32,11 @@ interface Props {
     year: string;
     /** Нынешняя цена в карточке — при правке показываем «было → станет». */
     current?: { kzt: number; usd: number | null; turnkey: boolean };
+    /** Машина в сделке с уже посчитанной ценой — при сохранении цена не изменится. */
+    frozen?: boolean;
 }
 
-export function TurnkeyPreviewBox({ initData, priceChina, engineType, powertrain, engineVolume, year, current }: Props) {
+export function TurnkeyPreviewBox({ initData, priceChina, engineType, powertrain, engineVolume, year, current, frozen }: Props) {
     const [preview, setPreview] = useState<Preview | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -74,7 +76,36 @@ export function TurnkeyPreviewBox({ initData, priceChina, engineType, powertrain
         return () => { clearTimeout(timer); controller.abort(); };
     }, [initData, priceChina, engineType, powertrain, engineVolume, year]);
 
-    if (!(Number(priceChina) > 0)) return null;
+    if (!(Number(priceChina) > 0)) {
+        // Без юаней считать не из чего — но молчать нельзя: менеджер должен
+        // понимать, что клиент сейчас видит не цену под ключ
+        if (frozen && current) {
+            return (
+                <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                        Машина в сделке, цена зафиксирована: {fmtKzt(current.kzt)}{current.usd ? ` / ${fmtUsd(current.usd)}` : ""}.
+                        Без цены в Китае её не пересчитать, если сделка сорвётся, — лучше оставьте юани.
+                    </span>
+                </div>
+            );
+        }
+        if (current && current.turnkey) {
+            return (
+                <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>Без цены в Китае машину не сохранить — цена под ключ считается из неё.</span>
+                </div>
+            );
+        }
+        return (
+            <div className={`rounded-xl px-4 py-3 text-sm ${current ? "border border-amber-200 bg-amber-50 text-amber-800" : "bg-slate-50 text-slate-500"}`}>
+                {current
+                    ? <>Сейчас у машины нет цены под ключ — клиент видит «Цена по запросу». Укажите цену в Китае, ¥, и калькулятор сразу посчитает цену в ₸ и $.</>
+                    : <>Введите цену в юанях — здесь сразу появится цена под ключ в ₸ и $, которую увидит клиент.</>}
+            </div>
+        );
+    }
 
     if (error) {
         return (
@@ -93,7 +124,23 @@ export function TurnkeyPreviewBox({ initData, priceChina, engineType, powertrain
         );
     }
 
-    const changed = current && current.kzt !== preview.kzt;
+    const changed = current && (current.kzt !== preview.kzt || current.usd !== preview.usd);
+    const both = (kzt: number, usd: number | null) => `${fmtKzt(kzt)}${usd ? ` / ${fmtUsd(usd)}` : ""}`;
+
+    // В сделке цена зафиксирована: показываем её, а расчёт — только для сведения
+    if (frozen && current) {
+        return (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Машина в сделке — цена зафиксирована</p>
+                <p className="mt-1 font-headline text-2xl font-extrabold text-slate-800">{fmtKzt(current.kzt)}</p>
+                {current.usd ? <p className="text-sm font-semibold text-slate-600">{fmtUsd(current.usd)}</p> : null}
+                <p className="mt-2 text-xs text-slate-500">
+                    При сохранении цена не изменится. По сегодняшнему курсу было бы {both(preview.kzt, preview.usd)}.
+                    Чтобы пересчитать, верните статус «В наличии» или «В пути».
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
@@ -109,7 +156,7 @@ export function TurnkeyPreviewBox({ initData, priceChina, engineType, powertrain
             {current && (
                 <p className="mt-2 text-xs text-emerald-800">
                     {changed
-                        ? <>Сейчас в каталоге {fmtKzt(current.kzt)}{current.turnkey ? "" : " — это ещё цена в Китае"} → станет {fmtKzt(preview.kzt)}</>
+                        ? <>Сейчас в каталоге {current.turnkey ? both(current.kzt, current.usd) : "не цена под ключ (клиент видит «Цена по запросу»)"} → станет {both(preview.kzt, preview.usd)}</>
                         : "Цена в каталоге не изменится"}
                 </p>
             )}

@@ -5,7 +5,8 @@ import { pickBestMatch } from '@/lib/matching/pickBestMatch';
 import { getChatIds } from './targets';
 import { sendPushToUser } from '@/lib/server/push/webpush';
 import { WEBAPP_ORIGIN } from '@/constants/contacts';
-import { vehiclePriceText } from '@/lib/price';
+import { vehiclePriceText, fmtKzt } from '@/lib/price';
+import { escapeHtml } from '@/lib/html';
 
 // Единая точка правды по адресу приложения — см. constants/contacts
 const WEBAPP_URL = WEBAPP_ORIGIN;
@@ -153,10 +154,12 @@ export async function notifyManagerAboutHotMatch(user: any, vehicle: Vehicle, sc
     const existing = await prisma.notification.findUnique({ where: { dedupKey } });
     if (existing) return;
 
-    const text = `🎯 *Горячий лид получил предложение*\n\n` +
-        `Клиент: ${user.name || user.username || user.telegramId}\n` +
-        `Телефон: ${user.phone || 'Не указан'}\n` +
-        `Авто: ${vehicle.brand} ${vehicle.model} (${vehicle.year}) — ${vehiclePriceText(vehicle) ?? 'цена по запросу'}\n` +
+    // Уходит с parse_mode HTML: разметка — тегами, всё от людей экранируем,
+    // иначе «<» в имени клиента и Telegram не примет сообщение
+    const text = `🎯 <b>Горячий лид получил предложение</b>\n\n` +
+        `Клиент: ${escapeHtml(String(user.name || user.username || user.telegramId))}\n` +
+        `Телефон: ${escapeHtml(String(user.phone || 'Не указан'))}\n` +
+        `Авто: ${escapeHtml(`${vehicle.brand} ${vehicle.model}`)} (${vehicle.year}) — ${vehiclePriceText(vehicle) ?? 'цена не посчитана'}\n` +
         `Совпадение: ${score}%\n\n` +
         `Самое время связаться: ${WEBAPP_URL}/admin/leads/${user.id}`;
 
@@ -195,17 +198,17 @@ export async function notifyManagerAboutHotLead(user: any, filterTitle?: string)
         ? `https://t.me/${user.username}`
         : `tg://user?id=${user.telegramId}`;
     const contactLine = user.phone
-        ? `<b>Телефон:</b> ${user.phone}`
+        ? `<b>Телефон:</b> ${escapeHtml(String(user.phone))}`
         : user.username
-            ? `<b>Telegram:</b> @${user.username}`
+            ? `<b>Telegram:</b> @${escapeHtml(String(user.username))}`
             : '<b>Контакт:</b> ника и номера нет — напишите ему ботом из карточки';
 
     const text = [
         '🔥 <b>Горячий лид</b>',
         '',
-        `<b>Клиент:</b> ${user.name || user.username || 'без имени'}`,
+        `<b>Клиент:</b> ${escapeHtml(String(user.name || user.username || 'без имени'))}`,
         contactLine,
-        `<b>Запрос:</b> ${filterTitle || 'Автомобиль'}`,
+        `<b>Запрос:</b> ${escapeHtml(filterTitle || 'Автомобиль')}`,
         '<b>Готовность:</b> покупает сейчас',
         '',
         `<a href="${chatLink}">Написать в Telegram</a>`,
@@ -296,10 +299,10 @@ export async function notifyManagerAboutNewContact(userId: string) {
         const text = [
             '📇 <b>Оставил контакты</b>',
             '',
-            `<b>Клиент:</b> ${user.name || 'без имени'}`,
-            `<b>Телефон:</b> ${user.phone}`,
-            user.city ? `<b>Город:</b> ${user.city}` : '',
-            user.username ? `<b>Telegram:</b> @${user.username}` : '',
+            `<b>Клиент:</b> ${escapeHtml(user.name || 'без имени')}`,
+            `<b>Телефон:</b> ${escapeHtml(user.phone)}`,
+            user.city ? `<b>Город:</b> ${escapeHtml(user.city)}` : '',
+            user.username ? `<b>Telegram:</b> @${escapeHtml(user.username)}` : '',
             '',
             `<a href="tel:${String(user.phone).replace(/[^\d+]/g, '')}">Позвонить</a>`,
             user.username ? `<a href="https://t.me/${user.username}">Написать в Telegram</a>` : '',
@@ -348,8 +351,9 @@ export async function notifyManagerAboutSearch(user: any, filter: any) {
         };
 
         const wanted = [filter.brand, filter.model].filter(Boolean).join(' ') || filter.title || 'не указано';
+        // Бюджет подбора — в тенге: клиент вводит его в ₸, с ценой под ключ в ₸ и сверяем
         const budget = filter.budgetMax
-            ? `до $${Number(filter.budgetMax).toLocaleString('ru-RU')}`
+            ? `до ${fmtKzt(Number(filter.budgetMax))}`
             : null;
 
         const chatLink = user.username
@@ -359,18 +363,18 @@ export async function notifyManagerAboutSearch(user: any, filter: any) {
         // Номер — первым делом: по нему звонят и пишут в WhatsApp.
         // Если его нет, это надо видеть сразу, а не искать глазами
         const phoneLine = user.phone
-            ? `📞 <b>${user.phone}</b>`
+            ? `📞 <b>${escapeHtml(String(user.phone))}</b>`
             : '⚠️ <b>Телефона нет</b> — только переписка в Telegram';
         const waLink = user.phone
             ? `<a href="https://wa.me/${String(user.phone).replace(/\D/g, '')}">Написать в WhatsApp</a>`
             : '';
 
         const text = [
-            `🚗 <b>Ищут: ${wanted}</b>`,
+            `🚗 <b>Ищут: ${escapeHtml(String(wanted))}</b>`,
             budget ? `<b>Бюджет:</b> ${budget}` : '',
-            `<b>Готовность:</b> ${READINESS[filter.purchasePlan] ?? filter.purchasePlan}`,
+            `<b>Готовность:</b> ${escapeHtml(String(READINESS[filter.purchasePlan] ?? filter.purchasePlan))}`,
             '',
-            `<b>Клиент:</b> ${user.name || user.username || 'без имени'}`,
+            `<b>Клиент:</b> ${escapeHtml(String(user.name || user.username || 'без имени'))}`,
             phoneLine,
             '',
             [waLink, `<a href="${chatLink}">Telegram</a>`, `<a href="${WEBAPP_URL}/admin/demand">Весь спрос</a>`]

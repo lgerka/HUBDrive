@@ -38,17 +38,16 @@ async function getVehicle(id: string): Promise<PublicVehicle | null> {
     }
 }
 
-/** «20 900 000 ₸ ($ 47 000)» под ключ — или как раньше, если ещё не пересчитана. */
-function priceLabel(vehicle: PublicVehicle): string {
-    if (vehicle.turnkey && vehicle.priceKeyTurnKZT > 0) {
-        return vehicle.priceUSD && vehicle.priceUSD > 0
-            ? `${fmtKzt(vehicle.priceKeyTurnKZT)} (${fmtUsd(vehicle.priceUSD)})`
-            : fmtKzt(vehicle.priceKeyTurnKZT);
-    }
-    if (vehicle.priceUSD && vehicle.priceUSD > 0) {
-        return `$${vehicle.priceUSD.toLocaleString('ru-RU')}`;
-    }
-    return fmtKzt(vehicle.priceKeyTurnKZT);
+/**
+ * «20 900 000 ₸ ($ 47 000)» — только для цены, посчитанной под ключ.
+ * Без расчёта в полях цены лежит цена в Китае: её в заголовок и превью
+ * ссылки не пишем, иначе поисковик покажет её как итоговую.
+ */
+function priceLabel(vehicle: PublicVehicle): string | null {
+    if (!vehicle.turnkey || !(vehicle.priceKeyTurnKZT > 0)) return null;
+    return vehicle.priceUSD && vehicle.priceUSD > 0
+        ? `${fmtKzt(vehicle.priceKeyTurnKZT)} (${fmtUsd(vehicle.priceUSD)})`
+        : fmtKzt(vehicle.priceKeyTurnKZT);
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -60,11 +59,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 
     const name = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
-    const title = `${name} — ${priceLabel(vehicle)} под ключ в Казахстане`;
+    const price = priceLabel(vehicle);
+    const title = price
+        ? `${name} — ${price} под ключ в Казахстане`
+        : `${name} из Китая в Казахстане — цена по запросу`;
     const mileage = vehicle.mileage ? `${vehicle.mileage.toLocaleString('ru-RU')} км` : 'без пробега по РК';
-    const description =
-        `${name}, ${mileage}. Цена ${priceLabel(vehicle)} под ключ с доставкой в ${CATALOG_PRICING.cityName}: `
-        + `растаможка и оформление в Казахстане включены. Проверка автомобиля до оплаты, договор.`;
+    const description = price
+        ? `${name}, ${mileage}. Цена ${price} под ключ с доставкой в ${CATALOG_PRICING.cityName}: `
+          + `растаможка и оформление в Казахстане включены. Проверка автомобиля до оплаты, договор.`
+        : `${name}, ${mileage}. Посчитаем цену под ключ с доставкой в ${CATALOG_PRICING.cityName}, `
+          + `растаможкой и оформлением. Проверка автомобиля до оплаты, договор.`;
 
     const cover = Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined;
     const url = `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`;
@@ -109,6 +113,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
     const cover = Array.isArray(vehicle.media) ? (vehicle.media[0] as string | undefined) : undefined;
     const images = Array.isArray(vehicle.media) ? (vehicle.media as string[]).slice(0, 8) : [];
 
+    // Разметка товара — только когда есть посчитанная цена под ключ: Car — это
+    // тоже Product, и без offers Google считает её ошибкой. Без цены у страницы
+    // остаются хлебные крошки и текст
+    const priced = vehicle.turnkey && vehicle.priceKeyTurnKZT > 0;
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': ['Product', 'Car'],
@@ -129,21 +137,23 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
             }
             : {}),
         ...(vehicle.powerHp ? { vehicleEngine: { '@type': 'EngineSpecification', enginePower: { '@type': 'QuantitativeValue', value: vehicle.powerHp, unitCode: 'N12' } } } : {}),
-        offers: {
-            '@type': 'Offer',
-            url: `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`,
-            // Посчитанная цена под ключ — в тенге, это и есть цена сделки.
-            // До пересчёта — как раньше
-            ...(vehicle.turnkey
-                ? { price: vehicle.priceKeyTurnKZT, priceCurrency: 'KZT' }
-                : { price: vehicle.priceUSD ?? vehicle.priceKeyTurnKZT, priceCurrency: vehicle.priceUSD ? 'USD' : 'KZT' }),
-            availability: vehicle.status === 'sold' || vehicle.status === 'delivered'
-                ? 'https://schema.org/SoldOut'
-                : 'https://schema.org/InStock',
-            itemCondition: 'https://schema.org/UsedCondition',
-            seller: { '@type': 'AutoDealer', name: 'HUBDrive', url: WEBAPP_ORIGIN },
-            areaServed: { '@type': 'Country', name: 'Казахстан' },
-        },
+        ...(priced
+            ? {
+                offers: {
+                    '@type': 'Offer',
+                    url: `${WEBAPP_ORIGIN}/vehicles/${vehicle.id}`,
+                    // Цена под ключ в тенге — это и есть цена сделки
+                    price: vehicle.priceKeyTurnKZT,
+                    priceCurrency: 'KZT',
+                    availability: vehicle.status === 'sold' || vehicle.status === 'delivered'
+                        ? 'https://schema.org/SoldOut'
+                        : 'https://schema.org/InStock',
+                    itemCondition: 'https://schema.org/UsedCondition',
+                    seller: { '@type': 'AutoDealer', name: 'HUBDrive', url: WEBAPP_ORIGIN },
+                    areaServed: { '@type': 'Country', name: 'Казахстан' },
+                },
+            }
+            : {}),
     };
 
     const breadcrumbs = {
@@ -158,10 +168,12 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            {priced && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+            )}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
@@ -171,8 +183,9 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
             <div className="sr-only">
                 <h1>{name} — авто из Китая под ключ в Казахстане</h1>
                 <p>
-                    Цена {priceLabel(vehicle)} под ключ: доставка из Китая, официальная растаможка
-                    и оформление в Казахстане включены.
+                    {priceLabel(vehicle)
+                        ? `Цена ${priceLabel(vehicle)} под ключ: доставка из Китая, официальная растаможка и оформление в Казахстане включены.`
+                        : 'Цена под ключ по запросу: доставка из Китая, официальная растаможка и оформление в Казахстане.'}
                 </p>
                 {vehicle.mileage ? <p>Пробег: {vehicle.mileage.toLocaleString('ru-RU')} км.</p> : null}
                 {vehicle.powerHp ? <p>Мощность: {vehicle.powerHp} л.с.</p> : null}

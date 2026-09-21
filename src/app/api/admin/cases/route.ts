@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 
@@ -42,6 +43,9 @@ export async function POST(request: Request) {
             }
         });
 
+        // Страница кейса кэшируется — пусть сразу покажет новые данные
+        revalidatePath('/cases');
+        revalidatePath(`/cases/${newCase.id}`);
         return NextResponse.json(newCase);
     } catch (error) {
         console.error('Error creating case:', error);
