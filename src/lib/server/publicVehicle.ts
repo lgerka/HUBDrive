@@ -8,13 +8,13 @@ import type { Vehicle } from '@prisma/client';
  * комиссия. Раньше API одной машины их прятал, а страница машины отдавала
  * в браузер целиком — правило было в одном месте из двух.
  */
-export type PublicVehicle = Omit<Vehicle, 'priceChina' | 'pricePort' | 'vin' | 'priceCalc'> & {
+export type PublicVehicle = Omit<Vehicle, 'priceChina' | 'priceChinaCurrency' | 'pricePort' | 'vin' | 'priceCalc'> & {
     /** Цена посчитана калькулятором под ключ — можно так и подписать. */
     turnkey: boolean;
 };
 
 export function toPublicVehicle(v: Vehicle): PublicVehicle {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { priceChina, pricePort, vin, priceCalc, ...rest } = v;
+    const { priceChina, priceChinaCurrency, pricePort, vin, priceCalc, ...rest } = v;
     return { ...rest, turnkey: priceCalc !== null && priceCalc !== undefined };
 }

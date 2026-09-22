@@ -3,7 +3,7 @@ import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { getNbkRates } from '@/lib/server/nbk';
 import { getCalcSettings } from '@/lib/server/calculatorSettings';
-import { computeTurnkey, isPowertrain, CATALOG_PRICING } from '@/lib/turnkey';
+import { computeTurnkey, isPowertrain, isPriceCurrency, CATALOG_PRICING } from '@/lib/turnkey';
 import { BORDER_METHODS } from '@/lib/calculator';
 
 /**
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     const outcome = computeTurnkey(
         {
             priceChina: Math.trunc(Number(body.priceChina)) || null,
+            priceCurrency: isPriceCurrency(body.priceChinaCurrency) ? body.priceChinaCurrency : 'CNY',
             year: Math.trunc(Number(body.year)),
             engineVolume: engineType.toLowerCase().startsWith('электро') ? 0 : Number(body.engineVolume) || 0,
             powertrain: isPowertrain(body.powertrain) ? body.powertrain : null,

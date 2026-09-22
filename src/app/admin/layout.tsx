@@ -49,7 +49,13 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             if (res.ok) {
                 // Verify again
                 const verifyRes = await fetch('/api/admin/ping');
-                if (verifyRes.ok) setIsAuthorized(true);
+                if (verifyRes.ok) {
+                    setIsAuthorized(true);
+                    // Шли на конкретную страницу админки — туда и возвращаем, с параметрами.
+                    // Только свои пути: чужой адрес в redirect не должен никуда уводить
+                    const target = new URLSearchParams(window.location.search).get('redirect');
+                    if (target && target.startsWith('/admin/') && !target.startsWith('//')) router.replace(target);
+                }
                 else setLoginError('Вход выполнен, но проверка сессии не прошла. Обновите страницу.');
             } else {
                 setLoginError('Неверный пароль');

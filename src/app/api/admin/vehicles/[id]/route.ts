@@ -62,6 +62,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 data: {
                     ...input.fields,
                     priceChina: input.priceChina,
+                    priceChinaCurrency: input.priceCurrency,
                     powertrain: input.powertrain,
                     ...(price
                         ? {

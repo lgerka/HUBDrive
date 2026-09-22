@@ -1,5 +1,5 @@
-import { isPowertrain, MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from '@/lib/turnkey';
-import type { Powertrain } from '@/lib/calculator';
+import { isPowertrain, isPriceCurrency, MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from '@/lib/turnkey';
+import type { Powertrain, PriceCurrency } from '@/lib/calculator';
 
 /**
  * Разбор машины из формы админки — общий для создания и правки.
@@ -36,6 +36,8 @@ export interface VehicleInput {
         videoUrl: string | null;
     };
     priceChina: number | null;
+    /** В какой валюте введена цена в Китае. */
+    priceCurrency: PriceCurrency;
     /** Явно выбранный тип — только для гибрида. У остальных выводится из двигателя. */
     powertrain: Powertrain | null;
     engineVolume: number | null;
@@ -76,6 +78,8 @@ export function readVehicleInput(body: Record<string, unknown>): VehicleInput {
     const engineVolume = isElectric ? 0 : num(body.engineVolume);
     if (engineVolume > MAX_ENGINE_LITRES) throw new VehicleInputError(ENGINE_LITRES_MESSAGE);
     const priceChina = Math.trunc(num(body.priceChina)) || null;
+    // Цену в Китае вводят в юанях или долларах — калькулятор считает от любой
+    const priceCurrency: PriceCurrency = isPriceCurrency(body.priceChinaCurrency) ? body.priceChinaCurrency : 'CNY';
 
     return {
         fields: {
@@ -101,6 +105,7 @@ export function readVehicleInput(body: Record<string, unknown>): VehicleInput {
             videoUrl: text(body.videoUrl) || null,
         },
         priceChina,
+        priceCurrency,
         powertrain,
         engineVolume,
     };
@@ -110,6 +115,7 @@ export function readVehicleInput(body: Record<string, unknown>): VehicleInput {
 export function turnkeyInputOf(input: VehicleInput) {
     return {
         priceChina: input.priceChina,
+        priceCurrency: input.priceCurrency,
         year: input.fields.year,
         engineVolume: input.engineVolume,
         powertrain: input.powertrain,

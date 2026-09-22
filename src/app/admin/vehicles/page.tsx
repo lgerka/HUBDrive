@@ -30,7 +30,7 @@ interface AdminVehicle {
 /** Почему у машины не цена под ключ — чтобы менеджер знал, что поправить. */
 function staleReason(v: AdminVehicle): string {
   if (v.skipReason) return `${v.skipReason} — тогда цена посчитается`;
-  if (!v.priceChina) return "Нет цены в Китае, ¥ — укажите её, и цена посчитается";
+  if (!v.priceChina) return "Нет цены в Китае (¥ или $) — укажите её, и цена посчитается";
   return "Посчитается при сохранении машины или ближайшем пересчёте каталога";
 }
 

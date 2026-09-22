@@ -24,7 +24,8 @@ export function middleware(request: NextRequest) {
         // Если нет cookie и это не корневая страница /admin (которая показывает форму логина)
         if (!session?.value && pathname !== '/admin') {
             const loginUrl = new URL('/admin', request.url);
-            loginUrl.searchParams.set('redirect', pathname);
+            // Вместе с параметрами: «Проверить в калькуляторе» несёт в них машину
+            loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search);
             return NextResponse.redirect(loginUrl);
         }
     }

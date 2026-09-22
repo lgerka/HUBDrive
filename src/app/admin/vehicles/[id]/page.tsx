@@ -7,6 +7,8 @@ import { Loader2, ArrowLeft, Save, Plus, ChevronRight, Info, Video, UploadCloud 
 import { Button } from "@/components/ui/button";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
+import { ChinaPriceInput } from "@/components/hubdrive/admin/china-price-input";
+import type { PriceCurrency } from "@/lib/calculator";
 import { isPriceFrozen, MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from "@/lib/turnkey";
 
 // Деньги: только цифры в состоянии, разделители на экране; объём: цифры и одна точка
@@ -53,6 +55,8 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     priceUSD: 0,
     priceKeyTurnKZT: 0,
     priceChina: 0,
+    /** В какой валюте введена цена в Китае — ¥ или $. */
+    priceChinaCurrency: "CNY" as PriceCurrency,
     pricePort: 0,
     deliveryEtaWeeks: 4,
     status: "in_stock",
@@ -81,6 +85,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
             mileage: data.mileage || 0,
             priceUSD: data.priceUSD || 0,
             priceChina: data.priceChina || 0,
+            priceChinaCurrency: data.priceChinaCurrency === "USD" ? "USD" : "CNY",
             pricePort: data.pricePort || 0,
             deliveryEtaWeeks: data.deliveryEtaWeeks || 0,
             generation: data.generation || "",
@@ -110,7 +115,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
     // Без юаней цену под ключ не посчитать. Исключение — машина в сделке:
     // её правку сервер сохранит и без цены
     if (!(Number(formData.priceChina) > 0) && !isPriceFrozen(formData.status)) {
-      alert("Укажите цену в Китае, ¥ — из неё считается цена под ключ");
+      alert("Укажите цену в Китае (в ¥ или $) — из неё считается цена под ключ");
       return;
     }
     if (formData.engineType.startsWith("Гибрид") && !formData.powertrain) {
@@ -554,23 +559,19 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
 
                 <div className="w-full h-px bg-slate-100 my-2"></div>
 
-                {/* Ввод — юани (как из WeChat); $ для клиента и ₸ для фильтров считает сервер */}
+                {/* Цена в Китае — в юанях или долларах, как назвал продавец; цену под ключ считает сервер */}
                 <div className="space-y-3">
-                  <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена в Китае (¥)</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="185 000"
-                      className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                      value={fmtMoney(formData.priceChina)}
-                      onChange={e => setFormData({...formData, priceChina: Number(onlyDigits(e.target.value))})}
-                    />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
-                  </div>
+                  <ChinaPriceInput
+                    value={String(formData.priceChina || "")}
+                    currency={formData.priceChinaCurrency}
+                    onValue={v => setFormData(prev => ({ ...prev, priceChina: Number(v) }))}
+                    onCurrency={c => setFormData(prev => ({ ...prev, priceChinaCurrency: c }))}
+                  />
                   <TurnkeyPreviewBox
                     initData={initData}
                     priceChina={String(formData.priceChina || "")}
+                    priceCurrency={formData.priceChinaCurrency}
+                    carName={`${formData.brand} ${formData.model}`.trim()}
                     engineType={formData.engineType}
                     powertrain={formData.powertrain}
                     engineVolume={formData.engineVolume}
@@ -578,7 +579,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                     current={current}
                     frozen={isPriceFrozen(formData.status) && Boolean(current?.turnkey)}
                   />
-                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ посчитает калькулятор и будет пересчитывать каждое утро. У машин в брони, проданных и выданных цена не меняется, если уже была посчитана.</p>
+                  <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как её назвал продавец — в юанях или долларах. Цену под ключ посчитает калькулятор и будет пересчитывать каждое утро. У машин в брони, проданных и выданных цена не меняется, если уже была посчитана.</p>
                 </div>
               </div>
             </div>
@@ -590,7 +591,7 @@ export default function AdminVehicleEditor({ params }: { params: Promise<{ id: s
                </div>
                <div>
                   <h4 className="font-headline font-bold text-sm mb-1">Обязательные поля</h4>
-                  <p className="font-body text-xs text-slate-500 leading-relaxed">Для публикации автомобиля в публичный каталог необходимо заполнить марку, модель, цену в юанях и прикрепить минимум 1 фото.</p>
+                  <p className="font-body text-xs text-slate-500 leading-relaxed">Для публикации автомобиля в публичный каталог необходимо заполнить марку, модель, цену в Китае (в ¥ или $) и прикрепить минимум 1 фото.</p>
                </div>
             </div>
 

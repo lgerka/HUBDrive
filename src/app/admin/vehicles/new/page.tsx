@@ -7,6 +7,9 @@ import { Loader2, ArrowLeft, ArrowRight, Save, Plus, Video, UploadCloud, Chevron
 import { cn } from "@/lib/utils";
 import { MediaGalleryEditor } from "@/components/hubdrive/admin/media-gallery-editor";
 import { TurnkeyPreviewBox } from "@/components/hubdrive/admin/turnkey-preview-box";
+import { ChinaPriceInput } from "@/components/hubdrive/admin/china-price-input";
+import { fmtChinaPrice } from "@/lib/turnkey";
+import type { PriceCurrency } from "@/lib/calculator";
 import { MAX_ENGINE_LITRES, ENGINE_LITRES_MESSAGE } from "@/lib/turnkey";
 
 // Мастер создания карточки авто — шаги по PRD §19.4
@@ -61,6 +64,8 @@ export default function AdminNewVehiclePage() {
     priceUSD: "",
     priceKeyTurnKZT: "",
     priceChina: "",
+    /** В какой валюте введена цена в Китае — ¥ или $. */
+    priceChinaCurrency: "CNY" as PriceCurrency,
     pricePort: "",
     deliveryEtaWeeks: "",
     status: "in_stock",
@@ -135,7 +140,7 @@ export default function AdminNewVehiclePage() {
       if (formData.engineType !== "Электро" && Number(formData.engineVolume) > MAX_ENGINE_LITRES) return ENGINE_LITRES_MESSAGE;
     }
     if (s === 4) {
-      if (!formData.priceChina || Number(formData.priceChina) <= 0) return "Укажите цену в юанях — как она пришла из Китая";
+      if (!formData.priceChina || Number(formData.priceChina) <= 0) return "Укажите цену в Китае — в юанях или долларах, как её назвал продавец";
     }
     return null;
   };
@@ -458,33 +463,29 @@ export default function AdminNewVehiclePage() {
             </div>
           )}
 
-          {/* Шаг 4: Цена — вводим юани (как в WeChat), клиент увидит доллары по курсу */}
+          {/* Шаг 4: Цена в Китае — в юанях или долларах, как назвал продавец; клиент увидит цену под ключ */}
           {step === 4 && (
             <div className="space-y-8 max-w-2xl">
               <h3 className="font-headline text-2xl font-bold tracking-tight">Цена</h3>
               <div className="space-y-3">
-                <label className="text-[11px] font-label font-bold uppercase tracking-widest text-primary-container">Цена в Китае (¥) *</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    name="priceChina"
-                    className="w-full bg-white border border-orange-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-primary-container/30 text-on-surface font-headline font-extrabold text-2xl outline-none shadow-sm transition-all placeholder:text-slate-400/60"
-                    placeholder="185 000"
-                    value={fmtMoney(formData.priceChina)}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priceChina: onlyDigits(e.target.value) }))}
-                  />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">¥</span>
-                </div>
+                <ChinaPriceInput
+                  required
+                  value={formData.priceChina}
+                  currency={formData.priceChinaCurrency}
+                  onValue={v => setFormData(prev => ({ ...prev, priceChina: v }))}
+                  onCurrency={c => setFormData(prev => ({ ...prev, priceChinaCurrency: c }))}
+                />
                 <TurnkeyPreviewBox
                   initData={initData}
                   priceChina={formData.priceChina}
+                  priceCurrency={formData.priceChinaCurrency}
+                  carName={`${formData.brand} ${formData.model}`.trim()}
                   engineType={formData.engineType}
                   powertrain={formData.powertrain}
                   engineVolume={formData.engineVolume}
                   year={formData.year}
                 />
-                <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как она пришла из Китая. Цену под ключ в тенге и долларах посчитает калькулятор — по его настройкам и курсу Нацбанка — и будет пересчитывать каждое утро.</p>
+                <p className="text-[10px] text-slate-400 font-label tracking-wide">Вводите цену как её назвал продавец — в юанях или долларах, переводить не нужно. Цену под ключ в тенге и долларах посчитает калькулятор — по его настройкам и курсу Нацбанка — и будет пересчитывать каждое утро.</p>
               </div>
             </div>
           )}
@@ -540,7 +541,7 @@ export default function AdminNewVehiclePage() {
                   <span className="font-bold">{formData.bodyType} / {formData.engineType}</span>
                   <span className="text-slate-400">Цена в Китае</span>
                   <span className="font-bold">
-                    {formData.priceChina ? `¥ ${Number(formData.priceChina).toLocaleString("ru-RU")}` : "—"}
+                    {formData.priceChina ? fmtChinaPrice(Number(formData.priceChina), formData.priceChinaCurrency) : "—"}
                   </span>
                   <span className="text-slate-400">Фото / Видео</span>
                   <span className="font-bold">{formData.media.length} фото{formData.videoUrl ? " + видео" : ""}</span>
@@ -551,6 +552,8 @@ export default function AdminNewVehiclePage() {
                   <TurnkeyPreviewBox
                     initData={initData}
                     priceChina={formData.priceChina}
+                    priceCurrency={formData.priceChinaCurrency}
+                    carName={`${formData.brand} ${formData.model}`.trim()}
                     engineType={formData.engineType}
                     powertrain={formData.powertrain}
                     engineVolume={formData.engineVolume}

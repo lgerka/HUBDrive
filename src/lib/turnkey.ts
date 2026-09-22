@@ -12,7 +12,7 @@
  * в форме, пока он вводит цену.
  */
 
-import { calculate, type CalcResult, type Powertrain } from './calculator';
+import { calculate, type CalcResult, type Powertrain, type PriceCurrency } from './calculator';
 import type { CalcSettings } from './calculatorSettings';
 
 /**
@@ -74,8 +74,22 @@ export function roundUpTo(n: number, step: number): number {
     return Math.ceil(Math.round(n) / step) * step;
 }
 
+export const PRICE_CURRENCIES = ['CNY', 'USD'] as const;
+
+export function isPriceCurrency(v: unknown): v is PriceCurrency {
+    return v === 'CNY' || v === 'USD';
+}
+
+/** «¥ 190 000» или «$ 26 500» — цена в Китае в той валюте, в которой её ввели. */
+export function fmtChinaPrice(amount: number, currency: PriceCurrency): string {
+    return `${currency === 'USD' ? '$' : '¥'} ${Math.round(amount).toLocaleString('ru-RU')}`;
+}
+
 export interface TurnkeyInput {
+    /** Цена в Китае — в юанях или долларах, см. priceCurrency. */
     priceChina: number | null;
+    /** Валюта цены в Китае. Нет — юани, как было всегда. */
+    priceCurrency?: PriceCurrency | null;
     year: number;
     engineVolume: number | null;
     powertrain: string | null;
@@ -103,6 +117,9 @@ export interface TurnkeySnapshot {
     powertrain: Powertrain;
     engineCc: number;
     rawKzt: number;
+    /** Цена в Китае и её валюта, от которых посчитано. В старых снимках их нет. */
+    price?: number;
+    currency?: PriceCurrency;
 }
 
 export type TurnkeyOutcome =
@@ -122,8 +139,9 @@ export function computeTurnkey(
 ): TurnkeyOutcome {
     const powertrain = powertrainOf(input);
 
+    const currency: PriceCurrency = input.priceCurrency === 'USD' ? 'USD' : 'CNY';
     if (!input.priceChina || input.priceChina <= 0) {
-        return { ok: false, reason: 'no_price', message: 'Укажите цену в Китае, ¥' };
+        return { ok: false, reason: 'no_price', message: 'Укажите цену в Китае' };
     }
     // Без объёма утильсбор посчитается по самой дешёвой ступени — на
     // внедорожнике это два миллиона мимо, и без единого признака на экране
@@ -146,7 +164,7 @@ export function computeTurnkey(
     const engineCc = powertrain === 'bev' ? 0 : Math.round((input.engineVolume ?? 0) * 1000);
     const result = calculate({
         price: input.priceChina,
-        currency: 'CNY',
+        currency,
         cityKey: CATALOG_PRICING.cityKey,
         borderMethod: CATALOG_PRICING.borderMethod,
         powertrain,
@@ -183,6 +201,8 @@ export function computeTurnkey(
             powertrain,
             engineCc,
             rawKzt,
+            price: input.priceChina,
+            currency,
         },
     };
 }

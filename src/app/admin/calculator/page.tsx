@@ -187,6 +187,30 @@ export default function CalculatorPage() {
 
     useEffect(() => { loadRates(false); loadSettings(); }, [loadRates, loadSettings]);
 
+    // Пришли из формы машины по «Проверить в калькуляторе» — подставляем её
+    // данные и допущения каталога, чтобы итог сверился с ценой под ключ до тенге
+    useEffect(() => {
+        const q = new URLSearchParams(window.location.search);
+        const p = q.get("price");
+        if (!p) return;
+        setPrice(p);
+        const c = q.get("currency");
+        if (c === "CNY" || c === "USD") setCurrency(c);
+        const city = q.get("city");
+        if (city && CITIES.some(x => x.key === city)) setCityKey(city);
+        const border = BORDER_METHODS.find(m => m.key === q.get("border"));
+        if (border) setBorderMethod(border.key);
+        const pt = POWERTRAINS.find(x => x.key === q.get("powertrain"));
+        if (pt) setPowertrain(pt.key);
+        const cc = q.get("cc");
+        if (cc) setEngineCc(cc);
+        const y = q.get("year");
+        if (y) setYear(y);
+        if (q.get("kz") === "1") setKzOnly(true);
+        const name = q.get("name");
+        if (name) setCarName(name);
+    }, []);
+
     const saved = stored?.settings ?? null;
     const draft = useMemo(
         () => (saved ? draftFrom(saved, texts) : DEFAULT_CALC_SETTINGS),

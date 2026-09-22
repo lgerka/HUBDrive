@@ -212,8 +212,10 @@ model Vehicle {
   priceKeyTurnKZT  Int
   /// Цена под ключ, $, из того же итога, округлена вверх до 500
   priceUSD         Int?
-  /// Цена в Китае, ¥ — единственный ввод, из него считается всё остальное
+  /// Цена в Китае — единственный ввод, из него считается всё остальное. Валюта — в priceChinaCurrency
   priceChina       Int?
+  /// CNY | USD — в какой валюте менеджер ввёл цену в Китае. Калькулятор считает от любой
+  priceChinaCurrency String @default("CNY")
   pricePort        Int?
   deliveryEtaWeeks Int?
   paymentOptions   Json?

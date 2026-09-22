@@ -26,7 +26,7 @@ export async function GET(request: Request) {
                 orderBy: { createdAt: 'desc' },
                 select: {
                     id: true, brand: true, model: true, generation: true, vin: true, year: true,
-                    status: true, priceKeyTurnKZT: true, priceUSD: true, priceChina: true, media: true,
+                    status: true, priceKeyTurnKZT: true, priceUSD: true, priceChina: true, priceChinaCurrency: true, media: true,
                     priceCalc: true,
                 },
             });
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
                 data: {
                     ...input.fields,
                     priceChina: input.priceChina,
+                    priceChinaCurrency: input.priceCurrency,
                     priceKeyTurnKZT: price.priceKeyTurnKZT,
                     priceUSD: price.priceUSD,
                     priceCalc: price.priceCalc as never,

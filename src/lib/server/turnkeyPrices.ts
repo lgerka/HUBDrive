@@ -6,6 +6,7 @@ import { getCalcSettings } from '@/lib/server/calculatorSettings';
 import {
     computeTurnkey,
     isPriceFrozen,
+    isPriceCurrency,
     type TurnkeyInput,
     type TurnkeySnapshot,
 } from '@/lib/turnkey';
@@ -173,7 +174,7 @@ export async function recalcAllTurnkeyPrices(
             select: {
                 id: true, brand: true, model: true, year: true, status: true,
                 engineType: true, engineVolume: true, powertrain: true,
-                priceChina: true, priceKeyTurnKZT: true, priceUSD: true, priceCalc: true,
+                priceChina: true, priceChinaCurrency: true, priceKeyTurnKZT: true, priceUSD: true, priceCalc: true,
             },
             orderBy: { priceKeyTurnKZT: 'asc' },
         });
@@ -189,7 +190,10 @@ export async function recalcAllTurnkeyPrices(
                 frozenList.push({ id: v.id, name, status: v.status });
                 continue;
             }
-            const outcome = computeTurnkey(v, rates, stored.settings, stored.version, now);
+            const outcome = computeTurnkey(
+                { ...v, priceCurrency: isPriceCurrency(v.priceChinaCurrency) ? v.priceChinaCurrency : 'CNY' },
+                rates, stored.settings, stored.version, now
+            );
             if (!outcome.ok) {
                 skipped.push({ id: v.id, name, reason: outcome.message });
                 continue;
