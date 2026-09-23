@@ -3,7 +3,7 @@
 import { useTelegram } from "@/components/hubdrive/telegram/TelegramProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Loader2, TrendingUp, Search, Edit, Trash2, Car } from "lucide-react";
+import { Loader2, Search, Edit, Trash2, Car } from "lucide-react";
 import { fmtKzt, fmtUsd } from "@/lib/price";
 
 // Локальный тип вместо импорта из @prisma/client (серверная lib)
@@ -97,14 +97,7 @@ export default function AdminVehiclesPage() {
     );
   }
 
-  // Стоимость того, что ещё можно продать, — только по ценам под ключ:
-  // у непосчитанных в цене лежит цена в Китае, её с ними не складываем
-  const forSale = vehicles.filter(v => v.status === 'in_stock' || v.status === 'in_transit' || v.status === 'reserved');
-  const totalValue = forSale.filter(v => v.turnkey).reduce((sum, v) => sum + (v.priceKeyTurnKZT || 0), 0);
-  const forSaleUnpriced = forSale.filter(v => !v.turnkey).length;
   const staleCount = vehicles.filter(v => (!v.turnkey || v.skipReason) && v.status !== 'hidden').length;
-  const inTransitCount = vehicles.filter(v => v.status === 'in_transit').length;
-  const soldCount = vehicles.filter(v => v.status === 'sold' || v.status === 'delivered').length;
   const needsFix = (v: AdminVehicle) => (!v.turnkey || Boolean(v.skipReason)) && v.status !== 'hidden';
   const q = query.trim().toLowerCase();
   const filtered = vehicles
@@ -137,38 +130,6 @@ export default function AdminVehiclesPage() {
           </button>
         </div>
       </header>
-
-      {/* Stats Banner (Asymmetric Bento Style) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-3xl p-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 shadow-[0px_12px_32px_rgba(25,28,30,0.02)] border border-slate-100">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block font-label">Стоимость инвентаря под ключ</span>
-            <h2 className="text-4xl sm:text-5xl font-headline font-extrabold text-on-surface tracking-tight">
-              {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(totalValue)}
-            </h2>
-            {forSaleUnpriced > 0 && (
-              <p className="mt-1 text-xs font-semibold text-amber-700">+ {forSaleUnpriced} в продаже без цены под ключ</p>
-            )}
-          </div>
-          <div className="flex gap-8 text-right bg-slate-50 py-3 px-6 rounded-2xl">
-            <div>
-              <span className="block text-primary-container font-headline font-extrabold text-2xl">{vehicles.length}</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Авто</span>
-            </div>
-            <div>
-              <span className="block text-tertiary font-headline font-extrabold text-2xl">{inTransitCount}</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">В пути</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="hidden lg:flex col-span-12 lg:col-span-4 bg-gradient-to-br from-[#9d4300] to-[#f97316] rounded-3xl p-8 text-white flex-col justify-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-30"><TrendingUp className="w-24 h-24" /></div>
-          <h3 className="text-xl font-headline font-bold mb-2">Продажи</h3>
-          <p className="text-4xl font-headline font-extrabold">{soldCount}</p>
-          <p className="text-sm text-white/80 font-medium mt-1">продано и передано клиентам за всё время</p>
-        </div>
-      </div>
 
       {/* Modern Table Section */}
       <div className="bg-surface-container-lowest rounded-3xl shadow-[0px_12px_32px_rgba(25,28,30,0.02)] overflow-hidden border border-slate-100">
