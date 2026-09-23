@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, Loader2, AlertTriangle, Calculator } from "lucide-react";
+import { ChevronDown, Loader2, AlertTriangle, Calculator, RefreshCw } from "lucide-react";
 import { fmtKzt, fmtUsd } from "@/lib/price";
 import { CATALOG_PRICING, fmtChinaPrice } from "@/lib/turnkey";
 import type { PriceCurrency } from "@/lib/calculator";
@@ -62,6 +62,8 @@ export function TurnkeyPreviewBox({ initData, priceChina, priceCurrency, carName
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    /** Счётчик ручных попыток: кнопка «Повторить» меняет его и перезапускает расчёт. */
+    const [attempt, setAttempt] = useState(0);
 
     useEffect(() => {
         if (!(Number(priceChina) > 0)) {
@@ -74,28 +76,45 @@ export function TurnkeyPreviewBox({ initData, priceChina, priceCurrency, carName
         const timer = setTimeout(async () => {
             setLoading(true);
             try {
-                const res = await fetch("/api/admin/vehicles/turnkey-preview", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "x-telegram-init-data": initData || "" },
-                    body: JSON.stringify({ priceChina, priceChinaCurrency: priceCurrency, engineType, powertrain, engineVolume, year }),
-                    signal: controller.signal,
-                });
-                const data = await res.json().catch(() => ({}));
-                if (res.ok) {
-                    setPreview(data);
-                    setError(null);
-                } else {
-                    setPreview(null);
-                    setError(data.error || "Не удалось посчитать цену");
+                // Вторая попытка про запас: связь на секунду пропала или как раз
+                // выкатилась новая версия — менеджер не должен остаться без цены
+                let lastNetworkError: unknown = null;
+                for (let tryNo = 0; tryNo < 2; tryNo++) {
+                    if (tryNo > 0) await new Promise(r => setTimeout(r, 1200));
+                    if (controller.signal.aborted) return;
+                    try {
+                        const res = await fetch("/api/admin/vehicles/turnkey-preview", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", "x-telegram-init-data": initData || "" },
+                            body: JSON.stringify({ priceChina, priceChinaCurrency: priceCurrency, engineType, powertrain, engineVolume, year }),
+                            signal: controller.signal,
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (res.ok) {
+                            setPreview(data);
+                            setError(null);
+                        } else if (res.status === 401) {
+                            setPreview(null);
+                            setError("вход в админку истёк — обновите страницу");
+                        } else {
+                            setPreview(null);
+                            setError(data.error || "сервер не ответил");
+                        }
+                        return;
+                    } catch (err) {
+                        if (controller.signal.aborted) return;
+                        lastNetworkError = err;
+                    }
                 }
-            } catch {
-                if (!controller.signal.aborted) setError("Нет связи с сервером");
+                console.error("[превью цены] связь с сервером:", lastNetworkError);
+                setPreview(null);
+                setError("нет связи с сервером");
             } finally {
                 if (!controller.signal.aborted) setLoading(false);
             }
         }, 400);
         return () => { clearTimeout(timer); controller.abort(); };
-    }, [initData, priceChina, priceCurrency, engineType, powertrain, engineVolume, year]);
+    }, [initData, priceChina, priceCurrency, engineType, powertrain, engineVolume, year, attempt]);
 
     if (!(Number(priceChina) > 0)) {
         // Без цены в Китае считать не из чего — но молчать нельзя: менеджер должен
@@ -132,7 +151,16 @@ export function TurnkeyPreviewBox({ initData, priceChina, priceCurrency, carName
         return (
             <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>Цену под ключ пока не посчитать: {error}</span>
+                <span className="min-w-0">
+                    Цену под ключ пока не посчитать: {error}. Машина сохранится только с посчитанной ценой.
+                    <button
+                        type="button"
+                        onClick={() => { setError(null); setAttempt(a => a + 1); }}
+                        className="ml-2 inline-flex items-center gap-1 font-bold underline underline-offset-2"
+                    >
+                        <RefreshCw className="h-3.5 w-3.5" /> Повторить
+                    </button>
+                </span>
             </div>
         );
     }

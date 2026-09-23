@@ -5,6 +5,10 @@ import { getCalcSettings, saveCalcSettings } from '@/lib/server/calculatorSettin
 import { recalcAllTurnkeyPrices } from '@/lib/server/turnkeyPrices';
 import { applyCalcPatch, validateSettings, rejectedPaths } from '@/lib/calculatorSettings';
 
+// Курс Нацбанка иногда отвечает медленно: с запасом по времени запрос не
+// оборвётся на середине, оставив менеджера без расчёта
+export const maxDuration = 30;
+
 /** Настройки калькулятора: комиссия, расходы, логистика по городам, ставки. */
 export async function GET(request: Request) {
     if (!(await verifyAdmin(request, prisma))) {

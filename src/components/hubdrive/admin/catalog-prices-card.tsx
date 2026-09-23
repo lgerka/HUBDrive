@@ -133,6 +133,11 @@ export function CatalogPricesCard({ headers }: { headers: Record<string, string>
     };
 
     const enabled = Boolean(stamp);
+    // Пересчёт должен проходить каждое утро. Если отметки нет больше полутора
+    // суток — значит, ночная задача не запускается (обычно не задан CRON_SECRET),
+    // и цены не следуют за курсом. Молчать об этом нельзя
+    const staleHours = stamp ? (Date.now() - new Date(stamp.at).getTime()) / 3_600_000 : 0;
+    const cronSilent = enabled && staleHours > 36;
     const ratio = preview && preview.rows.length
         ? preview.rows.reduce((a, r) => a + r.after.kzt, 0) / Math.max(1, preview.rows.reduce((a, r) => a + r.before.kzt, 0))
         : null;
@@ -190,6 +195,16 @@ export function CatalogPricesCard({ headers }: { headers: Record<string, string>
             {done && (
                 <p className="mt-3 flex items-start gap-2 rounded-lg bg-green-50 p-2.5 text-xs font-medium text-green-700">
                     <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {done}
+                </p>
+            )}
+
+            {cronSilent && (
+                <p className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>
+                        Автоматический пересчёт не проходил {Math.floor(staleHours / 24)} {Math.floor(staleHours / 24) === 1 ? "день" : "дн."} — цены не следуют за курсом Нацбанка.
+                        Обычно это значит, что в Vercel не задан <b>CRON_SECRET</b>. Пока можно пересчитать вручную кнопкой ниже.
+                    </span>
                 </p>
             )}
 

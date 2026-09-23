@@ -8,6 +8,10 @@ import { getNbkRates } from '@/lib/server/nbk';
 import { isPriceFrozen } from '@/lib/turnkey';
 import type { PriceForSave } from '@/lib/server/turnkeyPrices';
 
+// Курс Нацбанка иногда отвечает медленно: с запасом по времени запрос не
+// оборвётся на середине, оставив менеджера без расчёта
+export const maxDuration = 30;
+
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {

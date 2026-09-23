@@ -48,6 +48,8 @@ export default function AdminVehiclesPage() {
   const router = useRouter();
   const [vehicles, setVehicles] = useState<AdminVehicle[]>([]);
   const [query, setQuery] = useState("");
+  /** Показать только машины, у которых с ценой что-то не так. */
+  const [onlyProblems, setOnlyProblems] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   async function handleDelete(id: string) {
@@ -103,10 +105,11 @@ export default function AdminVehiclesPage() {
   const staleCount = vehicles.filter(v => (!v.turnkey || v.skipReason) && v.status !== 'hidden').length;
   const inTransitCount = vehicles.filter(v => v.status === 'in_transit').length;
   const soldCount = vehicles.filter(v => v.status === 'sold' || v.status === 'delivered').length;
+  const needsFix = (v: AdminVehicle) => (!v.turnkey || Boolean(v.skipReason)) && v.status !== 'hidden';
   const q = query.trim().toLowerCase();
-  const filtered = q
-    ? vehicles.filter(v => `${v.brand} ${v.model}`.toLowerCase().includes(q))
-    : vehicles;
+  const filtered = vehicles
+    .filter(v => (q ? `${v.brand} ${v.model}`.toLowerCase().includes(q) : true))
+    .filter(v => (onlyProblems ? needsFix(v) : true));
 
   return (
     <div className="space-y-8 max-w-[1400px] w-full px-8 pt-8 pb-12">
@@ -172,9 +175,17 @@ export default function AdminVehiclesPage() {
         <div className="px-8 py-6 border-b border-surface-container-low flex justify-between items-center bg-white">
           <h3 className="font-headline font-extrabold text-xl tracking-tight">Активные предложения</h3>
           {staleCount > 0 && (
-            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
-              Нужно поправить: {staleCount}
-            </span>
+            // Нажатием оставляем в списке только эти машины — иначе непонятно, какие
+            <button
+              type="button"
+              onClick={() => setOnlyProblems(v => !v)}
+              aria-pressed={onlyProblems}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                onlyProblems ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+              }`}
+            >
+              {onlyProblems ? `Показаны только эти: ${staleCount} · показать все` : `Нужно поправить: ${staleCount} — показать`}
+            </button>
           )}
         </div>
         <div className="overflow-x-auto bg-white">
@@ -270,7 +281,7 @@ export default function AdminVehiclesPage() {
                         <div className="w-16 h-16 rounded-full bg-surface-container-low/50 flex items-center justify-center mb-4 border border-slate-100">
                             <Car className="w-8 h-8 text-slate-300" />
                         </div>
-                        <h3 className="font-headline font-bold text-xl text-slate-600">{q ? "Ничего не найдено" : "Инвентарь пуст"}</h3>
+                        <h3 className="font-headline font-bold text-xl text-slate-600">{q || onlyProblems ? "Ничего не найдено" : "Инвентарь пуст"}</h3>
                         <p className="font-body text-slate-400 mt-1">{q ? `По запросу «${query}» автомобилей нет.` : "Здесь будут отображаться автомобили платформы. Добавьте первый автомобиль."}</p>
                     </div>
                   </td>

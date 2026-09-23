@@ -4,6 +4,10 @@ import { verifyAdmin } from '@/lib/server/admin';
 import { getNbkRates } from '@/lib/server/nbk';
 import { readRecalcStamp, recalcAllTurnkeyPrices } from '@/lib/server/turnkeyPrices';
 
+// Курс Нацбанка иногда отвечает медленно: с запасом по времени запрос не
+// оборвётся на середине, оставив менеджера без расчёта
+export const maxDuration = 30;
+
 /** Курс НБ РК для калькулятора растаможки. */
 export async function GET(request: Request) {
     if (!(await verifyAdmin(request, prisma))) {

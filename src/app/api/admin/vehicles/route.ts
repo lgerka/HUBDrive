@@ -7,6 +7,10 @@ import { readVehicleInput, turnkeyInputOf, VehicleInputError } from '@/lib/serve
 import { priceForSave, TurnkeyInputError, withRecalcLock, fallbackWarning, readRecalcStamp } from '@/lib/server/turnkeyPrices';
 import { getNbkRates } from '@/lib/server/nbk';
 
+// Курс Нацбанка иногда отвечает медленно: с запасом по времени запрос не
+// оборвётся на середине, оставив менеджера без расчёта
+export const maxDuration = 30;
+
 export async function GET(request: Request) {
     try {
         const isAdmin = await verifyAdmin(request, prisma);

@@ -6,6 +6,10 @@ import { getCalcSettings } from '@/lib/server/calculatorSettings';
 import { computeTurnkey, isPowertrain, isPriceCurrency, CATALOG_PRICING } from '@/lib/turnkey';
 import { BORDER_METHODS } from '@/lib/calculator';
 
+// Курс Нацбанка иногда отвечает медленно: с запасом по времени запрос не
+// оборвётся на середине, оставив менеджера без расчёта
+export const maxDuration = 30;
+
 /**
  * Цена под ключ, пока менеджер заполняет форму машины.
  *

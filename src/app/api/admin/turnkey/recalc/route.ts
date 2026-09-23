@@ -3,6 +3,9 @@ import { prisma } from '@/lib/server/prisma';
 import { verifyAdmin } from '@/lib/server/admin';
 import { recalcAllTurnkeyPrices, readRecalcStamp } from '@/lib/server/turnkeyPrices';
 
+// Пересчёт всего каталога плюс запрос курса — как у ночного пересчёта
+export const maxDuration = 60;
+
 /** Когда и по какому курсу последний раз пересчитывались цены в каталоге. */
 export async function GET(request: Request) {
     if (!(await verifyAdmin(request, prisma))) {
