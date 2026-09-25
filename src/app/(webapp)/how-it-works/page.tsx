@@ -24,7 +24,7 @@ export default function HowItWorksPage() {
   return (
     <div className="bg-background text-foreground min-h-[100dvh] pb-24 overflow-x-hidden selection:bg-orange-500/20 selection:text-foreground relative">
       {/* Top Navigation Bar */}
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 h-16 border-b border-border/40">
+      <header className="fixed top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border/40 bg-background/80 px-6 shadow-sm backdrop-blur-xl lg:hidden">
         <div className="flex items-center gap-3">
           <button className="text-primary hover:opacity-80 transition-opacity">
             <Menu className="w-6 h-6" />
@@ -44,7 +44,7 @@ export default function HowItWorksPage() {
         </div>
       </header>
 
-      <main className="pt-24 px-6 max-w-lg mx-auto">
+      <main className="mx-auto w-full max-w-[640px] px-4 pt-24 sm:px-6 lg:max-w-[880px] lg:px-8 lg:pt-10">
         {/* Hero Section */}
         <section className="mb-12">
           <h2 className="font-sans text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-4">

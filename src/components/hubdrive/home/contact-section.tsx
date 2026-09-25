@@ -22,7 +22,7 @@ const PLACE = 'app_home';
 
 export function ContactSection() {
     return (
-        <section className="mt-10 mb-6 max-w-5xl mx-auto px-4 w-full space-y-6">
+        <section className="app-container mb-6 mt-10 space-y-6">
             {/* Самое частое возражение — «нужной модели нет». Отвечаем на него сразу */}
             <div className="rounded-3xl bg-slate-900 dark:bg-surface-container-high p-6 text-white">
                 <h2 className="font-headline text-xl font-bold tracking-tight">Не нашли свою машину?</h2>
@@ -52,7 +52,7 @@ export function ContactSection() {
             <div>
                 <h2 className="font-headline font-bold text-xl tracking-tight text-on-surface">Ответим там, где удобно</h2>
                 <p className="mt-1 text-sm text-on-surface-variant">Менеджер на связи в мессенджерах и по телефону.</p>
-                <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="mt-4 grid grid-cols-1 gap-3 min-[380px]:grid-cols-3">
                     <button
                         type="button"
                         onClick={() => openWhatsApp('Здравствуйте! Хочу узнать про авто из Китая', PLACE)}

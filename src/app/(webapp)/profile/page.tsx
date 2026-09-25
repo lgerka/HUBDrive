@@ -85,10 +85,10 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="min-h-[100dvh] bg-surface font-sans flex flex-col pb-[calc(100px+env(safe-area-inset-bottom))]">
+        <div className="flex min-h-[100dvh] flex-col bg-surface font-sans">
             <ProfileHeader />
 
-            <main className="pt-16 px-6 max-w-2xl mx-auto space-y-8 w-full">
+            <main className="mx-auto w-full max-w-2xl space-y-8 px-6 pt-16 lg:pt-8">
                 <ProfileUserInfo 
                     name={displayName}
                     phone={displayPhone}

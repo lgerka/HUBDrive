@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Newspaper } from "lucide-react";
 import { NewsCategories } from "@/components/hubdrive/news/news-categories";
 import { NewsCard, NewsCardProps } from "@/components/hubdrive/news/news-card";
-import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 import { EmptyState } from "@/components/hubdrive/common/empty-state";
 
 const CATEGORIES = ["Все", "Новинки", "Обзоры рынка", "Сравнения"];
@@ -65,9 +64,9 @@ export default function NewsPage() {
     });
 
     return (
-        <div className="relative flex min-h-[100dvh] w-full flex-col bg-surface overflow-x-hidden pb-[calc(100px+env(safe-area-inset-bottom))]">
+        <div className="relative flex min-h-[100dvh] w-full flex-col overflow-x-hidden bg-surface">
             {/* Header */}
-            <header className="flex items-center justify-between bg-surface/80 backdrop-blur-md px-6 py-4 sticky top-0 z-20">
+            <header className="sticky top-0 z-30 flex items-center justify-between bg-surface/80 px-6 py-4 backdrop-blur-md lg:hidden">
                 <button 
                     onClick={() => router.back()}
                     className="flex items-center justify-center w-12 h-12 -ml-3 rounded-full hover:bg-surface-container-low transition-colors active:scale-95"
@@ -81,7 +80,7 @@ export default function NewsPage() {
             </header>
 
             {/* Categories */}
-            <div className="pt-2 pb-4 sticky top-[76px] z-10 bg-surface/90 backdrop-blur-md">
+            <div className="pb-4 pt-2">
                 <NewsCategories 
                     categories={CATEGORIES}
                     activeCategory={activeCategory}
@@ -90,7 +89,7 @@ export default function NewsPage() {
             </div>
 
             {/* News Feed */}
-            <main className="flex flex-col gap-8 px-6 pt-6 pb-12 max-w-2xl mx-auto w-full">
+            <main className="app-container grid grid-cols-1 gap-8 pb-12 pt-6 md:grid-cols-2 xl:grid-cols-3">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-48 bg-surface-container-lowest rounded-3xl shadow-[0px_12px_32px_rgba(25,28,30,0.02)]">
                         <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
@@ -110,8 +109,6 @@ export default function NewsPage() {
                     </div>
                 )}
             </main>
-
-            <BottomNav />
         </div>
     );
 }

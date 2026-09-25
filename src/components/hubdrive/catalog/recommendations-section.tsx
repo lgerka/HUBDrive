@@ -17,7 +17,7 @@ export function RecommendationsSection({ recommendations }: RecommendationsSecti
     if (recommendations.length === 0) return null;
 
     return (
-        <section className="space-y-6 max-w-5xl mx-auto px-4 w-full mt-2">
+        <section className="app-container mt-2 space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="font-headline font-bold text-xl tracking-tight text-on-surface">Рекомендовано вам</h2>
                 <Link href="/catalog" className="text-primary text-sm font-semibold hover:underline active:scale-95 transition-all">

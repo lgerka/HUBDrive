@@ -87,7 +87,7 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                                     });
                                 }
                             }}
-                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-colors z-10 shadow-sm"
+                            className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white shadow-sm backdrop-blur-md transition-colors hover:bg-white/40"
                         >
                             <Heart className={cn("w-[18px] h-[18px] transition-colors", isFavorite(vehicle.id) ? "fill-white text-white" : "text-white")} />
                         </button>
@@ -103,8 +103,10 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
     }
 
     return (
-        <Link href={`/vehicles/${vehicle.id}`} className="block">
-            <div className={cn("group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative", match?.bestLevel === 'perfect' && "ring-1 ring-primary-container ring-offset-2 ring-offset-background")}>
+        // h-full и flex: в сетке каталога карточки одной высоты, а цена
+        // с кнопкой всегда прижаты к низу — ряды не выглядят рваными
+        <Link href={`/vehicles/${vehicle.id}`} className="block h-full">
+            <div className={cn("group flex h-full flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative", match?.bestLevel === 'perfect' && "ring-1 ring-primary-container ring-offset-2 ring-offset-background")}>
                 
                 {/* Image Container */}
                 <div className="relative aspect-[16/10] w-full bg-surface-container-low">
@@ -160,10 +162,10 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-4">
+                <div className="flex flex-1 flex-col gap-4 p-5 sm:p-6">
                     <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="font-headline font-extrabold text-2xl line-clamp-1 text-on-surface">{vehicle.brand} {vehicle.model}</h3>
+                        <div className="min-w-0">
+                            <h3 className="font-headline font-extrabold text-xl sm:text-2xl line-clamp-1 text-on-surface">{vehicle.brand} {vehicle.model}</h3>
                             <p className="text-on-surface-variant font-medium mt-1">
                                 {vehicle.year} • Пробег: {vehicle.mileage ? vehicle.mileage.toLocaleString('ru-RU') : 0} км
                             </p>
@@ -183,10 +185,11 @@ export function VehicleCard({ vehicle, priority = false, match, isHorizontal = f
                         </span>
                     </div>
 
-                    {/* В узкой карточке кнопка уходит под цену, а не обрезается */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    {/* Цена и кнопка — в самом низу карточки. Если цена длинная,
+                        кнопка переносится под неё, но ряд карточек не рвётся */}
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
                         <TurnkeyPrice vehicle={vehicle as Vehicle & { turnkey?: boolean }} size="card-lg" />
-                        <button className="shrink-0 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-3 rounded-full active:scale-95 transition-transform duration-200">
+                        <button className="shrink-0 rounded-full bg-gradient-to-br from-primary to-primary-container px-4 py-2.5 text-sm font-bold text-on-primary transition-transform duration-200 active:scale-95">
                             Подробнее
                         </button>
                     </div>

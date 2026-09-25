@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, CarFront, Loader2 } from "lucide-react";
 import { CaseFilter } from "@/components/hubdrive/cases/case-filter";
 import { CaseCard, CaseCardProps } from "@/components/hubdrive/cases/case-card";
-import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 
 const CATEGORIES = ["Все", "Внедорожники", "Седаны", "Электрокары"];
 
@@ -46,9 +45,9 @@ export default function CasesPage() {
     });
 
     return (
-        <div className="relative flex min-h-[100dvh] w-full flex-col bg-background overflow-x-hidden pb-[calc(80px+env(safe-area-inset-bottom))]">
+        <div className="relative flex min-h-[100dvh] w-full flex-col overflow-x-hidden bg-background">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
+            <header className="sticky top-0 z-50 border-b border-border bg-background/80 px-4 py-3 backdrop-blur-md sm:px-6 lg:px-8 flex items-center justify-between lg:hidden">
                 <div className="flex items-center gap-3">
                     <div className="bg-primary p-1.5 rounded-lg flex items-center justify-center text-primary-foreground">
                         <CarFront className="w-6 h-6" />
@@ -62,7 +61,7 @@ export default function CasesPage() {
 
             <main className="flex-1 overflow-y-auto">
                 {/* Search */}
-                <div className="p-4">
+                <div className="app-container py-4">
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="w-5 h-5 text-muted-foreground" />
@@ -85,7 +84,7 @@ export default function CasesPage() {
                 />
 
                 {/* Cases List */}
-                <div className="p-4 flex flex-col gap-6">
+                <div className="app-container grid grid-cols-1 gap-6 py-4 md:grid-cols-2 xl:grid-cols-3">
                     {isLoading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -103,8 +102,6 @@ export default function CasesPage() {
                     )}
                 </div>
             </main>
-
-            <BottomNav />
         </div>
     );
 }

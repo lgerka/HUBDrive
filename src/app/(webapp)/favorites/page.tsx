@@ -47,7 +47,7 @@ export default function FavoritesPage() {
         <div className="flex flex-col min-h-[100dvh] bg-surface">
             <FavoritesHeader />
 
-            <main className="pt-24 pb-32 px-6 max-w-2xl mx-auto w-full flex-1">
+            <main className="app-container-wide flex-1 pb-12 pt-[72px] lg:pt-8">
                 {isLoading ? (
                     <div className="flex justify-center py-20">
                         <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
@@ -63,7 +63,7 @@ export default function FavoritesPage() {
                             </div>
                         </div>
                         
-                        <div className="flex flex-col gap-10">
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {vehicles.map(vehicle => (
                                 <VehicleCard key={vehicle.id} vehicle={vehicle as any} />
                             ))}

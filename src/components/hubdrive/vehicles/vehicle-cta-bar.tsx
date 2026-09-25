@@ -42,7 +42,9 @@ export function VehicleCtaBar({
     return (
         <div
             className={cn(
-                "fixed bottom-[calc(72px+env(safe-area-inset-bottom))] left-0 w-full z-40 flex justify-between items-center px-6 py-4 bg-surface-container-lowest shadow-[0_-12px_32px_rgba(25,28,30,0.04)] rounded-t-[2.5rem]",
+                // На широком экране те же действия стоят в колонке справа,
+                // а нижней панели приложения там нет — прячем
+                "fixed bottom-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom))] left-0 w-full z-40 flex justify-between items-center px-6 py-4 bg-surface-container-lowest shadow-[0_-12px_32px_rgba(25,28,30,0.04)] rounded-t-[2.5rem] lg:hidden",
                 "transition-all duration-500 ease-out",
                 visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none",
                 className

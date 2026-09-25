@@ -49,7 +49,7 @@ export function NewsSlider() {
 
   return (
     <div className="mt-8 mb-6">
-      <div className="px-5 mb-4 flex items-center justify-between">
+      <div className="app-container mb-4 flex items-center justify-between">
         <h2 className="text-xl font-sans font-bold flex items-center gap-2">
            Новости <span>&</span> Обзоры
         </h2>
@@ -60,7 +60,7 @@ export function NewsSlider() {
 
       <div className="w-full">
         <div 
-          className="flex overflow-x-auto gap-3 px-5 pb-4 items-start snap-x snap-mandatory"
+          className="app-container flex snap-x snap-mandatory items-start gap-3 overflow-x-auto pb-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <style dangerouslySetInnerHTML={{__html: `::-webkit-scrollbar { display: none; }`}} />
@@ -74,7 +74,7 @@ export function NewsSlider() {
                  href={isVideo ? item.videoUrl! : `/news/${item.id}`} 
                  key={item.id} 
                  target={isVideo ? "_blank" : "_self"}
-                 className="flex-shrink-0 w-[240px] h-[160px] snap-center group relative overflow-hidden rounded-[1.5rem] block shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-border/40"
+                 className="group relative block h-[160px] w-[240px] flex-shrink-0 snap-center overflow-hidden rounded-[1.5rem] border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] lg:h-[200px] lg:w-[300px]"
                >
                  {hasImage ? (
                    <Image 

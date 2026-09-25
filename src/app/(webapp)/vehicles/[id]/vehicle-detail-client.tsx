@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Heart, Eye } from 'lucide-react';
+import { ArrowLeft, Share2, Heart, Eye, Phone } from 'lucide-react';
 import type { PublicVehicle } from '@/lib/server/publicVehicle';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -139,9 +139,12 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Public
     };
 
     return (
-        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background pb-[calc(170px+env(safe-area-inset-bottom))] antialiased">
+        // overflow-x-clip вместо hidden: hidden делает блок контейнером прокрутки,
+        // и липкая колонка с ценой перестаёт держаться при скролле
+        <div className="relative flex min-h-screen w-full flex-col overflow-x-clip bg-background pb-[calc(var(--bottom-nav-h)+6rem+env(safe-area-inset-bottom))] antialiased lg:pb-16">
             {/* Top Nav (sticky) matching HTML */}
-            <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-sm">
+            {/* Мобильная шапка с «назад». На десктопе её место занимает шапка сайта */}
+            <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-sm lg:hidden">
                 <div className="flex justify-between items-center px-6 py-4 w-full">
                     <button onClick={() => router.back()} className="text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90">
                         <ArrowLeft className="w-6 h-6" />
@@ -152,13 +155,19 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Public
                 <div className="bg-surface-container w-full h-[1px]"></div>
             </header>
 
-            <main className="pt-16 max-w-4xl mx-auto w-full">
+            {/* На телефоне — одна колонка, как в приложении. На ноутбуке и мониторе
+                фотографии и описание слева, цена с кнопками — липкой колонкой справа:
+                иначе страница выглядит растянутым телефоном */}
+            <main className="w-full pt-14 lg:app-container lg:grid lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)] lg:items-start lg:gap-10 lg:pt-8">
+                <div className="min-w-0 lg:mx-0">
                 <VehicleGallery media={vehicle.media as string[]} videoUrl={vehicle.videoUrl} altText={`${vehicle.brand} ${vehicle.model}`} />
 
                 {/* Basic Info Section */}
                 <section className="px-6 py-8 bg-surface">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1 pr-4">
+                    {/* На узком экране название и цена — друг под другом: иначе
+                        длинному имени модели остаётся 110 px и оно рвётся на строки */}
+                    <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 flex-1 sm:pr-4">
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {vehicle.status === 'in_stock' && (
                                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100/50 text-green-700 text-[10px] font-bold uppercase tracking-wider">
@@ -189,11 +198,12 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Public
                                 </button>
                             </div>
                         </div>
-                        {/* Тенге крупно, доллары ниже — «под ключ», если цена посчитана калькулятором */}
-                        <TurnkeyPrice vehicle={vehicle} size="card" className="text-right shrink-0" />
+                        {/* Тенге крупно, доллары ниже — «под ключ», если цена посчитана
+                            калькулятором. На десктопе цена уходит в колонку справа */}
+                        <TurnkeyPrice vehicle={vehicle} size="card" className="shrink-0 sm:text-right lg:hidden" />
                     </div>
 
-                    <TurnkeyIncluded vehicle={vehicle} className="mt-4" />
+                    <TurnkeyIncluded vehicle={vehicle} className="mt-4 lg:hidden" />
 
                     {vehicle.status !== 'sold' && (
                         <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 border border-surface-container-highest">
@@ -206,7 +216,7 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Public
 
                     {/* Закупочные цены (¥/₸) клиенту не показываем — только срок поставки */}
                     {vehicle.deliveryEtaWeeks && vehicle.status !== 'sold' ? (
-                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest">
+                        <div className="mt-4 rounded-xl bg-surface-container-low border border-surface-container-highest lg:hidden">
                             <div className="flex items-center justify-between px-4 py-3">
                                 <span className="text-sm text-on-surface-variant">Срок поставки</span>
                                 <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
@@ -237,6 +247,50 @@ export function VehicleDetailClient({ initialVehicle }: { initialVehicle: Public
 
                 {/* Заявка на подбор: проявляется при прокрутке, фильтр не создаёт */}
                 <SimilarRequestBlock vehicleId={vehicle.id} brand={vehicle.brand} model={vehicle.model} />
+                </div>
+
+                {/* Колонка с ценой и действиями — только на широком экране.
+                    На телефоне то же самое показано в тексте и в нижней панели */}
+                <aside className="hidden lg:sticky lg:top-6 lg:block">
+                    <div className="rounded-2xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+                        <TurnkeyPrice vehicle={vehicle} size="card-lg" />
+                        <TurnkeyIncluded vehicle={vehicle} className="mt-4" />
+
+                        {vehicle.deliveryEtaWeeks && vehicle.status !== 'sold' ? (
+                            <div className="mt-4 flex items-center justify-between rounded-xl border border-surface-container-highest bg-surface-container-low px-4 py-3">
+                                <span className="text-sm text-on-surface-variant">Срок поставки</span>
+                                <span className="text-sm font-bold text-on-surface">~ {vehicle.deliveryEtaWeeks} нед.</span>
+                            </div>
+                        ) : null}
+
+                        <button
+                            onClick={vehicle.status === 'sold' ? () => setSimilarOpen(true) : handleContact}
+                            disabled={isSending}
+                            className="mt-5 flex w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container px-6 py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+                        >
+                            {isSending ? 'Отправляем…' : vehicle.status === 'sold' ? 'Заказать похожую' : 'Связаться с менеджером'}
+                        </button>
+
+                        <div className="mt-3 flex gap-3">
+                            <button
+                                onClick={() => {
+                                    trackEvent('call_clicked', { vehicleId: vehicle.id, meta: { brand: vehicle.brand, model: vehicle.model } });
+                                    callSupport();
+                                }}
+                                className="flex flex-1 items-center justify-center gap-2 rounded-full border border-surface-container px-4 py-3 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
+                            >
+                                <Phone className="h-4 w-4" /> Позвонить
+                            </button>
+                            <button
+                                onClick={handleFavorite}
+                                aria-label="В избранное"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                            >
+                                <Heart className={isFavorite(vehicle.id) ? 'h-5 w-5 fill-primary text-primary' : 'h-5 w-5'} />
+                            </button>
+                        </div>
+                    </div>
+                </aside>
             </main>
 
             {similarOpen && (

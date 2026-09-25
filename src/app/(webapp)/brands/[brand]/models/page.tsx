@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Search, CheckCircle2 } from "lucide-react";
-import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 import { getBrandById } from "@/constants/brands";
 import { CAR_MODELS } from "@/constants/models";
 
@@ -154,8 +153,6 @@ export default function ModelsPage({ params }: { params: { brand: string } }) {
                     Подтвердить выбор
                 </button>
             </div>
-
-            <BottomNav />
         </div>
     );
 }

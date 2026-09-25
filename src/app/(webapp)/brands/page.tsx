@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Search, CheckCircle2 } from "lucide-react";
-import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
 
 import { BRANDS_DATA } from "@/constants/brands";
 
@@ -132,7 +131,7 @@ export default function BrandsPage() {
                 </div>
 
                 {/* Alphabet Sidebar */}
-                <div className="w-8 flex flex-col items-center justify-center gap-[2px] text-[10px] font-bold text-slate-400 py-4 bg-white dark:bg-background-dark border-l border-slate-50 dark:border-slate-800 z-10">
+                <div className="z-10 flex w-10 flex-col items-center justify-center gap-[2px] border-l border-slate-50 bg-white py-4 text-xs font-bold text-slate-400 dark:border-slate-800 dark:bg-background-dark">
                     {ALPHABET.map((letter) => {
                         const hasData = BRANDS_DATA.some(g => g.letter === letter);
                         if (!hasData && letter !== 'B') {
@@ -166,8 +165,6 @@ export default function BrandsPage() {
                     })}
                 </div>
             </div>
-
-            <BottomNav />
         </div>
     );
 }

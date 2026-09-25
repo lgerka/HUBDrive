@@ -15,7 +15,7 @@ export default function WhyUsPage() {
   return (
     <div className="bg-background text-foreground min-h-[100dvh] pb-24 overflow-x-hidden selection:bg-orange-500/20 selection:text-foreground">
       {/* Top Navigation Shell */}
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm px-6 h-16 flex justify-between items-center border-b border-border/40">
+      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm px-6 h-16 flex justify-between items-center border-b border-border/40 lg:hidden">
         <div className="flex items-center gap-3">
           <button className="text-primary hover:opacity-80 transition-opacity">
             <Menu className="w-6 h-6" />
@@ -35,7 +35,7 @@ export default function WhyUsPage() {
         </div>
       </header>
 
-      <main className="pt-24 px-6 md:px-12 max-w-4xl mx-auto">
+      <main className="mx-auto max-w-4xl px-6 pt-24 md:px-12 lg:max-w-[900px] lg:pt-10">
         {/* Hero Branding Section */}
         <section className="mb-12">
           <div className="inline-flex items-center gap-2 mb-4">

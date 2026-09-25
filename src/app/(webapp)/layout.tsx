@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WEBAPP_ORIGIN } from "@/constants/contacts";
 import { BottomNav } from "@/components/hubdrive/navigation/bottom-nav";
+import { DesktopNav } from "@/components/hubdrive/navigation/desktop-nav";
 
 export const metadata: Metadata = {
     metadataBase: new URL(WEBAPP_ORIGIN),
@@ -34,7 +35,9 @@ export default function WebAppLayout({
             <FavoritesProvider>
                 <OnboardingGuard>
                     <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
-                        <main className="flex-1 pb-[calc(80px+env(safe-area-inset-bottom))]">{children}</main>
+                        {/* На широком экране — обычная шапка сайта, на телефоне — панель снизу */}
+                        <DesktopNav />
+                        <main className="flex-1 pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+1rem)] lg:pb-16">{children}</main>
                         <BottomNav />
                     </div>
                     {/* Только в приложении: на лендинге эти плашки не нужны */}

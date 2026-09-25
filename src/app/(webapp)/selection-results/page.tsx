@@ -12,7 +12,7 @@ export default function SelectionResultsPage() {
   return (
     <div className="bg-background text-foreground min-h-[100dvh] pb-32 overflow-x-hidden selection:bg-orange-500/20 selection:text-foreground">
       {/* TopAppBar */}
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm border-b border-border/40">
+      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-sm border-b border-border/40 lg:hidden">
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-4">
             <Link href="/app" className="active:scale-95 transition-transform duration-200 text-foreground hover:text-primary">
@@ -32,7 +32,7 @@ export default function SelectionResultsPage() {
         </div>
       </header>
 
-      <main className="pt-20 px-6 max-w-md mx-auto">
+      <main className="mx-auto max-w-md px-6 pt-20 lg:pt-8">
         {/* Filter Summary Section */}
         <section className="mb-8 mt-4">
           <div className="bg-muted/50 border border-border/60 rounded-2xl p-5 flex items-center justify-between">

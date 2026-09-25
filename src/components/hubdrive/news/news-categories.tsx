@@ -18,7 +18,7 @@ export function NewsCategories({ categories, activeCategory, onCategoryChange }:
                         key={category}
                         onClick={() => onCategoryChange(category)}
                         className={cn(
-                            "flex h-10 shrink-0 items-center justify-center rounded-full px-5 transition-colors active:scale-95",
+                            "flex h-11 shrink-0 items-center justify-center rounded-full px-5 transition-colors active:scale-95",
                             isActive 
                                 ? "bg-primary text-white shadow-sm" 
                                 : "bg-surface-container-low/80 hover:bg-surface-container-low text-on-surface"

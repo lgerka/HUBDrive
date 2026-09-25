@@ -118,7 +118,7 @@ export default async function LandingPage() {
 
             {/* Шапка */}
             <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur-md">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+                <div className="app-container flex items-center justify-between py-4">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/hub-drive-logo.png" alt="HUBDrive" className="h-7 w-auto" />
                     <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export default async function LandingPage() {
                             channel="phone"
                             ariaLabel="Позвонить"
                             newTab={false}
-                            className="flex sm:hidden h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-900"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-900 sm:hidden"
                         >
                             <Phone className="h-4 w-4" />
                         </ContactLink>
@@ -154,7 +154,7 @@ export default async function LandingPage() {
             </header>
 
             {/* Hero */}
-            <section className="mx-auto max-w-6xl px-5 pt-12 pb-16 md:pt-20">
+            <section className="app-container pb-16 pt-12 md:pt-20">
                 <div className="grid items-center gap-10 md:grid-cols-2">
                     <div>
                         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-orange-700">
@@ -169,16 +169,18 @@ export default async function LandingPage() {
                             с доставкой и растаможкой в Казахстане. Привозим в Алматы, Астану и другие города.
                         </p>
 
-                        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                        {/* flex-wrap: на планшете колонка узкая, и две кнопки в ряд
+                            ломали подписи на три строки внутри фиксированной высоты */}
+                        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                             <a
                                 href="#lead"
-                                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
+                                className="flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-orange-500 px-6 font-bold text-white shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98] lg:px-8"
                             >
                                 Узнать цену под ключ
                             </a>
                             <BotLink
                                 place="первый экран"
-                                className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 px-8 font-bold text-slate-900 transition-colors hover:bg-slate-50"
+                                className="flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border-2 border-slate-200 px-6 font-bold text-slate-900 transition-colors hover:bg-slate-50 lg:px-8"
                             >
                                 <Send className="h-5 w-5" />
                                 Смотреть каталог в Telegram
@@ -214,7 +216,7 @@ export default async function LandingPage() {
             </section>
 
             <section id="lead" className="bg-slate-50 py-16">
-                <div className="mx-auto grid max-w-5xl gap-8 px-5 md:grid-cols-2 md:items-center">
+                <div className="app-container grid gap-8 md:grid-cols-2 md:items-center lg:max-w-[1100px]">
                     <div>
                         <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
                             Узнайте цену до того, как платить
@@ -238,7 +240,7 @@ export default async function LandingPage() {
 
             {/* Гарантии */}
             <section className="bg-slate-50 py-16">
-                <div className="mx-auto max-w-6xl px-5">
+                <div className="app-container">
                     <h2 className="font-headline text-3xl font-extrabold tracking-tight">Что вы получаете при пригоне авто из Китая</h2>
                     <div className="mt-8 grid gap-5 sm:grid-cols-2">
                         {GUARANTEES.map(({ icon: Icon, title, text }) => (
@@ -257,7 +259,7 @@ export default async function LandingPage() {
             {/* Каталог */}
             {vehicles.length > 0 && (
                 <section className="py-16">
-                    <div className="mx-auto max-w-6xl px-5">
+                    <div className="app-container">
                         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
                             <div>
                                 <h2 className="font-headline text-3xl font-extrabold tracking-tight">Автомобили из Китая в наличии</h2>
@@ -314,9 +316,9 @@ export default async function LandingPage() {
 
             {/* Как работаем */}
             <section className="bg-slate-900 py-16 text-white">
-                <div className="mx-auto max-w-6xl px-5">
+                <div className="app-container">
                     <h2 className="font-headline text-3xl font-extrabold tracking-tight">Как проходит покупка авто из Китая</h2>
-                    <ol className="mt-10 grid gap-8 md:grid-cols-5">
+                    <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                         {STEPS.map(({ icon: Icon, title, text }, i) => (
                             <li key={title} className="relative">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
@@ -333,7 +335,7 @@ export default async function LandingPage() {
 
             {/* Установка приложения */}
             <section id="install" className="py-16">
-                <div className="mx-auto grid max-w-6xl items-start gap-10 px-5 md:grid-cols-2">
+                <div className="app-container grid items-start gap-10 md:grid-cols-2">
                     <div>
                         <h2 className="font-headline text-3xl font-extrabold tracking-tight">Приложение на телефоне</h2>
                         <p className="mt-4 leading-relaxed text-slate-600">
@@ -379,7 +381,7 @@ export default async function LandingPage() {
 
             {/* Финальный CTA */}
             <section className="py-16">
-                <div className="mx-auto max-w-4xl px-5">
+                <div className="reading-container lg:max-w-[64rem]">
                     <div className="rounded-3xl bg-gradient-to-br from-orange-500 to-orange-600 p-10 text-center text-white md:p-14">
                         <MessagesSquare className="mx-auto mb-5 h-10 w-10" />
                         <h2 className="font-headline text-3xl font-extrabold tracking-tight">Подберём автомобиль под ваш бюджет</h2>
@@ -421,7 +423,7 @@ export default async function LandingPage() {
             </section>
 
             <footer className="border-t border-slate-100 py-10">
-                <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 text-center sm:flex-row sm:justify-between sm:text-left">
+                <div className="app-container flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/hub-drive-logo.png" alt="HUBDrive" className="h-6 w-auto" />
                     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">

@@ -35,7 +35,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
     if (!item) notFound();
 
     return (
-        <div className="min-h-[100dvh] w-full bg-background pb-[calc(24px+env(safe-area-inset-bottom))] lg:mx-auto lg:max-w-2xl lg:border-x lg:shadow-xl">
+        <div className="mx-auto min-h-[100dvh] w-full bg-background pb-[calc(24px+env(safe-area-inset-bottom))] md:max-w-[46rem] lg:border-x lg:shadow-xl">
             <header className="sticky top-0 z-50 flex items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-md">
                 <Link
                     href="/cases"

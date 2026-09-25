@@ -6,7 +6,6 @@ import { Plus, Search, Loader2, ArrowLeft, Bell } from 'lucide-react';
 import { useFiltersStore } from '@/lib/state/filters.store';
 import { FilterCard } from '@/components/hubdrive/filters/filter-card';
 import { EmptyState } from '@/components/hubdrive/common/empty-state';
-import { BottomNav } from '@/components/hubdrive/navigation/bottom-nav';
 import { useTelegram } from '@/components/hubdrive/telegram/TelegramProvider';
 
 export default function FiltersPage() {
@@ -97,8 +96,6 @@ export default function FiltersPage() {
                     <Plus className="w-7 h-7" />
                 </button>
             </div>
-            
-            <BottomNav />
         </div>
     );
 }

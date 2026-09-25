@@ -21,7 +21,7 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
 
     return (
         <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md pb-2">
-            <div className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
+            <div className="flex items-center justify-between app-container-wide py-4">
                 <div className="w-10"></div>
                 <h1 className="font-headline font-bold text-xl tracking-tight text-primary">Каталог</h1>
                 <div className="flex gap-2 w-10 justify-end">
@@ -32,7 +32,7 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
             </div>
 
             {/* Search Input Section */}
-            <div className="px-6 max-w-5xl mx-auto w-full mb-4">
+            <div className="app-container-wide mb-4">
                 <div className="flex gap-3 items-center">
                     <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 w-5 h-5" />
@@ -55,7 +55,7 @@ export function CatalogHeader({ searchValue, onSearchChange, onResetSearch }: Ca
             </div>
 
             {/* Filter / Sort Row */}
-            <div className="px-6 max-w-5xl mx-auto w-full flex justify-between items-center mb-4">
+            <div className="app-container-wide mb-4 flex items-center justify-between">
                 <button
                     onClick={() => {
                         // PRD §9: по дате → по популярности → по цене (дешевле/дороже) → по дате

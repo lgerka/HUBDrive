@@ -37,7 +37,7 @@ function machines(n: number): string {
 export function ContactWays({ total }: { total?: number }) {
     return (
         <section className="bg-white py-16">
-            <div className="mx-auto max-w-6xl px-5">
+            <div className="app-container">
                 <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
                     Ответим там, где вам удобно
                 </h2>

@@ -36,7 +36,7 @@ export function RecommendedSection() {
     if (recommendations.length === 0) {
         const notifies = filters.some(f => f.notificationsEnabled);
         return (
-            <section className="max-w-5xl mx-auto px-4 w-full mt-8">
+            <section className="app-container mt-8">
                 <div className="flex items-start gap-4 rounded-2xl bg-white dark:bg-surface-container-low p-5 shadow-sm">
                     <div className="w-10 h-10 shrink-0 bg-[#F2F4F7] dark:bg-[#1A1C1E] rounded-full flex items-center justify-center">
                         <BellRing className="text-primary w-5 h-5" />

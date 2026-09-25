@@ -71,7 +71,7 @@ function NewFilterContent() {
     return (
         <div className="relative flex min-h-[100dvh] w-full flex-col bg-surface max-w-2xl mx-auto">
             {/* TopAppBar */}
-            <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none max-w-2xl mx-auto">
+            <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none max-w-2xl mx-auto lg:hidden">
                 <div className="flex items-center justify-between px-6 h-16 w-full">
                     <div className="flex items-center gap-4">
                         {!isFirstFilter && (
@@ -89,7 +89,7 @@ function NewFilterContent() {
             </header>
 
             {/* Main Content */}
-            <div className="flex-1 w-full mt-16">
+            <div className="mt-16 w-full flex-1 lg:mt-6">
                 {isFirstFilter && (
                     <div className="px-6 py-8 bg-gradient-to-b from-primary/5 to-transparent border-b border-gray-100 dark:border-white/5">
                         <h2 className="text-2xl font-headline font-extrabold text-on-surface mb-2 tracking-tight">Настройте первый фильтр</h2>

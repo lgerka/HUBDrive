@@ -40,9 +40,9 @@ export function VehicleInfoBlocks({ description }: VehicleInfoBlocksProps) {
             </section>
 
             {/* Description */}
-            <section className="px-6 py-6 border-t border-surface-container mx-6 mt-4">
+            <section className="mt-4 border-t border-surface-container px-6 py-6">
                 <h3 className="font-headline font-bold text-xl mb-4 text-on-surface">Описание</h3>
-                <div className="prose prose-sm text-on-surface-variant leading-relaxed">
+                <div className="max-w-[46rem] leading-relaxed text-on-surface-variant">
                     <p className="whitespace-pre-wrap">{description || "Описание для данного автомобиля пока не добавлено. Свяжитесь с нами для получения полной информации и видео-обзора."}</p>
                 </div>
             </section>

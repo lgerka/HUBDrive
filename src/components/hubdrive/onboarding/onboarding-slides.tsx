@@ -36,9 +36,11 @@ export function OnboardingSlides({ onComplete }: OnboardingSlidesProps) {
     const nextDisabled = index === 4 && !intent;
 
     return (
-        <div className="fixed inset-0 z-[100] bg-surface flex flex-col overflow-hidden">
+        // items-center и max-w-[480px] у детей: на ноутбуке и мониторе онбординг
+        // остаётся колонкой по центру, а не растягивает кнопку «Дальше» на весь экран
+        <div className="fixed inset-0 z-[100] flex flex-col items-center overflow-hidden bg-surface">
             {/* Top bar: progress + skip */}
-            <div className="pt-4 px-5 shrink-0">
+            <div className="w-full max-w-[480px] shrink-0 px-5 pt-4">
                 <div className="flex gap-1.5 mb-3">
                     {Array.from({ length: TOTAL }).map((_, i) => (
                         <div
@@ -60,7 +62,7 @@ export function OnboardingSlides({ onComplete }: OnboardingSlidesProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 flex flex-col">
+            <div className="flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto px-6">
                 {index === 0 && <SlideHook />}
                 {index === 1 && <SlidePain />}
                 {index === 2 && <SlideSystem />}
@@ -71,7 +73,7 @@ export function OnboardingSlides({ onComplete }: OnboardingSlidesProps) {
 
             {/* Bottom CTA */}
             {index < TOTAL - 1 && (
-                <div className="px-6 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3 shrink-0">
+                <div className="w-full max-w-[480px] shrink-0 px-6 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3">
                     <button
                         onClick={next}
                         disabled={nextDisabled}
@@ -97,7 +99,7 @@ function IconBubble({ icon: Icon, className }: { icon: typeof Check; className?:
 function SlideHook() {
     return (
         <div className="flex-1 flex flex-col justify-center text-center py-4">
-            <div className="relative w-full aspect-[4/3] mb-8">
+            <div className="relative mx-auto mb-8 aspect-[4/3] w-full max-w-[420px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={ART.car}

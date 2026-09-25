@@ -96,9 +96,9 @@ export function HeroSection() {
     };
 
     return (
-        <section className="mt-2 max-w-7xl mx-auto">
+        <section className="app-container mt-2">
             <div
-                className="flex gap-4 px-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+                className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
                 onScroll={handleScroll}
             >
                 {banners.map(banner => (

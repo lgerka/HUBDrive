@@ -99,10 +99,22 @@ module.exports = {
 				"outline": "#8c7164",
 				"on-secondary-fixed-variant": "#713612"
     		},
+			/*
+			 * Мелкие размеры фиксируем в пикселях, а не в rem: корневой кегль
+			 * на телефоне меньше (см. globals.css), и подписи вроде text-xs
+			 * проваливались до 9–10 px. Остальная шкала по-прежнему в rem
+			 * и растёт вместе с диагональю.
+			 */
+			fontSize: {
+				"xs": ["12px", { lineHeight: "16px" }],
+				"sm": ["14px", { lineHeight: "20px" }],
+			},
 			fontFamily: {
-				"headline": ["Manrope"],
-				"body": ["Inter"],
-				"label": ["Inter"]
+				// next/font отдаёт семейства под этими именами; системные —
+				// на случай, если файл шрифта не догрузился
+				"headline": ["Manrope", "system-ui", "sans-serif"],
+				"body": ["Inter", "system-ui", "sans-serif"],
+				"label": ["Inter", "system-ui", "sans-serif"]
 			}
     	}
     },

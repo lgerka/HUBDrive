@@ -7,7 +7,7 @@ export function ProfileHeader() {
     const router = useRouter();
 
     return (
-        <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-surface-container-low transition-colors duration-300">
+        <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-surface-container-low transition-colors duration-300 lg:hidden">
             <div className="flex items-center justify-between px-6 py-4 w-full max-w-2xl mx-auto">
                 <button 
                     onClick={() => router.back()}

@@ -124,12 +124,13 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen bg-surface text-on-surface flex flex-col md:flex-row antialiased font-body">
-            <aside className="w-full md:w-64 md:fixed left-0 top-0 md:h-screen bg-slate-50 border-r flex flex-col p-4 gap-2 z-50">
+            {/* На узком окне меню прокручивается: иначе нижние разделы недоступны */}
+            <aside className="z-50 flex w-full flex-col gap-2 border-r bg-slate-50 p-4 md:fixed md:left-0 md:top-0 md:h-screen md:w-64 md:overflow-y-auto">
                 <div className="mb-6 px-4 pt-2 hidden md:block">
                     <h1 className="text-lg font-black tracking-tighter text-primary">HUBDrive</h1>
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Панель управления</p>
                 </div>
-                <nav className="space-y-1 flex flex-row md:flex-col overflow-x-auto">
+                <nav className="flex flex-row gap-1 overflow-x-auto pb-1 hide-scrollbar md:flex-col md:gap-1 md:overflow-x-visible md:pb-0">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
                         return (
@@ -137,7 +138,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "px-4 py-3 rounded-lg text-sm whitespace-nowrap transition-all flex items-center gap-3",
+                                    "flex min-h-[44px] items-center gap-3 whitespace-nowrap rounded-lg px-4 py-3 text-sm transition-all",
                                     isActive ? "text-primary bg-white shadow-sm font-bold" : "text-slate-500 hover:text-primary hover:bg-orange-50/50 font-medium"
                                 )}
                             >
@@ -148,8 +149,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                     })}
                 </nav>
             </aside>
-            <main className="flex-1 w-full md:ml-64 bg-surface min-h-screen">
-                {children}
+            {/* На большом мониторе рабочая область ограничена: таблицы и формы
+                во всю ширину 2560 читать невозможно */}
+            <main className="min-h-screen w-full flex-1 bg-surface md:ml-64">
+                <div className="mx-auto w-full max-w-[1600px]">{children}</div>
             </main>
         </div>
     );

@@ -130,14 +130,20 @@ export function VehicleGallery({ media, altText, videoUrl }: VehicleGalleryProps
                                 }
                                 setActiveIndex(i);
                             }}
-                            className={cn(
-                                "transition-all duration-300 rounded-full",
-                                activeIndex === i
-                                    ? "h-1.5 w-8 bg-primary"
-                                    : "h-1.5 w-1.5 bg-on-surface/20 hover:bg-on-surface/40"
-                            )}
-                            aria-label={`Go to slide ${i + 1}`}
-                        />
+                            // Точка маленькая, а нажимать нужно пальцем: саму точку
+                            // рисуем внутри прозрачной кнопки 28 px высотой
+                            className="flex h-7 items-center justify-center px-1.5"
+                            aria-label={`Перейти к фото ${i + 1}`}
+                        >
+                            <span
+                                className={cn(
+                                    "block rounded-full transition-all duration-300",
+                                    activeIndex === i
+                                        ? "h-1.5 w-8 bg-primary"
+                                        : "h-1.5 w-1.5 bg-on-surface/20 hover:bg-on-surface/40"
+                                )}
+                            />
+                        </button>
                     ))}
                 </div>
             )}

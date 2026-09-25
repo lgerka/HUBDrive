@@ -31,7 +31,7 @@ export default async function WebAppRoot() {
         <div className="flex flex-col bg-surface dark:bg-background">
             <TopNav />
 
-            <div className="pt-14">
+            <div className="pt-14 lg:pt-4">
                 <HeroSection />
                 <QuickActions />
                 <NewsSlider />

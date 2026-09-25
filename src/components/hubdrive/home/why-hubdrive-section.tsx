@@ -29,7 +29,7 @@ function carsWord(n: number): string {
 
 export function WhyHubdriveSection({ available }: { available: number | null }) {
     return (
-        <section className="mt-10 max-w-5xl mx-auto px-4 w-full">
+        <section className="app-container mt-10">
             <h2 className="font-headline font-bold text-xl tracking-tight text-on-surface mb-4">Почему HUBDrive</h2>
 
             {/* Число — только если его удалось посчитать. Ноль или ошибку не показываем */}
@@ -46,7 +46,7 @@ export function WhyHubdriveSection({ available }: { available: number | null }) 
                 </Link>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                 {REASONS.map(({ icon: Icon, title, text }) => (
                     <div key={title} className="bg-white dark:bg-surface-container-low p-4 rounded-2xl shadow-sm">
                         <div className="w-8 h-8 mb-2 bg-[#F2F4F7] dark:bg-[#1A1C1E] rounded-full flex items-center justify-center">

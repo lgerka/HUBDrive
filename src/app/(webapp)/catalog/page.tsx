@@ -135,7 +135,7 @@ function CatalogContent() {
                     <RecommendationsSection recommendations={recommendations} />
                 )}
 
-                <section className="px-6 max-w-5xl mx-auto w-full space-y-6">
+                <section className="app-container-wide space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="font-headline font-bold text-xl tracking-tight text-on-surface">Купить авто</h2>
                         <div className="text-sm font-medium text-on-surface-variant bg-surface-container-low px-3 py-1 rounded-full border border-surface-container">
@@ -148,7 +148,7 @@ function CatalogContent() {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : filteredVehicles.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 sm:gap-6 xl:gap-8">
                             {filteredVehicles.slice(0, visibleCount).map((vehicle) => {
                                 const bestMatch = filters.length > 0 ? pickBestMatch(vehicle as any, filters) : undefined;
                                 return (
