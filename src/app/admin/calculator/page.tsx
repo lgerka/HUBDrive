@@ -142,6 +142,7 @@ export default function CalculatorPage() {
     const [engineCc, setEngineCc] = useState("2000");
     const [year, setYear] = useState(String(new Date().getFullYear()));
     const [kzOnly, setKzOnly] = useState(true);
+    const [phevWeakEngine, setPhevWeakEngine] = useState(false);
 
     const [showCosts, setShowCosts] = useState(false);
     const [showLegal, setShowLegal] = useState(false);
@@ -245,10 +246,11 @@ export default function CalculatorPage() {
         engineCc: Number(engineCc) || 0,
         year: Number(year) || new Date().getFullYear(),
         kzOnly,
+        phevWeakEngine,
         kztPerUsd: rates?.usd ?? 0,
         kztPerCny: rates?.cny ?? 0,
         settings: draft,
-    }), [price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, rates, draft]);
+    }), [price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, phevWeakEngine, rates, draft]);
 
     // Тот же расчёт по сохранённым настройкам — чтобы в подтверждении
     // показать, на сколько правка меняет цену на этой конкретной машине
@@ -261,10 +263,11 @@ export default function CalculatorPage() {
         engineCc: Number(engineCc) || 0,
         year: Number(year) || new Date().getFullYear(),
         kzOnly,
+        phevWeakEngine,
         kztPerUsd: rates?.usd ?? 0,
         kztPerCny: rates?.cny ?? 0,
         settings: saved,
-    }) : null), [saved, price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, rates]);
+    }) : null), [saved, price, currency, cityKey, borderMethod, powertrain, engineCc, year, kzOnly, phevWeakEngine, rates]);
 
     const message = useMemo(
         () => asMessage(result, carName, Number(year) || 0, messageMode),
@@ -284,7 +287,7 @@ export default function CalculatorPage() {
 
     const isReady = Number(price) > 0 && engineOk && !blocksResult
         && Boolean(rates) && Boolean(saved);
-    const wtoAvailable = canUseWtoRate(powertrain);
+    const wtoAvailable = canUseWtoRate(powertrain, phevWeakEngine);
     const city = CITIES.find(c => c.key === cityKey);
     // Льгота ВТО существует ради того, что машина остаётся в Казахстане.
     // Россия и Киргизия — страны ЕАЭС, туда её везти по этой ставке нельзя
@@ -575,6 +578,22 @@ export default function CalculatorPage() {
                             />
                         </div>
                     </div>
+
+                    {powertrain === "phev" && city?.country === "KZ" && (
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-3">
+                            <input
+                                type="checkbox"
+                                checked={phevWeakEngine}
+                                onChange={e => setPhevWeakEngine(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                            />
+                            <span className="text-xs leading-relaxed text-slate-700">
+                                <b>ДВС слабее электромотора</b> — мощность двигателя не больше
+                                30-минутной мощности электромотора по документам модели.
+                                Тогда обычному гибриду тоже доступна пошлина 0%.
+                            </span>
+                        </label>
+                    )}
 
                     {wtoPossible && (
                         <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-emerald-50 p-3">

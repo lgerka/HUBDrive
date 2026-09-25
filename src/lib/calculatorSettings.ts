@@ -81,7 +81,7 @@ export interface LegalRates {
     exciseLuxuryThresholdMrp: number;
     /**
      * Акциз по объёму двигателя: тенге за см³ и порог в см³.
-     * Ноль — выключен. Включать, только когда брокер подтвердит ставку.
+     * НК 2026, ст. 537: 100 ₸ за см³ у легковых больше 3000 см³. Ноль — выключен.
      */
     exciseVolumeKztPerCc: number;
     exciseVolumeThresholdCc: number;
@@ -165,7 +165,7 @@ export const DEFAULT_CALC_SETTINGS: CalcSettings = {
         dutyEaeu: 0.15,
         exciseLuxury: 0.10,
         exciseLuxuryThresholdMrp: 18_000,
-        exciseVolumeKztPerCc: 0,
+        exciseVolumeKztPerCc: 100,
         exciseVolumeThresholdCc: 3000,
         utilBaseMrp: 50,
         utilBrackets: [
@@ -253,7 +253,7 @@ export const FIELDS: FieldDef[] = [
     },
     {
         path: 'rates.exciseVolumeKztPerCc', label: 'Акциз по объёму', unit: '₸ за см³', group: 'legal',
-        hint: 'Ноль — выключен. Включайте, только когда брокер подтвердит ставку',
+        hint: 'НК 2026, ст. 537: 100 ₸ за каждый см³ у машин больше 3000 см³. Ноль — выключен',
     },
     {
         path: 'rates.exciseVolumeThresholdCc', label: 'Порог акциза по объёму',
